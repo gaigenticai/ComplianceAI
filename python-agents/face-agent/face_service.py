@@ -393,26 +393,114 @@ class FaceProcessor:
             return 70.0  # Default score
 
     def _check_eye_aspect_ratio(self, image: np.ndarray, face_location: Tuple) -> float:
-        """Check eye aspect ratio for liveness detection"""
+        """
+        Check eye aspect ratio for liveness detection using proper EAR calculation
+        
+        Eye Aspect Ratio (EAR) is calculated as:
+        EAR = (|p2-p6| + |p3-p5|) / (2 * |p1-p4|)
+        
+        Where p1-p6 are the 6 landmark points of an eye.
+        Normal EAR values range from 0.2-0.4, with blinks showing values < 0.2
+        """
         try:
             # Extract landmarks for eyes
             landmarks_data = self.extract_face_landmarks(image)
             
             if not landmarks_data or 'key_points' not in landmarks_data:
+                logger.warning("No facial landmarks detected for EAR calculation")
                 return 70.0  # Default score if landmarks not available
             
-            # Calculate eye aspect ratios (simplified)
-            # In a real implementation, you would use proper eye landmark points
-            # This is a simplified version
+            # Get image dimensions for coordinate conversion
+            height, width = image.shape[:2]
             
-            # Assume normal eye aspect ratio indicates liveness
-            ear_score = 75.0  # Placeholder - would implement proper EAR calculation
+            # Extract eye landmarks
+            left_eye_landmarks = landmarks_data['key_points']['left_eye']
+            right_eye_landmarks = landmarks_data['key_points']['right_eye']
+            
+            if not left_eye_landmarks or not right_eye_landmarks:
+                logger.warning("Eye landmarks not properly extracted")
+                return 70.0
+            
+            # Calculate EAR for both eyes
+            left_ear = self._calculate_single_eye_aspect_ratio(left_eye_landmarks, width, height)
+            right_ear = self._calculate_single_eye_aspect_ratio(right_eye_landmarks, width, height)
+            
+            # Average EAR of both eyes
+            avg_ear = (left_ear + right_ear) / 2.0
+            
+            # Convert EAR to liveness score
+            # Normal EAR range is 0.2-0.4
+            # Values significantly outside this range may indicate spoofing
+            if 0.15 <= avg_ear <= 0.45:
+                # Normal range - high liveness score
+                ear_score = 85.0 + (15.0 * (1 - abs(avg_ear - 0.3) / 0.15))
+            elif 0.1 <= avg_ear < 0.15 or 0.45 < avg_ear <= 0.5:
+                # Slightly outside normal range - medium score
+                ear_score = 60.0 + (20.0 * (1 - abs(avg_ear - 0.3) / 0.2))
+            else:
+                # Far outside normal range - low score (possible spoofing)
+                ear_score = 30.0
+            
+            # Ensure score is within valid range
+            ear_score = max(0.0, min(100.0, ear_score))
+            
+            logger.debug(f"EAR calculation: left={left_ear:.3f}, right={right_ear:.3f}, "
+                        f"avg={avg_ear:.3f}, score={ear_score:.1f}")
             
             return ear_score
             
         except Exception as e:
-            logger.warning(f"Eye aspect ratio check failed: {str(e)}")
-            return 70.0
+            logger.error(f"Eye aspect ratio calculation failed: {str(e)}")
+            return 70.0  # Default score on error
+    
+    def _calculate_single_eye_aspect_ratio(self, eye_landmarks: List[Dict], width: int, height: int) -> float:
+        """
+        Calculate Eye Aspect Ratio for a single eye
+        
+        Args:
+            eye_landmarks: List of eye landmark points with x, y coordinates (normalized)
+            width: Image width for coordinate conversion
+            height: Image height for coordinate conversion
+            
+        Returns:
+            Eye aspect ratio value
+        """
+        try:
+            if len(eye_landmarks) < 6:
+                logger.warning(f"Insufficient eye landmarks: {len(eye_landmarks)}")
+                return 0.3  # Default EAR value
+            
+            # Convert normalized coordinates to pixel coordinates
+            points = []
+            for landmark in eye_landmarks[:6]:  # Use first 6 points for EAR calculation
+                x = int(landmark['x'] * width)
+                y = int(landmark['y'] * height)
+                points.append((x, y))
+            
+            # Calculate distances for EAR formula
+            # Vertical distances
+            vertical_1 = self._euclidean_distance(points[1], points[5])  # p2-p6
+            vertical_2 = self._euclidean_distance(points[2], points[4])  # p3-p5
+            
+            # Horizontal distance
+            horizontal = self._euclidean_distance(points[0], points[3])  # p1-p4
+            
+            # Calculate EAR
+            if horizontal == 0:
+                logger.warning("Zero horizontal distance in EAR calculation")
+                return 0.3
+            
+            ear = (vertical_1 + vertical_2) / (2.0 * horizontal)
+            
+            return ear
+            
+        except Exception as e:
+            logger.error(f"Single eye EAR calculation failed: {str(e)}")
+            return 0.3  # Default EAR value
+    
+    def _euclidean_distance(self, point1: Tuple[int, int], point2: Tuple[int, int]) -> float:
+        """Calculate Euclidean distance between two points"""
+        return np.sqrt((point1[0] - point2[0])**2 + (point1[1] - point2[1])**2)
 
     def _analyze_face_texture(self, face_image: np.ndarray) -> float:
         """Analyze face texture for liveness detection"""

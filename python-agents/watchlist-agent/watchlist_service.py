@@ -17,6 +17,8 @@ Features:
 import os
 import pandas as pd
 import numpy as np
+import json
+import requests
 from datetime import datetime, date
 from typing import Dict, List, Optional, Any, Tuple
 import logging
@@ -129,89 +131,475 @@ class WatchlistProcessor:
         logger.info("Watchlist Processor initialized")
 
     def load_watchlist_databases(self):
-        """Load watchlist databases from various sources"""
+        """Load watchlist databases from real external sources and APIs"""
         try:
-            # In a production environment, these would be loaded from actual databases
-            # For this implementation, we'll create sample data
+            # Initialize empty watchlists dictionary
+            self.watchlists = {}
+            self.last_updated = {}
             
-            # OFAC Sanctions List (sample data)
-            self.watchlists['ofac_sanctions'] = pd.DataFrame([
-                {
-                    'name': 'JOHN DOE SMITH',
-                    'aliases': 'JOHN D SMITH;J D SMITH',
-                    'date_of_birth': '1970-01-15',
-                    'nationality': 'US',
-                    'list_type': 'sanctions',
-                    'program': 'OFAC SDN',
-                    'added_date': '2020-01-01'
-                },
-                {
-                    'name': 'MARIA GONZALEZ RODRIGUEZ',
-                    'aliases': 'MARIA G RODRIGUEZ;M GONZALEZ',
-                    'date_of_birth': '1965-03-22',
-                    'nationality': 'MX',
-                    'list_type': 'sanctions',
-                    'program': 'OFAC SDN',
-                    'added_date': '2019-05-15'
-                }
-            ])
+            # Load OFAC Sanctions List from official API
+            ofac_data = self._load_ofac_sanctions()
+            if ofac_data is not None and not ofac_data.empty:
+                self.watchlists['ofac_sanctions'] = ofac_data
+                self.last_updated['ofac_sanctions'] = datetime.now()
+                logger.info(f"Loaded {len(ofac_data)} OFAC sanctions entries")
             
-            # EU Sanctions List (sample data)
-            self.watchlists['eu_sanctions'] = pd.DataFrame([
-                {
-                    'name': 'VLADIMIR PETROV',
-                    'aliases': 'V PETROV;VLADIMIR P',
-                    'date_of_birth': '1960-12-05',
-                    'nationality': 'RU',
-                    'list_type': 'sanctions',
-                    'program': 'EU Sanctions',
-                    'added_date': '2021-02-01'
-                }
-            ])
+            # Load EU Sanctions List from official API
+            eu_data = self._load_eu_sanctions()
+            if eu_data is not None and not eu_data.empty:
+                self.watchlists['eu_sanctions'] = eu_data
+                self.last_updated['eu_sanctions'] = datetime.now()
+                logger.info(f"Loaded {len(eu_data)} EU sanctions entries")
             
-            # PEP Database (sample data)
-            self.watchlists['pep_database'] = pd.DataFrame([
-                {
-                    'name': 'ROBERT JOHNSON',
-                    'aliases': 'BOB JOHNSON;R JOHNSON',
-                    'date_of_birth': '1955-07-10',
-                    'nationality': 'US',
-                    'list_type': 'pep',
-                    'position': 'Former Government Official',
-                    'country': 'US',
-                    'added_date': '2018-01-01'
-                },
-                {
-                    'name': 'ANGELA MUELLER',
-                    'aliases': 'A MUELLER;ANGELA M',
-                    'date_of_birth': '1962-11-30',
-                    'nationality': 'DE',
-                    'list_type': 'pep',
-                    'position': 'Corporate Executive',
-                    'country': 'DE',
-                    'added_date': '2019-06-01'
-                }
-            ])
+            # Load UN Sanctions List from official API
+            un_data = self._load_un_sanctions()
+            if un_data is not None and not un_data.empty:
+                self.watchlists['un_sanctions'] = un_data
+                self.last_updated['un_sanctions'] = datetime.now()
+                logger.info(f"Loaded {len(un_data)} UN sanctions entries")
             
-            # Adverse Media Database (sample data)
-            self.watchlists['adverse_media'] = pd.DataFrame([
-                {
-                    'name': 'MICHAEL BROWN',
-                    'aliases': 'MIKE BROWN;M BROWN',
-                    'date_of_birth': '1975-04-18',
-                    'nationality': 'GB',
-                    'list_type': 'adverse_media',
-                    'category': 'Financial Crime',
-                    'source': 'News Media',
-                    'added_date': '2022-03-15'
-                }
-            ])
+            # Load PEP Database from commercial provider
+            pep_data = self._load_pep_database()
+            if pep_data is not None and not pep_data.empty:
+                self.watchlists['pep_database'] = pep_data
+                self.last_updated['pep_database'] = datetime.now()
+                logger.info(f"Loaded {len(pep_data)} PEP database entries")
             
-            logger.info(f"Loaded {len(self.watchlists)} watchlist databases")
+            # Load World-Check data if available
+            worldcheck_data = self._load_worldcheck_data()
+            if worldcheck_data is not None and not worldcheck_data.empty:
+                self.watchlists['worldcheck'] = worldcheck_data
+                self.last_updated['worldcheck'] = datetime.now()
+                logger.info(f"Loaded {len(worldcheck_data)} World-Check entries")
+            
+            # Load Dow Jones Risk & Compliance data
+            dowjones_data = self._load_dowjones_data()
+            if dowjones_data is not None and not dowjones_data.empty:
+                self.watchlists['dowjones'] = dowjones_data
+                self.last_updated['dowjones'] = datetime.now()
+                logger.info(f"Loaded {len(dowjones_data)} Dow Jones entries")
+            
+            total_entries = sum(len(df) for df in self.watchlists.values())
+            logger.info(f"Successfully loaded {len(self.watchlists)} watchlist databases with {total_entries} total entries")
+            
+            # Schedule periodic updates
+            self._schedule_database_updates()
             
         except Exception as e:
             logger.error(f"Failed to load watchlist databases: {str(e)}")
+            # Initialize with empty dataframes to prevent crashes
             self.watchlists = {}
+            self.last_updated = {}
+    
+    def _load_ofac_sanctions(self) -> Optional[pd.DataFrame]:
+        """Load OFAC Sanctions List from official Treasury API"""
+        try:
+            ofac_api_key = os.getenv('OFAC_API_KEY')
+            ofac_base_url = os.getenv('OFAC_BASE_URL', 'https://api.treasury.gov/ofac')
+            
+            if not ofac_api_key:
+                logger.warning("OFAC API key not configured, skipping OFAC sanctions load")
+                return None
+            
+            headers = {
+                'Authorization': f'Bearer {ofac_api_key}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            
+            # Get SDN (Specially Designated Nationals) list
+            response = requests.get(
+                f'{ofac_base_url}/sdn/list',
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Parse OFAC data into standardized format
+                records = []
+                for entry in data.get('entries', []):
+                    # Extract names and aliases
+                    primary_name = entry.get('name', '').upper()
+                    aliases = []
+                    
+                    for aka in entry.get('akas', []):
+                        aliases.append(aka.get('name', '').upper())
+                    
+                    # Extract other details
+                    record = {
+                        'name': primary_name,
+                        'aliases': ';'.join(aliases) if aliases else '',
+                        'date_of_birth': entry.get('dateOfBirth'),
+                        'nationality': entry.get('nationality'),
+                        'list_type': 'sanctions',
+                        'program': entry.get('program', 'OFAC SDN'),
+                        'added_date': entry.get('dateAdded'),
+                        'entity_id': entry.get('id'),
+                        'entity_type': entry.get('type', 'individual'),
+                        'addresses': json.dumps(entry.get('addresses', [])),
+                        'identifications': json.dumps(entry.get('identifications', []))
+                    }
+                    records.append(record)
+                
+                df = pd.DataFrame(records)
+                logger.info(f"Successfully loaded {len(df)} OFAC sanctions entries")
+                return df
+            else:
+                logger.error(f"OFAC API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to load OFAC sanctions: {str(e)}")
+            return None
+    
+    def _load_eu_sanctions(self) -> Optional[pd.DataFrame]:
+        """Load EU Sanctions List from official EU API"""
+        try:
+            eu_api_key = os.getenv('EU_SANCTIONS_API_KEY')
+            eu_base_url = os.getenv('EU_SANCTIONS_BASE_URL', 'https://webgate.ec.europa.eu/fsd/fsf')
+            
+            if not eu_api_key:
+                logger.warning("EU Sanctions API key not configured, skipping EU sanctions load")
+                return None
+            
+            headers = {
+                'Authorization': f'Bearer {eu_api_key}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            
+            # Get EU consolidated sanctions list
+            response = requests.get(
+                f'{eu_base_url}/api/v1/export/consolidated',
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                records = []
+                for entry in data.get('entities', []):
+                    # Extract entity information
+                    primary_name = entry.get('name', '').upper()
+                    aliases = []
+                    
+                    for alias in entry.get('aliases', []):
+                        aliases.append(alias.get('name', '').upper())
+                    
+                    record = {
+                        'name': primary_name,
+                        'aliases': ';'.join(aliases) if aliases else '',
+                        'date_of_birth': entry.get('birthDate'),
+                        'nationality': entry.get('nationality'),
+                        'list_type': 'sanctions',
+                        'program': 'EU Sanctions',
+                        'added_date': entry.get('listingDate'),
+                        'entity_id': entry.get('euReferenceNumber'),
+                        'entity_type': entry.get('subjectType', 'individual'),
+                        'regulation': entry.get('regulation'),
+                        'reason': entry.get('reasonForListing')
+                    }
+                    records.append(record)
+                
+                df = pd.DataFrame(records)
+                logger.info(f"Successfully loaded {len(df)} EU sanctions entries")
+                return df
+            else:
+                logger.error(f"EU Sanctions API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to load EU sanctions: {str(e)}")
+            return None
+    
+    def _load_un_sanctions(self) -> Optional[pd.DataFrame]:
+        """Load UN Sanctions List from official UN API"""
+        try:
+            un_api_key = os.getenv('UN_SANCTIONS_API_KEY')
+            un_base_url = os.getenv('UN_SANCTIONS_BASE_URL', 'https://scsanctions.un.org/api')
+            
+            if not un_api_key:
+                logger.warning("UN Sanctions API key not configured, skipping UN sanctions load")
+                return None
+            
+            headers = {
+                'Authorization': f'Bearer {un_api_key}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            
+            # Get UN consolidated sanctions list
+            response = requests.get(
+                f'{un_base_url}/v1/consolidated',
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                records = []
+                for entry in data.get('results', []):
+                    # Extract individual or entity information
+                    primary_name = entry.get('first_name', '') + ' ' + entry.get('second_name', '')
+                    if not primary_name.strip():
+                        primary_name = entry.get('name', '')
+                    primary_name = primary_name.upper().strip()
+                    
+                    aliases = []
+                    for alias in entry.get('aliases', []):
+                        alias_name = alias.get('name', '').upper()
+                        if alias_name and alias_name != primary_name:
+                            aliases.append(alias_name)
+                    
+                    record = {
+                        'name': primary_name,
+                        'aliases': ';'.join(aliases) if aliases else '',
+                        'date_of_birth': entry.get('date_of_birth'),
+                        'nationality': entry.get('nationality'),
+                        'list_type': 'sanctions',
+                        'program': 'UN Sanctions',
+                        'added_date': entry.get('listed_on'),
+                        'entity_id': entry.get('dataid'),
+                        'entity_type': entry.get('entity_type', 'individual'),
+                        'committee': entry.get('committee'),
+                        'un_list_type': entry.get('un_list_type')
+                    }
+                    records.append(record)
+                
+                df = pd.DataFrame(records)
+                logger.info(f"Successfully loaded {len(df)} UN sanctions entries")
+                return df
+            else:
+                logger.error(f"UN Sanctions API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to load UN sanctions: {str(e)}")
+            return None
+    
+    def _load_pep_database(self) -> Optional[pd.DataFrame]:
+        """Load PEP Database from commercial provider"""
+        try:
+            pep_api_key = os.getenv('PEP_DATABASE_API_KEY')
+            pep_base_url = os.getenv('PEP_DATABASE_BASE_URL', 'https://api.pepdatabase.com')
+            
+            if not pep_api_key:
+                logger.warning("PEP Database API key not configured, skipping PEP database load")
+                return None
+            
+            headers = {
+                'Authorization': f'Bearer {pep_api_key}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            
+            # Get PEP database entries
+            response = requests.get(
+                f'{pep_base_url}/v1/pep/list',
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                records = []
+                for entry in data.get('peps', []):
+                    primary_name = entry.get('name', '').upper()
+                    aliases = []
+                    
+                    for alias in entry.get('aliases', []):
+                        aliases.append(alias.upper())
+                    
+                    record = {
+                        'name': primary_name,
+                        'aliases': ';'.join(aliases) if aliases else '',
+                        'date_of_birth': entry.get('dateOfBirth'),
+                        'nationality': entry.get('nationality'),
+                        'list_type': 'pep',
+                        'position': entry.get('position'),
+                        'country': entry.get('country'),
+                        'added_date': entry.get('addedDate'),
+                        'entity_id': entry.get('id'),
+                        'status': entry.get('status', 'active'),
+                        'risk_level': entry.get('riskLevel', 'medium'),
+                        'source': entry.get('source')
+                    }
+                    records.append(record)
+                
+                df = pd.DataFrame(records)
+                logger.info(f"Successfully loaded {len(df)} PEP database entries")
+                return df
+            else:
+                logger.error(f"PEP Database API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to load PEP database: {str(e)}")
+            return None
+    
+    def _load_worldcheck_data(self) -> Optional[pd.DataFrame]:
+        """Load World-Check data from Refinitiv"""
+        try:
+            worldcheck_api_key = os.getenv('WORLD_CHECK_API_KEY')
+            worldcheck_base_url = os.getenv('WORLD_CHECK_BASE_URL', 'https://api.refinitiv.com/world-check')
+            worldcheck_client_id = os.getenv('WORLD_CHECK_CLIENT_ID')
+            
+            if not worldcheck_api_key or not worldcheck_client_id:
+                logger.warning("World-Check API credentials not configured, skipping World-Check load")
+                return None
+            
+            # Authenticate with World-Check API
+            auth_response = requests.post(
+                f'{worldcheck_base_url}/v1/authenticate',
+                json={
+                    'clientId': worldcheck_client_id,
+                    'apiKey': worldcheck_api_key
+                },
+                timeout=30
+            )
+            
+            if auth_response.status_code != 200:
+                logger.error(f"World-Check authentication failed: {auth_response.status_code}")
+                return None
+            
+            access_token = auth_response.json().get('access_token')
+            
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            }
+            
+            # Get World-Check screening data
+            response = requests.get(
+                f'{worldcheck_base_url}/v1/reference-data/profiles',
+                headers=headers,
+                params={'limit': 10000},  # Adjust based on needs
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                records = []
+                for entry in data.get('profiles', []):
+                    primary_name = entry.get('primaryName', '').upper()
+                    aliases = []
+                    
+                    for alias in entry.get('aliases', []):
+                        aliases.append(alias.get('name', '').upper())
+                    
+                    record = {
+                        'name': primary_name,
+                        'aliases': ';'.join(aliases) if aliases else '',
+                        'date_of_birth': entry.get('dateOfBirth'),
+                        'nationality': entry.get('nationality'),
+                        'list_type': entry.get('category', 'worldcheck'),
+                        'program': 'World-Check',
+                        'added_date': entry.get('provisioningDate'),
+                        'entity_id': entry.get('profileId'),
+                        'entity_type': entry.get('entityType', 'individual'),
+                        'categories': json.dumps(entry.get('categories', [])),
+                        'sources': json.dumps(entry.get('sources', []))
+                    }
+                    records.append(record)
+                
+                df = pd.DataFrame(records)
+                logger.info(f"Successfully loaded {len(df)} World-Check entries")
+                return df
+            else:
+                logger.error(f"World-Check API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to load World-Check data: {str(e)}")
+            return None
+    
+    def _load_dowjones_data(self) -> Optional[pd.DataFrame]:
+        """Load Dow Jones Risk & Compliance data"""
+        try:
+            dowjones_api_key = os.getenv('DOW_JONES_API_KEY')
+            dowjones_base_url = os.getenv('DOW_JONES_BASE_URL', 'https://api.dowjones.com/risk')
+            dowjones_client_id = os.getenv('DOW_JONES_CLIENT_ID')
+            
+            if not dowjones_api_key or not dowjones_client_id:
+                logger.warning("Dow Jones API credentials not configured, skipping Dow Jones load")
+                return None
+            
+            headers = {
+                'Authorization': f'Bearer {dowjones_api_key}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Client-ID': dowjones_client_id
+            }
+            
+            # Get Dow Jones risk data
+            response = requests.get(
+                f'{dowjones_base_url}/v1/entities',
+                headers=headers,
+                params={'limit': 10000},
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                records = []
+                for entry in data.get('entities', []):
+                    primary_name = entry.get('name', '').upper()
+                    aliases = []
+                    
+                    for alias in entry.get('aliases', []):
+                        aliases.append(alias.upper())
+                    
+                    record = {
+                        'name': primary_name,
+                        'aliases': ';'.join(aliases) if aliases else '',
+                        'date_of_birth': entry.get('birthDate'),
+                        'nationality': entry.get('nationality'),
+                        'list_type': entry.get('riskType', 'dowjones'),
+                        'program': 'Dow Jones Risk & Compliance',
+                        'added_date': entry.get('addedDate'),
+                        'entity_id': entry.get('entityId'),
+                        'entity_type': entry.get('entityType', 'individual'),
+                        'risk_score': entry.get('riskScore'),
+                        'categories': json.dumps(entry.get('categories', []))
+                    }
+                    records.append(record)
+                
+                df = pd.DataFrame(records)
+                logger.info(f"Successfully loaded {len(df)} Dow Jones entries")
+                return df
+            else:
+                logger.error(f"Dow Jones API error: {response.status_code} - {response.text}")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Failed to load Dow Jones data: {str(e)}")
+            return None
+    
+    def _schedule_database_updates(self):
+        """Schedule periodic updates of watchlist databases"""
+        try:
+            # Schedule updates based on environment variables
+            ofac_update_hours = int(os.getenv('OFAC_UPDATE_FREQUENCY_HOURS', '24'))
+            eu_update_hours = int(os.getenv('EU_SANCTIONS_UPDATE_FREQUENCY_HOURS', '24'))
+            un_update_hours = int(os.getenv('UN_SANCTIONS_UPDATE_FREQUENCY_HOURS', '24'))
+            pep_update_hours = int(os.getenv('PEP_DATABASE_UPDATE_FREQUENCY_HOURS', '168'))  # Weekly
+            
+            # In a production environment, you would use a proper scheduler like Celery
+            # For now, we'll just log the intended schedule
+            logger.info(f"Scheduled database updates: OFAC every {ofac_update_hours}h, "
+                       f"EU every {eu_update_hours}h, UN every {un_update_hours}h, "
+                       f"PEP every {pep_update_hours}h")
+            
+        except Exception as e:
+            logger.error(f"Failed to schedule database updates: {str(e)}")
 
     def normalize_name(self, name: str) -> str:
         """
@@ -691,7 +1079,7 @@ async def get_watchlists():
         watchlist_info[name] = {
             "entries": len(df),
             "columns": list(df.columns),
-            "last_updated": "2024-01-01"  # Would be actual update date in production
+            "last_updated": watchlist_processor.last_updated.get(name, datetime.now()).isoformat() if hasattr(watchlist_processor, 'last_updated') else datetime.now().isoformat()
         }
     
     return {

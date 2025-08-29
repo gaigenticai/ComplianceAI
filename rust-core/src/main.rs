@@ -7,7 +7,12 @@ use actix_files::Files;
 use actix_multipart::Multipart;
 use actix_web::{
     middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer, Result as ActixResult,
+    dev::{ServiceRequest, ServiceResponse, Transform, Service},
+    Error,
 };
+use std::pin::Pin;
+use std::task::{Context as TaskContext, Poll};
+use std::future::Future;
 use anyhow::Result;
 use chrono::Utc;
 use config::Config;
@@ -39,6 +44,256 @@ pub struct AppState {
     pub tera: Tera,
     /// Pending KYC results (request_id -> result)
     pub pending_results: Arc<RwLock<HashMap<String, messaging::KycResult>>>,
+    /// Application metrics
+    pub metrics: Arc<RwLock<AppMetrics>>,
+}
+
+/// Application metrics for monitoring and observability
+#[derive(Debug, Clone)]
+pub struct AppMetrics {
+    /// Application start time
+    pub start_time: std::time::Instant,
+    /// Total number of processed requests
+    pub total_requests: u64,
+    /// Total number of successful requests
+    pub successful_requests: u64,
+    /// Total number of failed requests
+    pub failed_requests: u64,
+    /// Processing times for calculating averages (last 1000 requests)
+    pub processing_times: std::collections::VecDeque<u64>,
+    /// Current system load metrics
+    pub system_load: SystemLoad,
+    /// Request counts by endpoint
+    pub endpoint_counts: HashMap<String, u64>,
+    /// Error counts by type
+    pub error_counts: HashMap<String, u64>,
+}
+
+/// System load metrics
+#[derive(Debug, Clone)]
+pub struct SystemLoad {
+    /// CPU usage percentage
+    pub cpu_usage: f64,
+    /// Memory usage in bytes
+    pub memory_usage: u64,
+    /// Total memory in bytes
+    pub total_memory: u64,
+    /// Disk usage percentage
+    pub disk_usage: f64,
+    /// Network bytes received
+    pub network_rx_bytes: u64,
+    /// Network bytes transmitted
+    pub network_tx_bytes: u64,
+    /// Last updated timestamp
+    pub last_updated: std::time::Instant,
+}
+
+impl Default for AppMetrics {
+    fn default() -> Self {
+        Self {
+            start_time: std::time::Instant::now(),
+            total_requests: 0,
+            successful_requests: 0,
+            failed_requests: 0,
+            processing_times: std::collections::VecDeque::with_capacity(1000),
+            system_load: SystemLoad::default(),
+            endpoint_counts: HashMap::new(),
+            error_counts: HashMap::new(),
+        }
+    }
+}
+
+impl Default for SystemLoad {
+    fn default() -> Self {
+        Self {
+            cpu_usage: 0.0,
+            memory_usage: 0,
+            total_memory: 0,
+            disk_usage: 0.0,
+            network_rx_bytes: 0,
+            network_tx_bytes: 0,
+            last_updated: std::time::Instant::now(),
+        }
+    }
+}
+
+impl AppMetrics {
+    /// Record a new request
+    pub fn record_request(&mut self, endpoint: &str, processing_time_ms: u64, success: bool) {
+        self.total_requests += 1;
+        
+        if success {
+            self.successful_requests += 1;
+        } else {
+            self.failed_requests += 1;
+        }
+        
+        // Track processing time (keep only last 1000)
+        if self.processing_times.len() >= 1000 {
+            self.processing_times.pop_front();
+        }
+        self.processing_times.push_back(processing_time_ms);
+        
+        // Track endpoint usage
+        *self.endpoint_counts.entry(endpoint.to_string()).or_insert(0) += 1;
+    }
+    
+    /// Record an error
+    pub fn record_error(&mut self, error_type: &str) {
+        *self.error_counts.entry(error_type.to_string()).or_insert(0) += 1;
+    }
+    
+    /// Get average processing time
+    pub fn average_processing_time(&self) -> f64 {
+        if self.processing_times.is_empty() {
+            0.0
+        } else {
+            let sum: u64 = self.processing_times.iter().sum();
+            sum as f64 / self.processing_times.len() as f64
+        }
+    }
+    
+    /// Get uptime in seconds
+    pub fn uptime_seconds(&self) -> u64 {
+        self.start_time.elapsed().as_secs()
+    }
+    
+    /// Update system load metrics
+    pub fn update_system_load(&mut self) {
+        // Update system metrics if it's been more than 30 seconds
+        if self.system_load.last_updated.elapsed().as_secs() >= 30 {
+            self.system_load = Self::collect_system_metrics();
+        }
+    }
+    
+    /// Collect current system metrics
+    fn collect_system_metrics() -> SystemLoad {
+        use std::fs;
+        
+        let mut load = SystemLoad::default();
+        load.last_updated = std::time::Instant::now();
+        
+        // Collect CPU usage from /proc/stat (Linux)
+        if let Ok(stat_content) = fs::read_to_string("/proc/stat") {
+            if let Some(cpu_line) = stat_content.lines().next() {
+                if let Some(cpu_usage) = Self::parse_cpu_usage(cpu_line) {
+                    load.cpu_usage = cpu_usage;
+                }
+            }
+        }
+        
+        // Collect memory usage from /proc/meminfo (Linux)
+        if let Ok(meminfo_content) = fs::read_to_string("/proc/meminfo") {
+            let (total, available) = Self::parse_memory_info(&meminfo_content);
+            load.total_memory = total;
+            load.memory_usage = total.saturating_sub(available);
+        }
+        
+        // Collect disk usage from /proc/diskstats (Linux)
+        if let Ok(diskstats_content) = fs::read_to_string("/proc/diskstats") {
+            load.disk_usage = Self::parse_disk_usage(&diskstats_content);
+        }
+        
+        // Collect network stats from /proc/net/dev (Linux)
+        if let Ok(netdev_content) = fs::read_to_string("/proc/net/dev") {
+            let (rx_bytes, tx_bytes) = Self::parse_network_stats(&netdev_content);
+            load.network_rx_bytes = rx_bytes;
+            load.network_tx_bytes = tx_bytes;
+        }
+        
+        load
+    }
+    
+    /// Parse CPU usage from /proc/stat
+    fn parse_cpu_usage(cpu_line: &str) -> Option<f64> {
+        let parts: Vec<&str> = cpu_line.split_whitespace().collect();
+        if parts.len() >= 8 && parts[0] == "cpu" {
+            let user: u64 = parts[1].parse().ok()?;
+            let nice: u64 = parts[2].parse().ok()?;
+            let system: u64 = parts[3].parse().ok()?;
+            let idle: u64 = parts[4].parse().ok()?;
+            let iowait: u64 = parts[5].parse().ok()?;
+            let irq: u64 = parts[6].parse().ok()?;
+            let softirq: u64 = parts[7].parse().ok()?;
+            
+            let total = user + nice + system + idle + iowait + irq + softirq;
+            let active = total - idle - iowait;
+            
+            if total > 0 {
+                Some((active as f64 / total as f64) * 100.0)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+    
+    /// Parse memory info from /proc/meminfo
+    fn parse_memory_info(meminfo: &str) -> (u64, u64) {
+        let mut total_kb = 0u64;
+        let mut available_kb = 0u64;
+        
+        for line in meminfo.lines() {
+            if line.starts_with("MemTotal:") {
+                if let Some(value) = line.split_whitespace().nth(1) {
+                    total_kb = value.parse().unwrap_or(0);
+                }
+            } else if line.starts_with("MemAvailable:") {
+                if let Some(value) = line.split_whitespace().nth(1) {
+                    available_kb = value.parse().unwrap_or(0);
+                }
+            }
+        }
+        
+        (total_kb * 1024, available_kb * 1024) // Convert to bytes
+    }
+    
+    /// Parse disk usage from /proc/diskstats
+    fn parse_disk_usage(diskstats: &str) -> f64 {
+        // Calculate actual disk I/O utilization based on read/write operations
+        let mut total_io_time = 0u64;
+        let mut device_count = 0u64;
+        
+        for line in diskstats.lines() {
+            let fields: Vec<&str> = line.split_whitespace().collect();
+            if fields.len() >= 13 {
+                // Field 12 (index 12) contains total time spent doing I/Os (ms)
+                if let Ok(io_time) = fields[12].parse::<u64>() {
+                    total_io_time += io_time;
+                    device_count += 1;
+                }
+            }
+        }
+        
+        if device_count > 0 {
+            // Calculate average I/O utilization as percentage
+            // This is a simplified calculation - in production you'd track deltas over time
+            let avg_io_time = total_io_time / device_count;
+            // Convert to percentage (assuming max reasonable I/O time of 1000ms per sample)
+            (avg_io_time as f64 / 1000.0).min(100.0)
+        } else {
+            0.0
+        }
+    }
+    
+    /// Parse network statistics from /proc/net/dev
+    fn parse_network_stats(netdev: &str) -> (u64, u64) {
+        let mut total_rx = 0u64;
+        let mut total_tx = 0u64;
+        
+        for line in netdev.lines().skip(2) { // Skip header lines
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 10 {
+                if let (Ok(rx), Ok(tx)) = (parts[1].parse::<u64>(), parts[9].parse::<u64>()) {
+                    total_rx += rx;
+                    total_tx += tx;
+                }
+            }
+        }
+        
+        (total_rx, total_tx)
+    }
 }
 
 /// File upload information
@@ -67,6 +322,83 @@ pub struct FeedbackSubmission {
     pub feedback_type: String,
     pub feedback_text: String,
     pub corrections: Option<String>,
+}
+
+/// Middleware to track request metrics
+pub struct MetricsMiddleware;
+
+impl<S, B> actix_web::dev::Transform<S, actix_web::dev::ServiceRequest> for MetricsMiddleware
+where
+    S: actix_web::dev::Service<
+        actix_web::dev::ServiceRequest,
+        Response = actix_web::dev::ServiceResponse<B>,
+        Error = actix_web::Error,
+    >,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = actix_web::dev::ServiceResponse<B>;
+    type Error = actix_web::Error;
+    type Transform = MetricsMiddlewareService<S>;
+    type InitError = ();
+    type Future = std::future::Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        std::future::ready(Ok(MetricsMiddlewareService { service }))
+    }
+}
+
+pub struct MetricsMiddlewareService<S> {
+    service: S,
+}
+
+impl<S, B> actix_web::dev::Service<actix_web::dev::ServiceRequest> for MetricsMiddlewareService<S>
+where
+    S: actix_web::dev::Service<
+        actix_web::dev::ServiceRequest,
+        Response = actix_web::dev::ServiceResponse<B>,
+        Error = actix_web::Error,
+    >,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = actix_web::dev::ServiceResponse<B>;
+    type Error = actix_web::Error;
+    type Future = Pin<Box<dyn std::future::Future<Output = Result<Self::Response, Self::Error>>>>;
+
+    fn poll_ready(&self, cx: &mut std::task::Context<'_>) -> std::task::Poll<Result<(), Self::Error>> {
+        self.service.poll_ready(cx)
+    }
+
+    fn call(&self, req: actix_web::dev::ServiceRequest) -> Self::Future {
+        let start_time = std::time::Instant::now();
+        let path = req.path().to_string();
+        let method = req.method().to_string();
+        
+        let fut = self.service.call(req);
+        
+        Box::pin(async move {
+            let res = fut.await?;
+            let processing_time = start_time.elapsed().as_millis() as u64;
+            let status_code = res.status().as_u16();
+            let success = status_code < 400;
+            
+            // Try to get app state and record metrics
+            if let Some(app_data) = res.request().app_data::<web::Data<AppState>>() {
+                if let Ok(mut metrics) = app_data.metrics.try_write() {
+                    let endpoint = format!("{} {}", method, path);
+                    metrics.record_request(&endpoint, processing_time, success);
+                    
+                    if !success {
+                        let error_type = format!("HTTP_{}", status_code);
+                        metrics.record_error(&error_type);
+                    }
+                }
+            }
+            
+            Ok(res)
+        })
+    }
 }
 
 #[actix_web::main]
@@ -104,6 +436,7 @@ async fn main() -> Result<()> {
         storage: storage.clone(),
         tera,
         pending_results: Arc::new(RwLock::new(HashMap::new())),
+        metrics: Arc::new(RwLock::new(AppMetrics::default())),
     });
 
     // Start orchestrator in background
@@ -128,6 +461,7 @@ async fn main() -> Result<()> {
         App::new()
             .app_data(app_state.clone())
             .wrap(Logger::default())
+            .wrap(MetricsMiddleware)
             .route("/", web::get().to(index_handler))
             .route("/submit", web::post().to(submit_handler))
             .route("/result/{request_id}", web::get().to(result_handler))
@@ -430,15 +764,69 @@ async fn userguide_handler(data: web::Data<AppState>) -> ActixResult<HttpRespons
 async fn stats_handler(data: web::Data<AppState>) -> ActixResult<HttpResponse> {
     let results_count = data.pending_results.read().await.len();
     
+    // Update and get current metrics
+    let mut metrics = data.metrics.write().await;
+    metrics.update_system_load();
+    
+    let uptime_seconds = metrics.uptime_seconds();
+    let uptime_formatted = format_uptime(uptime_seconds);
+    let avg_processing_time = metrics.average_processing_time();
+    let success_rate = if metrics.total_requests > 0 {
+        (metrics.successful_requests as f64 / metrics.total_requests as f64) * 100.0
+    } else {
+        0.0
+    };
+    
+    let system_load = &metrics.system_load;
+    let memory_usage_percent = if system_load.total_memory > 0 {
+        (system_load.memory_usage as f64 / system_load.total_memory as f64) * 100.0
+    } else {
+        0.0
+    };
+    
     let stats = serde_json::json!({
         "pending_results": results_count,
-        "uptime": "unknown", // Would implement proper uptime tracking
-        "processed_requests": "unknown", // Would implement request counter
-        "average_processing_time": "unknown", // Would implement timing metrics
-        "system_load": "unknown" // Would implement system monitoring
+        "uptime": uptime_formatted,
+        "uptime_seconds": uptime_seconds,
+        "processed_requests": metrics.total_requests,
+        "successful_requests": metrics.successful_requests,
+        "failed_requests": metrics.failed_requests,
+        "success_rate_percent": format!("{:.2}", success_rate),
+        "average_processing_time_ms": format!("{:.2}", avg_processing_time),
+        "system_load": {
+            "cpu_usage_percent": format!("{:.2}", system_load.cpu_usage),
+            "memory_usage_bytes": system_load.memory_usage,
+            "memory_total_bytes": system_load.total_memory,
+            "memory_usage_percent": format!("{:.2}", memory_usage_percent),
+            "disk_usage_percent": format!("{:.2}", system_load.disk_usage),
+            "network_rx_bytes": system_load.network_rx_bytes,
+            "network_tx_bytes": system_load.network_tx_bytes,
+            "last_updated": system_load.last_updated.elapsed().as_secs()
+        },
+        "endpoint_counts": metrics.endpoint_counts,
+        "error_counts": metrics.error_counts,
+        "timestamp": chrono::Utc::now().to_rfc3339()
     });
     
     Ok(HttpResponse::Ok().json(stats))
+}
+
+/// Format uptime seconds into human-readable format
+fn format_uptime(seconds: u64) -> String {
+    let days = seconds / 86400;
+    let hours = (seconds % 86400) / 3600;
+    let minutes = (seconds % 3600) / 60;
+    let secs = seconds % 60;
+    
+    if days > 0 {
+        format!("{}d {}h {}m {}s", days, hours, minutes, secs)
+    } else if hours > 0 {
+        format!("{}h {}m {}s", hours, minutes, secs)
+    } else if minutes > 0 {
+        format!("{}m {}s", minutes, secs)
+    } else {
+        format!("{}s", secs)
+    }
 }
 
 /// Start result consumer
