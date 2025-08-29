@@ -1,0 +1,400 @@
+# KYC Automation Platform - Docker Compose Configuration
+# This file orchestrates all services with automatic port conflict resolution
+
+version: '3.8'
+
+services:
+  # Kafka and Zookeeper for messaging
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper
+    container_name: kyc-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka
+    container_name: kyc-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_NUM_PARTITIONS: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Pinecone Local Emulator (for development)
+  pinecone-emulator:
+    image: pinecone/pinecone-local:latest
+    container_name: kyc-pinecone
+    ports:
+      - "8080:8080"
+    environment:
+      - PINECONE_API_KEY=local-development-key
+      - PINECONE_ENVIRONMENT=local
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # OCR Agent Service
+  ocr-agent:
+    build:
+      context: ./python-agents/ocr-agent
+      dockerfile: Dockerfile
+    container_name: kyc-ocr-agent
+    environment:
+      - PORT=8001
+      - PYTHONPATH=/app
+    ports:
+      - "8001:8001"
+    volumes:
+      - shared-uploads:/app/uploads
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Face Recognition Agent Service
+  face-agent:
+    build:
+      context: ./python-agents/face-agent
+      dockerfile: Dockerfile
+    container_name: kyc-face-agent
+    environment:
+      - PORT=8002
+      - PYTHONPATH=/app
+    ports:
+      - "8002:8002"
+    volumes:
+      - shared-uploads:/app/uploads
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+
+  # Watchlist Screening Agent Service
+  watchlist-agent:
+    build:
+      context: ./python-agents/watchlist-agent
+      dockerfile: Dockerfile
+    container_name: kyc-watchlist-agent
+    environment:
+      - PORT=8003
+      - PYTHONPATH=/app
+    ports:
+      - "8003:8003"
+    volumes:
+      - watchlist-data:/app/data
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Data Integration Agent Service
+  data-integration-agent:
+    build:
+      context: ./python-agents/data-integration-agent
+      dockerfile: Dockerfile
+    container_name: kyc-data-integration-agent
+    environment:
+      - PORT=8004
+      - PYTHONPATH=/app
+    ports:
+      - "8004:8004"
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Quality Assurance Agent Service
+  qa-agent:
+    build:
+      context: ./python-agents/quality-assurance-agent
+      dockerfile: Dockerfile
+    container_name: kyc-qa-agent
+    environment:
+      - PORT=8005
+      - PYTHONPATH=/app
+    ports:
+      - "8005:8005"
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Rust Core Orchestration Service
+  rust-core:
+    build:
+      context: ./rust-core
+      dockerfile: Dockerfile
+    container_name: kyc-rust-core
+    environment:
+      - RUST_LOG=info
+      - PORT=8000
+      - REQUIRE_AUTH=false
+    ports:
+      - "8000:8000"
+    volumes:
+      - shared-uploads:/app/uploads
+      - ./configs:/app/configs:ro
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+      pinecone-emulator:
+        condition: service_healthy
+      ocr-agent:
+        condition: service_healthy
+      face-agent:
+        condition: service_healthy
+      watchlist-agent:
+        condition: service_healthy
+      data-integration-agent:
+        condition: service_healthy
+      qa-agent:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Nginx Reverse Proxy (for production)
+  nginx:
+    image: nginx:alpine
+    container_name: kyc-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      - rust-core
+    profiles:
+      - production
+
+  # Monitoring and Logging
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: kyc-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: kyc-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+  # Log aggregation
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: kyc-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    profiles:
+      - logging
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: kyc-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+    profiles:
+      - logging
+
+  # Database for persistent storage (optional)
+  postgres:
+    image: postgres:15-alpine
+    container_name: kyc-postgres
+    environment:
+      - POSTGRES_DB=kyc_platform
+      - POSTGRES_USER=kyc_user
+      - POSTGRES_PASSWORD=kyc_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kyc_user -d kyc_platform"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - database
+
+  # Redis for caching (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: kyc-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    profiles:
+      - cache
+
+# Networks
+networks:
+  kyc-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes for persistent data
+volumes:
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  kafka-data:
+    driver: local
+  shared-uploads:
+    driver: local
+  watchlist-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  elasticsearch-data:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+
+# Health check script for the entire stack
+x-healthcheck-config: &healthcheck-config
+  interval: 30s
+  timeout: 10s
+  start_period: 30s
+  retries: 3

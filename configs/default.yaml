@@ -1,0 +1,280 @@
+# KYC Automation Platform - Default Configuration
+# This file contains the default configuration for all services
+# Client-specific overrides should be placed in client_override.yaml
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 8000
+  max_file_size: 10485760  # 10MB in bytes
+
+# Kafka Messaging Configuration
+kafka:
+  brokers: "kafka:29092"
+  kyc_request_topic: "kyc_requests"
+  kyc_result_topic: "kyc_results"
+  kyc_feedback_topic: "kyc_feedback"
+  consumer_group: "kyc_orchestrator"
+
+# Pinecone Vector Database Configuration
+pinecone:
+  api_key: "local-development-key"
+  environment: "local"
+  index_name: "kyc_vectors"
+  dimension: 128
+
+# Agent Service Endpoints
+agents:
+  ocr_agent: "http://ocr-agent:8001"
+  face_agent: "http://face-agent:8002"
+  watchlist_agent: "http://watchlist-agent:8003"
+  data_integration_agent: "http://data-integration-agent:8004"
+  qa_agent: "http://qa-agent:8005"
+
+# Authentication Configuration
+auth:
+  require_auth: false
+  jwt_secret: "your-jwt-secret-key-change-in-production"
+  session_timeout: 24  # hours
+
+# Processing Configuration
+processing:
+  # Default processing timeouts (in seconds)
+  timeouts:
+    ocr_processing: 30
+    face_recognition: 45
+    watchlist_screening: 20
+    data_integration: 60
+    qa_validation: 15
+  
+  # Retry configuration
+  retries:
+    max_attempts: 3
+    backoff_multiplier: 2
+    initial_delay: 1  # seconds
+  
+  # Quality thresholds
+  quality_thresholds:
+    minimum_ocr_confidence: 50.0
+    minimum_face_match_score: 75.0
+    minimum_document_quality: 60.0
+    minimum_overall_confidence: 70.0
+
+# Risk Assessment Configuration
+risk_assessment:
+  # Risk score thresholds (0-100)
+  thresholds:
+    low_risk: 30.0
+    medium_risk: 60.0
+    high_risk: 80.0
+  
+  # Automatic decision rules
+  auto_approve_threshold: 20.0
+  auto_reject_threshold: 85.0
+  manual_review_threshold: 60.0
+
+# Compliance Configuration
+compliance:
+  # Watchlist screening settings
+  watchlist:
+    fuzzy_match_threshold: 85
+    partial_match_threshold: 70
+    enable_sanctions_screening: true
+    enable_pep_screening: true
+    enable_adverse_media_screening: true
+  
+  # Data retention policies
+  data_retention:
+    documents_retention_days: 2555  # 7 years
+    logs_retention_days: 365  # 1 year
+    results_retention_days: 2555  # 7 years
+  
+  # Privacy settings
+  privacy:
+    enable_data_encryption: true
+    enable_audit_logging: true
+    anonymize_logs: false
+
+# Monitoring and Logging Configuration
+monitoring:
+  # Metrics collection
+  metrics:
+    enable_prometheus: true
+    metrics_port: 9090
+    collection_interval: 30  # seconds
+  
+  # Logging configuration
+  logging:
+    level: "info"  # debug, info, warn, error
+    format: "json"  # json, text
+    enable_file_logging: true
+    log_file_path: "/app/logs/kyc-platform.log"
+    max_log_file_size: "100MB"
+    max_log_files: 10
+  
+  # Health check configuration
+  health_checks:
+    interval: 30  # seconds
+    timeout: 10  # seconds
+    retries: 3
+
+# External Services Configuration
+external_services:
+  # Credit bureau integration (mock by default)
+  credit_bureau:
+    enabled: true
+    mock_mode: true
+    timeout: 10  # seconds
+    api_key: "credit-bureau-api-key"
+    base_url: "https://api.creditbureau.com"
+  
+  # Social media verification
+  social_media:
+    enabled: true
+    mock_mode: true
+    timeout: 15  # seconds
+    platforms:
+      - facebook
+      - twitter
+      - linkedin
+      - instagram
+  
+  # Address verification service
+  address_verification:
+    enabled: true
+    mock_mode: true
+    timeout: 10  # seconds
+    api_key: "address-verification-api-key"
+    base_url: "https://api.addressverification.com"
+  
+  # Public records search
+  public_records:
+    enabled: true
+    mock_mode: true
+    timeout: 20  # seconds
+    api_key: "public-records-api-key"
+    base_url: "https://api.publicrecords.com"
+
+# Database Configuration (optional)
+database:
+  enabled: false
+  type: "postgresql"  # postgresql, mysql, sqlite
+  host: "postgres"
+  port: 5432
+  database: "kyc_platform"
+  username: "kyc_user"
+  password: "kyc_password"
+  max_connections: 20
+  connection_timeout: 30  # seconds
+
+# Cache Configuration (optional)
+cache:
+  enabled: false
+  type: "redis"  # redis, memcached
+  host: "redis"
+  port: 6379
+  password: ""
+  database: 0
+  ttl: 3600  # seconds (1 hour)
+
+# File Storage Configuration
+file_storage:
+  # Local file storage
+  local:
+    upload_path: "/app/uploads"
+    max_file_size: 10485760  # 10MB
+    allowed_extensions:
+      - ".jpg"
+      - ".jpeg"
+      - ".png"
+      - ".pdf"
+      - ".tiff"
+      - ".bmp"
+  
+  # Cloud storage (optional)
+  cloud:
+    enabled: false
+    provider: "aws_s3"  # aws_s3, gcp_storage, azure_blob
+    bucket_name: "kyc-documents"
+    region: "us-east-1"
+    access_key: "your-access-key"
+    secret_key: "your-secret-key"
+
+# Security Configuration
+security:
+  # Encryption settings
+  encryption:
+    algorithm: "AES-256-GCM"
+    key_rotation_days: 90
+  
+  # Rate limiting
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 60
+    burst_size: 10
+  
+  # CORS settings
+  cors:
+    allowed_origins:
+      - "http://localhost:3000"
+      - "http://localhost:8000"
+    allowed_methods:
+      - "GET"
+      - "POST"
+      - "PUT"
+      - "DELETE"
+      - "OPTIONS"
+    allowed_headers:
+      - "Content-Type"
+      - "Authorization"
+      - "X-Requested-With"
+
+# Feature Flags
+features:
+  # Enable/disable specific features
+  enable_face_recognition: true
+  enable_liveness_detection: true
+  enable_watchlist_screening: true
+  enable_data_integration: true
+  enable_quality_assurance: true
+  enable_feedback_collection: true
+  enable_analytics: true
+  enable_audit_trail: true
+
+# Notification Configuration
+notifications:
+  # Email notifications
+  email:
+    enabled: false
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587
+    username: "your-email@gmail.com"
+    password: "your-app-password"
+    from_address: "noreply@kycplatform.com"
+  
+  # Webhook notifications
+  webhooks:
+    enabled: false
+    endpoints:
+      - url: "https://your-webhook-endpoint.com/kyc-results"
+        events:
+          - "kyc_completed"
+          - "kyc_failed"
+          - "manual_review_required"
+        headers:
+          Authorization: "Bearer your-webhook-token"
+
+# Development Configuration
+development:
+  # Enable development features
+  debug_mode: false
+  enable_hot_reload: false
+  mock_external_services: true
+  
+  # Test data
+  enable_test_data: true
+  test_data_path: "/app/test_data"
+  
+  # Performance profiling
+  enable_profiling: false
+  profiling_port: 6060

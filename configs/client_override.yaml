@@ -1,0 +1,141 @@
+# KYC Automation Platform - Client Override Configuration
+# This file allows clients to override specific configuration values
+# without modifying the default configuration.
+#
+# Instructions:
+# 1. Copy the sections you want to override from default.yaml
+# 2. Modify only the values you need to change
+# 3. Leave this file empty if no overrides are needed
+#
+# Example overrides:
+
+# Override server configuration
+# server:
+#   host: "0.0.0.0"
+#   port: 8080
+#   max_file_size: 20971520  # 20MB
+
+# Override agent endpoints for custom implementations
+# agents:
+#   ocr_agent: "http://custom-ocr-service:8001"
+#   face_agent: "http://custom-face-service:8002"
+#   watchlist_agent: "http://custom-watchlist-service:8003"
+
+# Override authentication settings
+# auth:
+#   require_auth: true
+#   jwt_secret: "your-production-jwt-secret"
+#   session_timeout: 8  # 8 hours for production
+
+# Override external service configurations
+# external_services:
+#   credit_bureau:
+#     enabled: true
+#     mock_mode: false
+#     api_key: "your-production-credit-bureau-api-key"
+#     base_url: "https://api.production-creditbureau.com"
+#   
+#   address_verification:
+#     enabled: true
+#     mock_mode: false
+#     api_key: "your-production-address-api-key"
+#     base_url: "https://api.production-addressverification.com"
+
+# Override quality thresholds for stricter/looser requirements
+# processing:
+#   quality_thresholds:
+#     minimum_ocr_confidence: 60.0
+#     minimum_face_match_score: 80.0
+#     minimum_document_quality: 70.0
+#     minimum_overall_confidence: 75.0
+
+# Override risk assessment thresholds
+# risk_assessment:
+#   thresholds:
+#     low_risk: 25.0
+#     medium_risk: 55.0
+#     high_risk: 75.0
+#   auto_approve_threshold: 15.0
+#   auto_reject_threshold: 80.0
+
+# Override database configuration for production
+# database:
+#   enabled: true
+#   host: "production-postgres-host"
+#   port: 5432
+#   database: "kyc_production"
+#   username: "kyc_prod_user"
+#   password: "secure-production-password"
+
+# Override file storage for cloud storage
+# file_storage:
+#   cloud:
+#     enabled: true
+#     provider: "aws_s3"
+#     bucket_name: "production-kyc-documents"
+#     region: "us-west-2"
+#     access_key: "your-production-access-key"
+#     secret_key: "your-production-secret-key"
+
+# Override security settings for production
+# security:
+#   rate_limiting:
+#     enabled: true
+#     requests_per_minute: 30
+#     burst_size: 5
+#   cors:
+#     allowed_origins:
+#       - "https://your-production-domain.com"
+#       - "https://your-admin-panel.com"
+
+# Override notification settings
+# notifications:
+#   email:
+#     enabled: true
+#     smtp_host: "your-smtp-server.com"
+#     smtp_port: 587
+#     username: "your-production-email@company.com"
+#     password: "your-production-email-password"
+#     from_address: "kyc-notifications@company.com"
+#   
+#   webhooks:
+#     enabled: true
+#     endpoints:
+#       - url: "https://your-production-webhook.com/kyc-results"
+#         events:
+#           - "kyc_completed"
+#           - "kyc_failed"
+#           - "manual_review_required"
+#         headers:
+#           Authorization: "Bearer your-production-webhook-token"
+
+# Override feature flags
+# features:
+#   enable_analytics: true
+#   enable_audit_trail: true
+#   enable_feedback_collection: true
+
+# Override monitoring settings
+# monitoring:
+#   logging:
+#     level: "warn"  # Less verbose logging in production
+#     anonymize_logs: true  # Anonymize sensitive data in logs
+#   
+#   metrics:
+#     enable_prometheus: true
+#     collection_interval: 60  # Less frequent collection in production
+
+# Override compliance settings
+# compliance:
+#   data_retention:
+#     documents_retention_days: 3650  # 10 years for strict compliance
+#     logs_retention_days: 1095  # 3 years
+#     results_retention_days: 3650  # 10 years
+#   
+#   privacy:
+#     enable_data_encryption: true
+#     enable_audit_logging: true
+#     anonymize_logs: true
+
+# This file is intentionally left mostly empty.
+# Uncomment and modify the sections above as needed for your specific deployment.
