@@ -1,0 +1,11 @@
+/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/release/deps/serde_plain-68d58a61b8a3f300.d: /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/lib.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/de.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/error.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/macros.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/ser.rs
+
+/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/release/deps/libserde_plain-68d58a61b8a3f300.rlib: /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/lib.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/de.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/error.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/macros.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/ser.rs
+
+/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/release/deps/libserde_plain-68d58a61b8a3f300.rmeta: /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/lib.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/de.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/error.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/macros.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/ser.rs
+
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/lib.rs:
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/de.rs:
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/error.rs:
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/macros.rs:
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde_plain-1.0.2/src/ser.rs:

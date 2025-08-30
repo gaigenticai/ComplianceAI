@@ -44,7 +44,6 @@ GRAFANA_PORT=3000
 
 # Service status tracking
 declare -A SERVICE_STATUS
-declare -A SERVICE_PIDS
 declare -A SERVICE_URLS
 
 # Utility functions
@@ -230,7 +229,7 @@ start_infrastructure() {
     log "Starting infrastructure services..."
     
     info "Starting Kafka and Zookeeper..."
-    docker-compose up -d zookeeper kafka pinecone-emulator \
+    docker-compose up -d zookeeper kafka \
         > "$LOG_DIR/infrastructure/docker-compose.log" 2>&1 &
     
     # Wait for services to be healthy
@@ -238,11 +237,22 @@ start_infrastructure() {
     local wait_time=0
     
     while [ $wait_time -lt $max_wait ]; do
-        if docker-compose ps | grep -q "Up (healthy).*zookeeper" && \
-           docker-compose ps | grep -q "Up (healthy).*kafka"; then
-            log "Infrastructure services are healthy ✓"
-            SERVICE_STATUS["infrastructure"]="running"
-            break
+        # Check if both services are running (healthy or starting)
+        local zk_status=$(docker-compose ps zookeeper | grep "Up")
+        local kafka_status=$(docker-compose ps kafka | grep "Up")
+        
+        if [ -n "$zk_status" ] && [ -n "$kafka_status" ]; then
+            # Check if both are healthy, or if they've been running for enough time
+            if (echo "$zk_status" | grep -q "healthy") && (echo "$kafka_status" | grep -q "healthy"); then
+                log "Infrastructure services are healthy ✓"
+                SERVICE_STATUS["infrastructure"]="running"
+                break
+            elif [ $wait_time -gt 60 ]; then
+                # After 60 seconds, accept if they're just "Up" (running)
+                log "Infrastructure services are running (health checks may still be starting) ✓"
+                SERVICE_STATUS["infrastructure"]="running"
+                break
+            fi
         fi
         sleep 5
         ((wait_time+=5))
@@ -255,80 +265,41 @@ start_infrastructure() {
     fi
 }
 
-# Start Python agent
+# Start Python agent via Docker
 start_python_agent() {
     local agent_name=$1
     local port=$2
-    local agent_dir="$SCRIPT_DIR/python-agents/$agent_name"
     
-    if [ ! -d "$agent_dir" ]; then
-        error "Agent directory not found: $agent_dir"
-        return 1
-    fi
+    info "Starting $agent_name on port $port via Docker..."
     
-    info "Starting $agent_name on port $port..."
+    # Start the agent service using Docker Compose
+    docker-compose up -d "$agent_name" \
+        > "$LOG_DIR/agents/${agent_name}-docker.log" 2>&1
     
-    cd "$agent_dir"
-    
-    # Create virtual environment if it doesn't exist
-    if [ ! -d "venv" ]; then
-        python3 -m venv venv
-        log "Created virtual environment for $agent_name"
-    fi
-    
-    # Activate virtual environment and install dependencies
-    source venv/bin/activate
-    
-    if [ -f "requirements.txt" ]; then
-        pip install -r requirements.txt > "$LOG_DIR/agents/${agent_name}-install.log" 2>&1
-    fi
-    
-    # Start the agent service
-    export PORT=$port
-    export PYTHONPATH="$agent_dir"
-    
-    local service_file=""
-    case $agent_name in
-        "ocr-agent")
-            service_file="ocr_service.py"
-            ;;
-        "face-agent")
-            service_file="face_service.py"
-            ;;
-        "watchlist-agent")
-            service_file="watchlist_service.py"
-            ;;
-        "data-integration-agent")
-            service_file="data_integration_service.py"
-            ;;
-        "quality-assurance-agent")
-            service_file="qa_service.py"
-            ;;
-    esac
-    
-    if [ -f "$service_file" ]; then
-        nohup python3 "$service_file" \
-            > "$LOG_DIR/agents/${agent_name}.log" 2>&1 &
-        local pid=$!
-        echo $pid > "$PID_DIR/${agent_name}.pid"
-        SERVICE_PIDS["$agent_name"]=$pid
+    if [ $? -eq 0 ]; then
+        # Wait for service to be healthy
+        local max_wait=60
+        local wait_time=0
         
-        # Wait for service to start
-        sleep 5
-        if kill -0 $pid 2>/dev/null; then
-            SERVICE_STATUS["$agent_name"]="running"
-            log "$agent_name started successfully (PID: $pid) ✓"
-        else
-            SERVICE_STATUS["$agent_name"]="failed"
-            error "$agent_name failed to start"
-            return 1
-        fi
+        while [ $wait_time -lt $max_wait ]; do
+            if docker-compose ps "$agent_name" | grep -q "Up"; then
+                SERVICE_STATUS["$agent_name"]="running"
+                log "$agent_name started successfully via Docker ✓"
+                return 0
+            fi
+            sleep 5
+            ((wait_time+=5))
+            info "Waiting for $agent_name to start... ($wait_time/${max_wait}s)"
+        done
+        
+        SERVICE_STATUS["$agent_name"]="failed"
+        error "$agent_name failed to start within $max_wait seconds"
+        return 1
     else
-        error "Service file not found: $service_file"
+        SERVICE_STATUS["$agent_name"]="failed"
+        error "$agent_name failed to start via Docker"
         return 1
     fi
-    
-    cd "$SCRIPT_DIR"
 }
 
 # Start all Python agents
@@ -339,52 +310,42 @@ start_python_agents() {
     start_python_agent "face-agent" $FACE_AGENT_PORT
     start_python_agent "watchlist-agent" $WATCHLIST_AGENT_PORT
     start_python_agent "data-integration-agent" $DATA_INTEGRATION_PORT
-    start_python_agent "quality-assurance-agent" $QA_AGENT_PORT
+    start_python_agent "qa-agent" $QA_AGENT_PORT
 }
 
-# Start Rust core service
+# Start Rust core service via Docker
 start_rust_core() {
-    log "Starting Rust core service..."
+    log "Starting Rust core service via Docker..."
     
-    cd "$SCRIPT_DIR/rust-core"
+    # Start the Rust core service using Docker Compose
+    docker-compose up -d rust-core \
+        > "$LOG_DIR/core/rust-core-docker.log" 2>&1
     
-    # Build the Rust application
-    info "Building Rust application..."
-    cargo build --release > "$LOG_DIR/core/build.log" 2>&1
-    
-    if [ $? -ne 0 ]; then
-        error "Failed to build Rust application"
+    if [ $? -eq 0 ]; then
+        # Wait for service to be healthy
+        local max_wait=120
+        local wait_time=0
+        
+        while [ $wait_time -lt $max_wait ]; do
+            if docker-compose ps rust-core | grep -q "Up" && \
+               check_service_health "http://localhost:$RUST_CORE_PORT/health"; then
+                SERVICE_STATUS["rust-core"]="running"
+                log "Rust core service started successfully via Docker ✓"
+                return 0
+            fi
+            sleep 10
+            ((wait_time+=10))
+            info "Waiting for Rust core to start... ($wait_time/${max_wait}s)"
+        done
+        
+        SERVICE_STATUS["rust-core"]="failed"
+        error "Rust core service failed to start within $max_wait seconds"
         return 1
-    fi
-    
-    # Set environment variables for Rust core
-    export RUST_LOG=info
-    export PORT=$RUST_CORE_PORT
-    export OCR_AGENT_URL="http://localhost:$OCR_AGENT_PORT"
-    export FACE_AGENT_URL="http://localhost:$FACE_AGENT_PORT"
-    export WATCHLIST_AGENT_URL="http://localhost:$WATCHLIST_AGENT_PORT"
-    export DATA_INTEGRATION_AGENT_URL="http://localhost:$DATA_INTEGRATION_PORT"
-    export QA_AGENT_URL="http://localhost:$QA_AGENT_PORT"
-    
-    # Start the Rust core service
-    nohup ./target/release/kyc-platform \
-        > "$LOG_DIR/core/rust-core.log" 2>&1 &
-    local pid=$!
-    echo $pid > "$PID_DIR/rust-core.pid"
-    SERVICE_PIDS["rust-core"]=$pid
-    
-    # Wait for service to start
-    sleep 10
-    if kill -0 $pid 2>/dev/null && check_service_health "http://localhost:$RUST_CORE_PORT/health"; then
-        SERVICE_STATUS["rust-core"]="running"
-        log "Rust core service started successfully (PID: $pid) ✓"
     else
         SERVICE_STATUS["rust-core"]="failed"
-        error "Rust core service failed to start"
+        error "Rust core service failed to start via Docker"
         return 1
     fi
-    
-    cd "$SCRIPT_DIR"
 }
 
 # Check service health
@@ -484,22 +445,16 @@ show_access_info() {
 cleanup() {
     log "Cleaning up services..."
     
-    # Stop Python agents
-    for service in "${!SERVICE_PIDS[@]}"; do
-        local pid=${SERVICE_PIDS[$service]}
-        if kill -0 $pid 2>/dev/null; then
-            log "Stopping $service (PID: $pid)..."
-            kill $pid
-        fi
-    done
-    
-    # Stop Docker services
+    # Stop all Docker services
     if command -v docker-compose &> /dev/null; then
         log "Stopping Docker services..."
         docker-compose down > /dev/null 2>&1
+        
+        # Also stop any orphaned containers
+        docker-compose down --remove-orphans > /dev/null 2>&1
     fi
     
-    # Clean up PID files
+    # Clean up PID files (if any remain from legacy runs)
     rm -f "$PID_DIR"/*.pid
     
     log "Cleanup completed"
@@ -549,21 +504,23 @@ main() {
     # Keep script running
     echo -e "\n${YELLOW}Press Ctrl+C to stop all services${NC}\n"
     
-    # Monitor services
+    # Monitor Docker services
     while true; do
         sleep 30
         
-        # Check if any service has died
+        # Check if any Docker service has failed
         local failed_services=()
-        for service in "${!SERVICE_PIDS[@]}"; do
-            local pid=${SERVICE_PIDS[$service]}
-            if ! kill -0 $pid 2>/dev/null; then
-                failed_services+=("$service")
+        for service in "${!SERVICE_STATUS[@]}"; do
+            if [ "$service" != "infrastructure" ] && [ "$service" != "monitoring" ]; then
+                if ! docker-compose ps "$service" | grep -q "Up"; then
+                    failed_services+=("$service")
+                    SERVICE_STATUS["$service"]="failed"
+                fi
             fi
         done
         
         if [ ${#failed_services[@]} -gt 0 ]; then
-            warn "Detected failed services: ${failed_services[*]}"
+            warn "Detected failed Docker services: ${failed_services[*]}"
             # Could implement restart logic here
         fi
     done

@@ -1,0 +1,1 @@
+cargo:rustc-env=MIME_TYPES_GENERATED_PATH=/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/release/build/mime_guess-dfb3b99cac9acf9a/out/mime_types_generated.rs

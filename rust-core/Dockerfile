@@ -1,5 +1,5 @@
 # Rust Core Dockerfile
-FROM rust:1.75-slim as builder
+FROM rust:1.82-slim as builder
 
 # Install system dependencies for building
 RUN apt-get update && apt-get install -y \
@@ -7,13 +7,14 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     librdkafka-dev \
     build-essential \
+    cmake \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy Cargo files first for better caching
-COPY Cargo.toml Cargo.lock ./
+    # Copy Cargo files first for better caching
+    COPY Cargo.toml ./
 
 # Create a dummy main.rs to build dependencies
 RUN mkdir src && echo "fn main() {}" > src/main.rs
@@ -35,6 +36,7 @@ RUN apt-get update && apt-get install -y \
     libssl3 \
     librdkafka1 \
     ca-certificates \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

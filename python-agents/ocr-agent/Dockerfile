@@ -9,13 +9,16 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     tesseract-ocr-eng \
     libtesseract-dev \
-    libgl1-mesa-glx \
+    libgl1-mesa-dri \
+    libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
     libgomp1 \
     libgthread-2.0-0 \
+    libgstreamer1.0-0 \
+    libgstreamer-plugins-base1.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -39,7 +42,7 @@ EXPOSE 8001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8001/health')" || exit 1
+    CMD python -c "import httpx; httpx.get('http://localhost:8001/health')" || exit 1
 
 # Run the application
 CMD ["python", "ocr_service.py"]

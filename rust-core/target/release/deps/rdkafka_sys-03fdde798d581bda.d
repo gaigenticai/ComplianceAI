@@ -1,0 +1,10 @@
+/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/release/deps/rdkafka_sys-03fdde798d581bda.d: /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/lib.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/bindings.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/helpers.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/types.rs
+
+/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/release/deps/librdkafka_sys-03fdde798d581bda.rlib: /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/lib.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/bindings.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/helpers.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/types.rs
+
+/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/release/deps/librdkafka_sys-03fdde798d581bda.rmeta: /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/lib.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/bindings.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/helpers.rs /Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/types.rs
+
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/lib.rs:
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/bindings.rs:
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/helpers.rs:
+/Users/krishna/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/rdkafka-sys-4.9.0+2.10.0/src/types.rs:

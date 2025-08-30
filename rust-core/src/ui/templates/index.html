@@ -192,16 +192,85 @@
 
         <!-- Processing Status Modal -->
         <div class="modal fade" id="processingModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
                 <div class="modal-content">
-                    <div class="modal-body text-center py-5">
-                        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <h5>Processing Your KYC Request</h5>
-                        <p class="text-muted mb-0">Please wait while we verify your documents...</p>
-                        <div class="mt-3">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-cogs me-2"></i>
+                            Processing Your KYC Request
+                        </h5>
+                    </div>
+                    <div class="modal-body py-4">
+                        <div class="text-center mb-4">
+                            <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h6>Please wait while we verify your documents...</h6>
                             <small class="text-muted">Request ID: <span id="requestId"></span></small>
+                        </div>
+                        
+                        <!-- Processing Steps -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">Processing Steps:</h6>
+                                <div class="processing-steps">
+                                    <div class="step-item active" id="step-upload">
+                                        <i class="fas fa-upload text-success"></i>
+                                        <span>Documents Uploaded</span>
+                                        <small class="text-muted d-block">Files received and validated</small>
+                                    </div>
+                                    <div class="step-item" id="step-ocr">
+                                        <i class="fas fa-eye text-muted"></i>
+                                        <span>OCR Processing</span>
+                                        <small class="text-muted d-block">Extracting text from documents</small>
+                                    </div>
+                                    <div class="step-item" id="step-face">
+                                        <i class="fas fa-face-smile text-muted"></i>
+                                        <span>Face Recognition</span>
+                                        <small class="text-muted d-block">Biometric verification</small>
+                                    </div>
+                                    <div class="step-item" id="step-watchlist">
+                                        <i class="fas fa-list-check text-muted"></i>
+                                        <span>Watchlist Screening</span>
+                                        <small class="text-muted d-block">AML compliance check</small>
+                                    </div>
+                                    <div class="step-item" id="step-analysis">
+                                        <i class="fas fa-chart-line text-muted"></i>
+                                        <span>Risk Analysis</span>
+                                        <small class="text-muted d-block">Generating final report</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- System Status -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">System Status:</h6>
+                                <div class="row text-center">
+                                    <div class="col-md-4 mb-2">
+                                        <div class="status-item">
+                                            <i class="fas fa-server text-success"></i>
+                                            <small class="d-block">Core System</small>
+                                            <span class="badge bg-success">Healthy</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="status-item">
+                                            <i class="fas fa-stream text-success"></i>
+                                            <small class="d-block">Kafka</small>
+                                            <span class="badge bg-success" id="kafka-status">Healthy</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-2">
+                                        <div class="status-item">
+                                            <i class="fas fa-robot text-success"></i>
+                                            <small class="d-block">AI Agents</small>
+                                            <span class="badge bg-success">Active</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

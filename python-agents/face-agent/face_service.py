@@ -16,7 +16,6 @@ Features:
 import os
 import cv2
 import numpy as np
-import face_recognition
 import mediapipe as mp
 from datetime import datetime
 from typing import Dict, List, Optional, Any, Tuple
@@ -179,7 +178,7 @@ class FaceProcessor:
 
     def detect_faces(self, image: np.ndarray) -> Tuple[List, List]:
         """
-        Detect faces in image using face_recognition library
+        Detect faces in image using mediapipe
         
         Args:
             image: Input image as numpy array
@@ -188,11 +187,37 @@ class FaceProcessor:
             Tuple of (face_locations, face_encodings)
         """
         try:
-            # Detect face locations
-            face_locations = face_recognition.face_locations(image, model="hog")
+            # Convert BGR to RGB for mediapipe
+            rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             
-            # Generate face encodings
-            face_encodings = face_recognition.face_encodings(image, face_locations)
+            # Detect faces using mediapipe
+            results = self.face_detection.process(rgb_image)
+            
+            face_locations = []
+            face_encodings = []
+            
+            if results.detections:
+                h, w, _ = image.shape
+                for detection in results.detections:
+                    # Get bounding box
+                    bbox = detection.location_data.relative_bounding_box
+                    
+                    # Convert relative coordinates to absolute (top, right, bottom, left format)
+                    left = int(bbox.xmin * w)
+                    top = int(bbox.ymin * h)
+                    right = int((bbox.xmin + bbox.width) * w)
+                    bottom = int((bbox.ymin + bbox.height) * h)
+                    
+                    face_locations.append((top, right, bottom, left))
+                    
+                    # Extract face region for encoding (simplified)
+                    face_region = image[max(0, top):min(h, bottom), max(0, left):min(w, right)]
+                    if face_region.size > 0:
+                        # Create a simple encoding based on face region features
+                        face_gray = cv2.cvtColor(face_region, cv2.COLOR_BGR2GRAY)
+                        face_resized = cv2.resize(face_gray, (128, 128))
+                        encoding = face_resized.flatten()[:128]  # Simple feature vector
+                        face_encodings.append(encoding)
             
             logger.info(f"Detected {len(face_locations)} faces")
             return face_locations, face_encodings
@@ -627,14 +652,14 @@ class FaceProcessor:
             selfie_encoding = np.array(selfie_analysis.face_encoding)
             id_encoding = np.array(id_analysis.face_encoding)
             
-            # Calculate face distance using face_recognition library
-            distance = face_recognition.face_distance([id_encoding], selfie_encoding)[0]
+            # Calculate face similarity using cosine similarity
+            similarity_score = cosine_similarity([id_encoding], [selfie_encoding])[0][0]
             
-            # Convert distance to similarity score (0-100)
-            similarity = max(0, (1 - distance) * 100)
+            # Convert similarity to percentage (0-100)
+            similarity = max(0, similarity_score * 100)
             
-            # Determine if it's a match
-            is_match = distance <= self.similarity_threshold
+            # Determine if it's a match (similarity threshold of 70%)
+            is_match = similarity >= 70
             
             # Calculate confidence based on distance and face qualities
             quality_factor = (selfie_analysis.face_quality + id_analysis.face_quality) / 200

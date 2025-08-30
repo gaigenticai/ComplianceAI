@@ -415,10 +415,9 @@ impl KycOrchestrator {
 
         // OCR risk factors (weight: 0.2)
         if let Some(ocr_response) = responses.get("ocr") {
-            if let Ok(score) = ocr_response.data.get("risk_score").unwrap_or(&serde_json::json!(0.0)).as_f64().unwrap_or(0.0) {
-                total_score += score * 0.2;
-                weight_sum += 0.2;
-            }
+            let score = ocr_response.data.get("risk_score").unwrap_or(&serde_json::json!(0.0)).as_f64().unwrap_or(0.0);
+            total_score += score * 0.2;
+            weight_sum += 0.2;
         }
 
         // Face recognition risk factors (weight: 0.3)
@@ -439,10 +438,9 @@ impl KycOrchestrator {
 
         // Data integration risk factors (weight: 0.1)
         if let Some(data_response) = responses.get("data_integration") {
-            if let Ok(score) = data_response.data.get("risk_score").unwrap_or(&serde_json::json!(0.0)).as_f64().unwrap_or(0.0) {
-                total_score += score * 0.1;
-                weight_sum += 0.1;
-            }
+            let score = data_response.data.get("risk_score").unwrap_or(&serde_json::json!(0.0)).as_f64().unwrap_or(0.0);
+            total_score += score * 0.1;
+            weight_sum += 0.1;
         }
 
         if weight_sum > 0.0 {
@@ -519,7 +517,8 @@ impl KycOrchestrator {
     /// Processes quality assurance agent results
     fn extract_qa_verdict(&self, responses: &HashMap<String, AgentResponse>) -> crate::messaging::QaVerdict {
         if let Some(qa_response) = responses.get("qa") {
-            let status_str = qa_response.data.get("status").unwrap_or(&serde_json::json!("passed")).as_str().unwrap_or("passed");
+            let default_status = serde_json::json!("passed");
+            let status_str = qa_response.data.get("status").unwrap_or(&default_status).as_str().unwrap_or("passed");
             let status = match status_str {
                 "passed" => crate::messaging::QaStatus::Passed,
                 "failed" => crate::messaging::QaStatus::Failed,

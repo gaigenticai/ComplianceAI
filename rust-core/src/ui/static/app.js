@@ -74,6 +74,9 @@ async function handleKycSubmission(event) {
         // Show processing modal
         processingModal.show();
         
+        // Update system status in modal
+        updateSystemStatus();
+        
         // Submit form
         const response = await fetch('/submit', {
             method: 'POST',
@@ -560,6 +563,74 @@ function isValidPhone(phone) {
 }
 
 /**
+ * Update system status in processing modal
+ */
+async function updateSystemStatus() {
+    try {
+        const response = await fetch('/health');
+        const healthData = await response.json();
+        
+        // Update Kafka status
+        const kafkaStatus = document.getElementById('kafka-status');
+        if (kafkaStatus) {
+            const status = healthData.components.kafka;
+            kafkaStatus.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            kafkaStatus.className = `badge ${status === 'healthy' ? 'bg-success' : 'bg-warning'}`;
+        }
+        
+        // Simulate processing steps animation
+        simulateProcessingSteps();
+        
+    } catch (error) {
+        console.error('Failed to update system status:', error);
+    }
+}
+
+/**
+ * Simulate processing steps animation
+ */
+function simulateProcessingSteps() {
+    const steps = ['step-upload', 'step-ocr', 'step-face', 'step-watchlist', 'step-analysis'];
+    let currentStep = 0;
+    
+    // Mark upload as completed immediately
+    const uploadStep = document.getElementById('step-upload');
+    if (uploadStep) {
+        uploadStep.classList.add('completed');
+        uploadStep.classList.remove('active');
+        uploadStep.querySelector('i').className = 'fas fa-check-circle text-success';
+    }
+    
+    // Animate through other steps
+    const stepInterval = setInterval(() => {
+        currentStep++;
+        if (currentStep >= steps.length) {
+            clearInterval(stepInterval);
+            return;
+        }
+        
+        const stepElement = document.getElementById(steps[currentStep]);
+        if (stepElement) {
+            // Mark previous step as completed
+            if (currentStep > 1) {
+                const prevStep = document.getElementById(steps[currentStep - 1]);
+                if (prevStep) {
+                    prevStep.classList.add('completed');
+                    prevStep.classList.remove('active');
+                    prevStep.querySelector('i').classList.remove('text-muted');
+                    prevStep.querySelector('i').classList.add('text-success');
+                }
+            }
+            
+            // Mark current step as active
+            stepElement.classList.add('active');
+            stepElement.querySelector('i').classList.remove('text-muted');
+            stepElement.querySelector('i').classList.add('text-primary');
+        }
+    }, 2000); // 2 seconds per step
+}
+
+/**
  * Export functions for testing
  */
 if (typeof module !== 'undefined' && module.exports) {
@@ -568,6 +639,8 @@ if (typeof module !== 'undefined' && module.exports) {
         formatFileSize,
         isValidEmail,
         isValidPhone,
-        formatDate
+        formatDate,
+        updateSystemStatus,
+        simulateProcessingSteps
     };
 }

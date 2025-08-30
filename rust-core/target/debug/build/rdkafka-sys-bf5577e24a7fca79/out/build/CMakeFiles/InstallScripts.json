@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/debug/build/rdkafka-sys-bf5577e24a7fca79/out/build/cmake_install.cmake",
+		"/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/debug/build/rdkafka-sys-bf5577e24a7fca79/out/build/src/cmake_install.cmake",
+		"/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/debug/build/rdkafka-sys-bf5577e24a7fca79/out/build/src-cpp/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

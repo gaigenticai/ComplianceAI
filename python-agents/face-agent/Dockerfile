@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     liblapack-dev \
     libx11-dev \
     libgtk-3-dev \
-    libgl1-mesa-glx \
+    libgl1-mesa-dri \
     libglib2.0-0 \
     libsm6 \
     libxext6 \
@@ -42,7 +42,7 @@ EXPOSE 8002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8002/health')" || exit 1
+    CMD python -c "import httpx; httpx.get('http://localhost:8002/health')" || exit 1
 
 # Run the application
 CMD ["python", "face_service.py"]

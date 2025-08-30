@@ -88,7 +88,7 @@
                             <div class="col-md-3 mb-3">
                                 <div class="text-center">
                                     <div class="risk-score-circle mx-auto mb-2" data-score="{{ result.executive_summary.risk_score }}">
-                                        <span class="risk-score-text">{{ result.executive_summary.risk_score | round(1) }}%</span>
+                                        <span class="risk-score-text">{{ result.executive_summary.risk_score | round }}%</span>
                                     </div>
                                     <h6 class="text-muted">Risk Score</h6>
                                 </div>
@@ -103,7 +103,7 @@
                                                  style="width: {{ result.executive_summary.confidence }}%"
                                                  aria-valuenow="{{ result.executive_summary.confidence }}" 
                                                  aria-valuemin="0" aria-valuemax="100">
-                                                {{ result.executive_summary.confidence | round(1) }}%
+                                                {{ result.executive_summary.confidence | round }}%
                                             </div>
                                         </div>
                                     </div>
@@ -115,7 +115,7 @@
                             <div class="col-md-3 mb-3">
                                 <div class="text-center">
                                     <div class="processing-time mb-2">
-                                        <span class="display-6 text-primary">{{ (result.executive_summary.processing_time / 1000) | round(1) }}s</span>
+                                        <span class="display-6 text-primary">{{ (result.executive_summary.processing_time / 1000) | round }}s</span>
                                     </div>
                                     <h6 class="text-muted">Processing Time</h6>
                                 </div>
@@ -127,7 +127,7 @@
                             <div class="col-12">
                                 <div class="alert alert-success">
                                     <i class="fas fa-dollar-sign me-2"></i>
-                                    <strong>Estimated Cost Savings:</strong> ${{ result.executive_summary.cost_savings | round(2) }}
+                                    <strong>Estimated Cost Savings:</strong> ${{ result.executive_summary.cost_savings | round }}
                                     compared to manual processing
                                 </div>
                             </div>
@@ -287,7 +287,7 @@
                                          style="width: {{ result.qa_verdict.qa_score }}%"
                                          aria-valuenow="{{ result.qa_verdict.qa_score }}" 
                                          aria-valuemin="0" aria-valuemax="100">
-                                        {{ result.qa_verdict.qa_score | round(1) }}%
+                                        {{ result.qa_verdict.qa_score | round }}%
                                     </div>
                                 </div>
                             </div>

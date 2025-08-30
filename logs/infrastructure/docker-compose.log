@@ -1,3 +1,12 @@
-time="2025-08-29T18:23:11+05:30" level=warning msg="/Users/krishna/Downloads/gaigenticai/ComplianceAI/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
- kafka Pulling 
- zookeeper Pulling 
+ Network complianceai_kyc-network  Creating
+ Network complianceai_kyc-network  Created
+ Container kyc-zookeeper  Creating
+ Container kyc-zookeeper  Created
+ Container kyc-kafka  Creating
+ Container kyc-kafka  Created
+ Container kyc-zookeeper  Starting
+ Container kyc-zookeeper  Started
+ Container kyc-zookeeper  Waiting
+ Container kyc-zookeeper  Healthy
+ Container kyc-kafka  Starting
+ Container kyc-kafka  Started

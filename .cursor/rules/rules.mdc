@@ -22,3 +22,4 @@ alwaysApply: true
 16. YOU WILL ABSOLUTELY NO PROCEED TO SUBSEQUENT PHASES UNLESS ALL ISSUES IN CURRENT PHASE ARE COMPLETED NO MATTER NOW SMALL OR NON-CRITICAL THEY ARE.
 17. You will not create a make shift or workaround or simplified version of any code just to pass tests or make things work. Things must be production grade.
 18. Every code must have comments about what the code is for and comments acorss the code which will enable the otherdevelopers to understand what the code is for.
+19. Absolutely no VENV and everything should be docker tested, unless you cannot use docker you must let me know and then get approval before using VENV.

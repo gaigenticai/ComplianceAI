@@ -1,0 +1,12 @@
+prefix=/Users/krishna/Downloads/gaigenticai/ComplianceAI/rust-core/target/release/build/rdkafka-sys-28a7cca7ba380cca/out
+exec_prefix=${prefix}
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: librdkafka++-static
+Description: The Apache Kafka C/C++ library (static)
+Version: 2.10.0
+Requires.private: 
+Cflags: -I${includedir} -DLIBRDKAFKA_STATICLIB
+Libs: -L${libdir} ${libdir}/librdkafka++.a
+Libs.private: 
