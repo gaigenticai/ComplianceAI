@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>KYC Results Debug</h1>
+    <p>Request ID: {{ request_id }}</p>
+    <p>Result exists: {% if result %}Yes{% else %}No{% endif %}</p>
+    {% if result %}
+        <p>Timestamp: {{ result.timestamp }}</p>
+        <p>Recommendation: {{ result.executive_summary.recommendation }}</p>
+    {% endif %}
+</body>
+</html>

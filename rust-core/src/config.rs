@@ -38,8 +38,10 @@ pub struct KafkaConfig {
     pub kyc_result_topic: String,
     /// Topic for feedback collection
     pub kyc_feedback_topic: String,
-    /// Consumer group ID
+    /// Consumer group ID for orchestrator
     pub consumer_group: String,
+    /// Consumer group ID for result consumer
+    pub result_consumer_group: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,8 +52,13 @@ pub struct PineconeConfig {
     pub environment: String,
     /// Index name for KYC data
     pub index_name: String,
+    /// Pinecone project ID
+    pub project_id: Option<String>,
     /// Vector dimension
     pub dimension: usize,
+    /// Pinecone host URL (optional, will construct if not provided)
+    #[serde(default)]
+    pub host: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -87,7 +94,10 @@ impl Config {
         let default_content = std::fs::read_to_string(default_config_path)
             .map_err(|e| anyhow::anyhow!("Failed to read default config: {}", e))?;
         
-        let mut config: Config = serde_yaml::from_str(&default_content)
+        // Temporarily disable environment variable expansion for debugging
+        let expanded_content = default_content;
+        
+        let mut config: Config = serde_yaml::from_str(&expanded_content)
             .map_err(|e| anyhow::anyhow!("Failed to parse default config: {}", e))?;
 
         // Try to load client override configuration
@@ -117,6 +127,31 @@ impl Config {
     }
 }
 
+/// Expand environment variables in configuration content
+/// Replaces ${VAR_NAME} with the value of the environment variable
+fn expand_env_vars(content: &str) -> Result<String> {
+    let mut result = content.to_string();
+    
+    // Find all ${VAR_NAME} patterns and replace them
+    let re = regex::Regex::new(r"\$\{([^}]+)\}").unwrap();
+    
+    for cap in re.captures_iter(content) {
+        let full_match = &cap[0];
+        let var_name = &cap[1];
+        
+        match std::env::var(var_name) {
+            Ok(value) => {
+                result = result.replace(full_match, &value);
+            }
+            Err(_) => {
+                return Err(anyhow::anyhow!("Environment variable {} not found", var_name));
+            }
+        }
+    }
+    
+    Ok(result)
+}
+
 /// Merge override configuration into base configuration
 /// This allows selective overriding of configuration values
 fn merge_configs(mut base: Config, override_val: serde_yaml::Value) -> Result<Config> {
@@ -144,6 +179,8 @@ fn merge_yaml_values(base: serde_yaml::Value, override_val: serde_yaml::Value) -
         (_, override_val) => override_val,
     }
 }
+
+
 
 /// Find an available port starting from the given port number
 /// This ensures automatic port conflict resolution as required by the rules

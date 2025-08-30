@@ -126,17 +126,29 @@ impl PineconeClient {
             .build()
             .map_err(|e| anyhow::anyhow!("Failed to create HTTP client: {}", e))?;
 
-        // Construct base URL based on environment
-        let base_url = if config.environment == "local" {
+        // Use provided host URL or construct base URL based on environment
+        log::info!("Pinecone config - host: {:?}, environment: {}, index_name: {}", 
+                   config.host, config.environment, config.index_name);
+        
+        let base_url = if let Some(host) = &config.host {
+            // Use the provided host URL from config (recommended)
+            log::info!("✅ Using provided Pinecone host URL: {}", host);
+            host.clone()
+        } else if config.environment == "local" {
             // Local Pinecone emulator
+            log::info!("🔧 Using local Pinecone emulator");
             format!("http://localhost:8080")
         } else {
-            // Pinecone cloud service
-            format!("https://{}-{}.svc.{}.pinecone.io", 
+            // Fallback: construct Pinecone cloud service URL
+            let project_id = config.project_id.as_ref()
+                .ok_or_else(|| anyhow::anyhow!("Pinecone project_id is required for cloud environment"))?;
+            let constructed_url = format!("https://{}-{}.svc.{}.pinecone.io", 
                 config.index_name, 
-                "project-id", // This would be configurable in production
+                project_id,
                 config.environment
-            )
+            );
+            log::warn!("⚠️ Constructed Pinecone URL (host not provided): {}", constructed_url);
+            constructed_url
         };
 
         Ok(Self {

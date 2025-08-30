@@ -38,7 +38,7 @@
                     <div class="card-body text-center py-4">
                         <h1 class="display-5 fw-bold text-primary mb-2">KYC Verification Results</h1>
                         <p class="text-muted mb-0">Request ID: <code>{{ request_id }}</code></p>
-                        <small class="text-muted">Processed on {{ result.timestamp | date(format="%B %d, %Y at %H:%M UTC") }}</small>
+                        <small class="text-muted">Processed on {{ result.timestamp }}</small>
                     </div>
                 </div>
             </div>
@@ -88,7 +88,7 @@
                             <div class="col-md-3 mb-3">
                                 <div class="text-center">
                                     <div class="risk-score-circle mx-auto mb-2" data-score="{{ result.executive_summary.risk_score }}">
-                                        <span class="risk-score-text">{{ result.executive_summary.risk_score | round }}%</span>
+                                        <span class="risk-score-text">{{ result.executive_summary.risk_score }}%</span>
                                     </div>
                                     <h6 class="text-muted">Risk Score</h6>
                                 </div>
@@ -103,7 +103,7 @@
                                                  style="width: {{ result.executive_summary.confidence }}%"
                                                  aria-valuenow="{{ result.executive_summary.confidence }}" 
                                                  aria-valuemin="0" aria-valuemax="100">
-                                                {{ result.executive_summary.confidence | round }}%
+                                                {{ result.executive_summary.confidence }}%
                                             </div>
                                         </div>
                                     </div>
@@ -115,7 +115,7 @@
                             <div class="col-md-3 mb-3">
                                 <div class="text-center">
                                     <div class="processing-time mb-2">
-                                        <span class="display-6 text-primary">{{ (result.executive_summary.processing_time / 1000) | round }}s</span>
+                                        <span class="display-6 text-primary">{{ result.executive_summary.processing_time }}ms</span>
                                     </div>
                                     <h6 class="text-muted">Processing Time</h6>
                                 </div>
@@ -127,7 +127,7 @@
                             <div class="col-12">
                                 <div class="alert alert-success">
                                     <i class="fas fa-dollar-sign me-2"></i>
-                                    <strong>Estimated Cost Savings:</strong> ${{ result.executive_summary.cost_savings | round }}
+                                    <strong>Estimated Cost Savings:</strong> ${{ result.executive_summary.cost_savings }}
                                     compared to manual processing
                                 </div>
                             </div>
@@ -161,7 +161,7 @@
                                 </h2>
                                 <div id="ocrResults" class="accordion-collapse collapse show">
                                     <div class="accordion-body">
-                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.ocr_results | tojson(indent=2) }}</code></pre>
+                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.ocr_results }}</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -179,7 +179,7 @@
                                 </h2>
                                 <div id="biometricResults" class="accordion-collapse collapse">
                                     <div class="accordion-body">
-                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.biometric_results | tojson(indent=2) }}</code></pre>
+                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.biometric_results }}</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -197,7 +197,7 @@
                                 </h2>
                                 <div id="watchlistResults" class="accordion-collapse collapse">
                                     <div class="accordion-body">
-                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.watchlist_results | tojson(indent=2) }}</code></pre>
+                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.watchlist_results }}</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -215,7 +215,7 @@
                                 </h2>
                                 <div id="dataIntegrationResults" class="accordion-collapse collapse">
                                     <div class="accordion-body">
-                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.data_integration_results | tojson(indent=2) }}</code></pre>
+                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.data_integration_results }}</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -233,7 +233,7 @@
                                 </h2>
                                 <div id="riskAssessment" class="accordion-collapse collapse">
                                     <div class="accordion-body">
-                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.risk_assessment | tojson(indent=2) }}</code></pre>
+                                        <pre class="bg-light p-3 rounded"><code>{{ result.detailed_analysis.risk_assessment }}</code></pre>
                                     </div>
                                 </div>
                             </div>
@@ -287,7 +287,7 @@
                                          style="width: {{ result.qa_verdict.qa_score }}%"
                                          aria-valuenow="{{ result.qa_verdict.qa_score }}" 
                                          aria-valuemin="0" aria-valuemax="100">
-                                        {{ result.qa_verdict.qa_score | round }}%
+                                                                                        {{ result.qa_verdict.qa_score }}%
                                     </div>
                                 </div>
                             </div>

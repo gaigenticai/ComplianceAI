@@ -12,7 +12,8 @@ use chrono::{DateTime, Utc};
 /// Handles producer and consumer operations with proper error handling
 pub struct KafkaMessaging {
     producer: FutureProducer,
-    consumer: StreamConsumer,
+    request_consumer: StreamConsumer,
+    result_consumer: StreamConsumer,
     config: crate::config::KafkaConfig,
 }
 
@@ -243,19 +244,30 @@ impl KafkaMessaging {
             .create()
             .map_err(|e| anyhow::anyhow!("Failed to create Kafka producer: {}", e))?;
 
-        // Create consumer
-        let consumer: StreamConsumer = ClientConfig::new()
-            .set("group.id", &config.consumer_group)
+        // Create request consumer (for orchestrator)
+        let request_consumer: StreamConsumer = ClientConfig::new()
+            .set("group.id", "kyc_orchestrator_requests")
             .set("bootstrap.servers", &config.brokers)
             .set("enable.partition.eof", "false")
             .set("session.timeout.ms", "6000")
             .set("enable.auto.commit", "true")
             .create()
-            .map_err(|e| anyhow::anyhow!("Failed to create Kafka consumer: {}", e))?;
+            .map_err(|e| anyhow::anyhow!("Failed to create Kafka request consumer: {}", e))?;
+
+        // Create result consumer (for web interface)
+        let result_consumer: StreamConsumer = ClientConfig::new()
+            .set("group.id", "kyc_result_consumer")
+            .set("bootstrap.servers", &config.brokers)
+            .set("enable.partition.eof", "false")
+            .set("session.timeout.ms", "6000")
+            .set("enable.auto.commit", "true")
+            .create()
+            .map_err(|e| anyhow::anyhow!("Failed to create Kafka result consumer: {}", e))?;
 
         Ok(Self {
             producer,
-            consumer,
+            request_consumer,
+            result_consumer,
             config,
         })
     }
@@ -323,7 +335,7 @@ impl KafkaMessaging {
     /// Subscribe to KYC request topic
     /// Used by the orchestrator to process incoming requests
     pub fn subscribe_to_requests(&self) -> Result<()> {
-        self.consumer
+        self.request_consumer
             .subscribe(&[&self.config.kyc_request_topic])
             .map_err(|e| anyhow::anyhow!("Failed to subscribe to requests: {}", e))?;
         
@@ -334,7 +346,7 @@ impl KafkaMessaging {
     /// Subscribe to KYC result topic
     /// Used by the web server to get processing results
     pub fn subscribe_to_results(&self) -> Result<()> {
-        self.consumer
+        self.result_consumer
             .subscribe(&[&self.config.kyc_result_topic])
             .map_err(|e| anyhow::anyhow!("Failed to subscribe to results: {}", e))?;
         
@@ -342,10 +354,16 @@ impl KafkaMessaging {
         Ok(())
     }
 
-    /// Get the consumer reference for message polling
-    /// Used by the orchestrator and web server
-    pub fn consumer(&self) -> &StreamConsumer {
-        &self.consumer
+    /// Get the request consumer reference for message polling
+    /// Used by the orchestrator
+    pub fn request_consumer(&self) -> &StreamConsumer {
+        &self.request_consumer
+    }
+
+    /// Get the result consumer reference for message polling
+    /// Used by the web server
+    pub fn result_consumer(&self) -> &StreamConsumer {
+        &self.result_consumer
     }
 }
 

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Results - KYC Automation Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt me-2"></i>
+                KYC Automation Platform
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-plus me-1"></i>
+                    New Request
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Results Content -->
+    <div class="container mt-4">
+        {% if status.status == 'processing' %}
+        <!-- Still Processing -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <h3 class="text-primary">Processing Your Request</h3>
+                        <p class="text-muted">Request ID: <code>{{ request_id }}</code></p>
+                        <p class="mb-4">{{ status.message }}</p>
+                        <a href="/processing/{{ request_id }}" class="btn btn-primary">
+                            <i class="fas fa-eye me-2"></i>
+                            View Processing Status
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% elif status.status == 'completed' and result %}
+        <!-- Results Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-4">
+                        <h1 class="display-5 fw-bold text-primary mb-2">KYC Verification Results</h1>
+                        <p class="text-muted mb-0">Request ID: <code>{{ request_id }}</code></p>
+                        <small class="text-muted">Processed on {{ result.timestamp }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-gradient text-white">
+                        <h3 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Executive Summary
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Recommendation -->
+                            <div class="col-md-3 text-center mb-3">
+                                <div class="summary-metric">
+                                    {% if result.executive_summary.recommendation == 'Approve' %}
+                                        <i class="fas fa-check-circle fa-3x text-success mb-2"></i>
+                                        <h4 class="text-success">APPROVED</h4>
+                                    {% elif result.executive_summary.recommendation == 'Reject' %}
+                                        <i class="fas fa-times-circle fa-3x text-danger mb-2"></i>
+                                        <h4 class="text-danger">REJECTED</h4>
+                                    {% else %}
+                                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-2"></i>
+                                        <h4 class="text-warning">REVIEW REQUIRED</h4>
+                                    {% endif %}
+                                    <p class="text-muted mb-0">Final Recommendation</p>
+                                </div>
+                            </div>
+
+                            <!-- Risk Score -->
+                            <div class="col-md-3 text-center mb-3">
+                                <div class="summary-metric">
+                                    <div class="risk-score-circle mb-2">
+                                        <span class="risk-score-text">{{ result.executive_summary.risk_score }}%</span>
+                                    </div>
+                                    <h5>Risk Score</h5>
+                                    <p class="text-muted mb-0">
+                                        {% if result.executive_summary.risk_score < 30 %}
+                                            Low Risk
+                                        {% elif result.executive_summary.risk_score < 70 %}
+                                            Medium Risk
+                                        {% else %}
+                                            High Risk
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Processing Time -->
+                            <div class="col-md-3 text-center mb-3">
+                                <div class="summary-metric">
+                                    <i class="fas fa-clock fa-2x text-info mb-2"></i>
+                                    <h5>{{ result.executive_summary.processing_time }}ms</h5>
+                                    <p class="text-muted mb-0">Processing Time</p>
+                                </div>
+                            </div>
+
+                            <!-- Confidence -->
+                            <div class="col-md-3 text-center mb-3">
+                                <div class="summary-metric">
+                                    <div class="confidence-bar mb-2">
+                                        <div class="confidence-fill" style="width: {{ result.executive_summary.confidence }}%"></div>
+                                    </div>
+                                    <h5>{{ result.executive_summary.confidence }}%</h5>
+                                    <p class="text-muted mb-0">Confidence Level</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cost Savings -->
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="alert alert-success border-0">
+                                    <i class="fas fa-dollar-sign me-2"></i>
+                                    <strong>Estimated Cost Savings:</strong> ${{ result.executive_summary.cost_savings }}
+                                    compared to manual processing
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Analysis -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0">
+                            <i class="fas fa-microscope me-2"></i>
+                            Detailed Analysis
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="accordion" id="analysisAccordion">
+                            <!-- OCR Results -->
+                            {% if result.detailed_analysis.ocr_results %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#ocrResults">
+                                        <i class="fas fa-eye me-2"></i>
+                                        OCR Analysis Results
+                                    </button>
+                                </h2>
+                                <div id="ocrResults" class="accordion-collapse collapse show" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <pre class="bg-light p-3 rounded">{{ result.detailed_analysis.ocr_results | tojson(indent=2) }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Biometric Results -->
+                            {% if result.detailed_analysis.biometric_results %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#biometricResults">
+                                        <i class="fas fa-user-check me-2"></i>
+                                        Biometric Analysis Results
+                                    </button>
+                                </h2>
+                                <div id="biometricResults" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <pre class="bg-light p-3 rounded">{{ result.detailed_analysis.biometric_results | tojson(indent=2) }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Watchlist Results -->
+                            {% if result.detailed_analysis.watchlist_results %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#watchlistResults">
+                                        <i class="fas fa-search me-2"></i>
+                                        Watchlist Screening Results
+                                    </button>
+                                </h2>
+                                <div id="watchlistResults" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <pre class="bg-light p-3 rounded">{{ result.detailed_analysis.watchlist_results | tojson(indent=2) }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- Data Integration Results -->
+                            {% if result.detailed_analysis.data_integration_results %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                            data-bs-target="#dataResults">
+                                        <i class="fas fa-database me-2"></i>
+                                        Data Integration Results
+                                    </button>
+                                </h2>
+                                <div id="dataResults" class="accordion-collapse collapse" 
+                                     data-bs-parent="#analysisAccordion">
+                                    <div class="accordion-body">
+                                        <pre class="bg-light p-3 rounded">{{ result.detailed_analysis.data_integration_results | tojson(indent=2) }}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QA Verdict -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0">
+                            <i class="fas fa-clipboard-check me-2"></i>
+                            Quality Assurance Verdict
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>
+                                    {% if result.qa_verdict.status == 'Passed' %}
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        Quality Check: PASSED
+                                    {% else %}
+                                        <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                        Quality Check: {{ result.qa_verdict.status }}
+                                    {% endif %}
+                                </h5>
+                                <p><strong>QA Score:</strong> {{ result.qa_verdict.qa_score }}%</p>
+                            </div>
+                            <div class="col-md-6">
+                                {% if result.qa_verdict.exceptions %}
+                                <h6>Exceptions Noted:</h6>
+                                <ul class="list-unstyled">
+                                    {% for exception in result.qa_verdict.exceptions %}
+                                    <li><i class="fas fa-exclamation-circle text-warning me-2"></i>{{ exception }}</li>
+                                    {% endfor %}
+                                </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actionable Insights -->
+        {% if result.actionable_insights %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-light">
+                        <h4 class="mb-0">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Actionable Insights
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            {% if result.actionable_insights.follow_up_actions %}
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-tasks me-2"></i>Follow-up Actions</h6>
+                                <ul class="list-unstyled">
+                                    {% for action in result.actionable_insights.follow_up_actions %}
+                                    <li class="mb-2"><i class="fas fa-arrow-right text-primary me-2"></i>{{ action }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            {% if result.actionable_insights.monitoring_requirements %}
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-eye me-2"></i>Monitoring Requirements</h6>
+                                <ul class="list-unstyled">
+                                    {% for req in result.actionable_insights.monitoring_requirements %}
+                                    <li class="mb-2"><i class="fas fa-arrow-right text-info me-2"></i>{{ req }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            {% if result.actionable_insights.process_improvements %}
+                            <div class="col-md-4">
+                                <h6><i class="fas fa-chart-line me-2"></i>Process Improvements</h6>
+                                <ul class="list-unstyled">
+                                    {% for improvement in result.actionable_insights.process_improvements %}
+                                    <li class="mb-2"><i class="fas fa-arrow-right text-success me-2"></i>{{ improvement }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Error or Unknown Status -->
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h3 class="text-warning">Processing Status Unknown</h3>
+                        <p class="text-muted">Request ID: <code>{{ request_id }}</code></p>
+                        <p class="mb-4">{{ status.message }}</p>
+                        <div>
+                            <a href="/processing/{{ request_id }}" class="btn btn-primary me-2">
+                                <i class="fas fa-sync-alt me-2"></i>
+                                Check Status
+                            </a>
+                            <a href="/" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-2"></i>
+                                New Request
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Actions -->
+        <div class="row">
+            <div class="col-12 text-center">
+                <div class="btn-group" role="group">
+                    <button class="btn btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>
+                        Print Results
+                    </button>
+                    <button class="btn btn-outline-success" onclick="downloadResults()">
+                        <i class="fas fa-download me-2"></i>
+                        Download PDF
+                    </button>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        New KYC Request
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function downloadResults() {
+            // In a production environment, this would generate and download a PDF report
+            alert('PDF download functionality would be implemented here');
+        }
+    </script>
+</body>
+</html>

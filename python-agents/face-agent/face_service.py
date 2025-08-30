@@ -835,11 +835,11 @@ async def process_face_request(request: FaceRequest):
         processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
         
         # Determine status
-        status = "success"
+        status = "Success"
         if result.errors:
-            status = "error"
+            status = "Error"
         elif result.warnings:
-            status = "warning"
+            status = "Warning"
         
         response_data = result.dict()
         
@@ -854,7 +854,7 @@ async def process_face_request(request: FaceRequest):
         processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
         
         return FaceResponse(
-            status="error",
+            status="Error",
             data={"error": str(e)},
             processing_time=processing_time,
             error=str(e)

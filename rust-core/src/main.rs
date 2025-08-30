@@ -441,8 +441,17 @@ async fn main() -> Result<()> {
     };
 
     // Initialize Pinecone storage
-    let storage = Arc::new(PineconeClient::new(config.pinecone.clone())?);
-    log::info!("Pinecone storage initialized");
+    log::info!("About to initialize Pinecone storage...");
+    let storage = match PineconeClient::new(config.pinecone.clone()) {
+        Ok(client) => {
+            log::info!("Pinecone storage initialized successfully");
+            Arc::new(client)
+        }
+        Err(e) => {
+            log::error!("Failed to initialize Pinecone storage: {}", e);
+            return Err(e);
+        }
+    };
 
     // Initialize template engine
     let mut tera = Tera::new("src/ui/templates/**/*")?;
@@ -467,7 +476,7 @@ async fn main() -> Result<()> {
         }
     });
 
-    // Start result consumer in background
+    // Start result consumer in background (now with separate consumer)
     let result_consumer_state = app_state.clone();
     let result_consumer_handle = tokio::spawn(async move {
         if let Err(e) = start_result_consumer(result_consumer_state).await {
@@ -685,7 +694,10 @@ async fn result_handler(
         context.insert("request_id", &request_id);
         
         let html = data.tera.render("result.html", &context)
-            .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Template error: {}", e)))?;
+            .map_err(|e| {
+                log::error!("Template rendering error: {}", e);
+                actix_web::error::ErrorInternalServerError(format!("Template error: {}", e))
+            })?;
         
         Ok(HttpResponse::Ok().content_type("text/html").body(html))
     } else {
@@ -856,7 +868,7 @@ fn format_uptime(seconds: u64) -> String {
     }
 }
 
-/// Start result consumer
+/// Start result consumer - DISABLED
 /// Consumes KYC results from Kafka and stores them for web access
 async fn start_result_consumer(data: web::Data<AppState>) -> Result<()> {
     log::info!("Starting result consumer");
@@ -866,7 +878,7 @@ async fn start_result_consumer(data: web::Data<AppState>) -> Result<()> {
     loop {
         match tokio::time::timeout(
             std::time::Duration::from_secs(1),
-            data.messaging.consumer().recv()
+            data.messaging.result_consumer().recv()
         ).await {
             Ok(Ok(msg)) => {
                 if let Some(payload) = msg.payload() {

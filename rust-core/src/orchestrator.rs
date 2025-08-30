@@ -108,9 +108,10 @@ impl KycOrchestrator {
     /// Implements the complete operational framework workflow
     async fn process_next_request(&self) -> Result<()> {
         // Poll for messages with timeout
+        use futures::StreamExt;
         let message = timeout(
             Duration::from_secs(1),
-            self.messaging.consumer().recv()
+            self.messaging.request_consumer().recv()
         ).await;
 
         match message {
@@ -122,12 +123,26 @@ impl KycOrchestrator {
                     log::info!("Processing KYC request: {}", request.request_id);
                     
                     // Process the request through the workflow
-                    let result = self.execute_workflow(request).await?;
+                    let result = match self.execute_workflow(request.clone()).await {
+                        Ok(result) => result,
+                        Err(e) => {
+                            log::error!("Workflow execution failed: {}", e);
+                            // Create a fallback result with error information
+                            self.create_error_result(request, e.to_string()).await
+                        }
+                    };
                     
-                    // Store result in vector database
-                    self.storage.store_kyc_result(&result).await?;
+                    // Try to store result in vector database (non-blocking)
+                    match self.storage.store_kyc_result(&result).await {
+                        Ok(_) => {
+                            log::info!("Successfully stored KYC result in vector database: {}", result.request_id);
+                        }
+                        Err(e) => {
+                            log::warn!("Failed to store KYC result in vector database (continuing anyway): {}", e);
+                        }
+                    }
                     
-                    // Publish result
+                    // Always publish result regardless of Pinecone status
                     self.messaging.produce_kyc_result(&result).await?;
                     
                     log::info!("Completed KYC request: {}", result.request_id);
@@ -556,6 +571,47 @@ impl KycOrchestrator {
         // Automated processing cost (minimal)
         let automated_cost = 0.50;
         manual_cost - automated_cost
+    }
+
+    /// Create an error result when workflow execution fails
+    /// Provides a fallback result with error information for the UI
+    async fn create_error_result(&self, request: KycRequest, error_message: String) -> KycResult {
+        use crate::messaging::*;
+        
+        KycResult {
+            request_id: request.request_id,
+            timestamp: Utc::now(),
+            executive_summary: ExecutiveSummary {
+                recommendation: Recommendation::Escalate,
+                risk_score: 100.0, // High risk due to processing error
+                confidence: 0.0,    // No confidence due to error
+                processing_time: 0,
+                cost_savings: 0.0,
+            },
+            detailed_analysis: DetailedAnalysis {
+                ocr_results: Some(serde_json::json!({"error": "Processing failed", "message": error_message})),
+                biometric_results: None,
+                watchlist_results: None,
+                data_integration_results: None,
+                risk_assessment: Some(serde_json::json!({"error": "Unable to assess risk due to processing failure"})),
+            },
+            audit_trail: AuditTrail {
+                processing_steps: vec![],
+                data_sources: vec![],
+                rules_applied: vec![],
+                agent_versions: std::collections::HashMap::new(),
+            },
+            actionable_insights: ActionableInsights {
+                follow_up_actions: vec!["Manual review required due to processing error".to_string()],
+                monitoring_requirements: vec!["Monitor system health and Pinecone connectivity".to_string()],
+                process_improvements: vec!["Automated processing failed - manual intervention needed".to_string()],
+            },
+            qa_verdict: QaVerdict {
+                status: QaStatus::Failed,
+                exceptions: vec!["System processing error".to_string()],
+                qa_score: 0.0,
+            },
+        }
     }
 
     /// Identify risk factors from agent responses

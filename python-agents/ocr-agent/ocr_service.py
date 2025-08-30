@@ -544,7 +544,7 @@ async def process_ocr_request(request: OCRRequest):
         }
         
         return OCRResponse(
-            status="success",
+            status="Success",
             data=response_data,
             processing_time=processing_time
         )
@@ -554,7 +554,7 @@ async def process_ocr_request(request: OCRRequest):
         processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
         
         return OCRResponse(
-            status="error",
+            status="Error",
             data={"error": str(e)},
             processing_time=processing_time,
             error=str(e)

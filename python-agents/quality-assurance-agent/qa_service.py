@@ -1084,11 +1084,11 @@ async def process_qa_request(request: QARequest):
         
         # Determine response status
         if result.status == "failed":
-            response_status = "error"
+            response_status = "Error"
         elif result.status in ["warning", "manual_review"]:
-            response_status = "warning"
+            response_status = "Warning"
         else:
-            response_status = "success"
+            response_status = "Success"
         
         response_data = result.dict()
         
@@ -1103,7 +1103,7 @@ async def process_qa_request(request: QARequest):
         processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
         
         return QAResponse(
-            status="error",
+            status="Error",
             data={"error": str(e)},
             processing_time=processing_time,
             error=str(e)

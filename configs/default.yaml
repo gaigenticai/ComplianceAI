@@ -15,13 +15,17 @@ kafka:
   kyc_result_topic: "kyc_results"
   kyc_feedback_topic: "kyc_feedback"
   consumer_group: "kyc_orchestrator"
+  result_consumer_group: "kyc_result_consumer"
 
 # Pinecone Vector Database Configuration
 pinecone:
-  api_key: "local-development-key"
-  environment: "local"
-  index_name: "kyc_vectors"
-  dimension: 128
+  api_key: "pcsk_48GEKe_LY3BJKZuvHLbv23QFuxXHDK1CXX7GYk9Q8SjmpCYFn7AvttZUpGunpxZrXraJpB"
+  environment: "us-east-1"
+  index_name: "gaigentic"
+  project_id: "4e7aa9ad-9192-4dd5-965e-29a3c8e353dd"
+  metric: "cosine"
+  dimension: 1536
+  host: "https://gaigentic-rg3cnnj.svc.aped-4627-b74a.pinecone.io"
 
 # Agent Service Endpoints
 agents:

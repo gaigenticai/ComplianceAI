@@ -1031,11 +1031,11 @@ async def process_watchlist_request(request: WatchlistRequest):
         processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
         
         # Determine status
-        status = "success"
+        status = "Success"
         if screening_result.errors:
-            status = "error"
+            status = "Error"
         elif screening_result.warnings or screening_result.flagged:
-            status = "warning"
+            status = "Warning"
         
         response_data = screening_result.dict()
         
@@ -1050,7 +1050,7 @@ async def process_watchlist_request(request: WatchlistRequest):
         processing_time = int((datetime.now() - start_time).total_seconds() * 1000)
         
         return WatchlistResponse(
-            status="error",
+            status="Error",
             data={"error": str(e)},
             processing_time=processing_time,
             error=str(e)
