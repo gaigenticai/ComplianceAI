@@ -138,6 +138,12 @@ class DataIngestionRequest(BaseModel):
     quality_threshold: float = Field(default=0.8, description="Minimum data quality threshold")
     enable_schema_inference: bool = Field(default=True, description="Enable autonomous schema inference")
     enable_data_profiling: bool = Field(default=True, description="Enable comprehensive data profiling")
+    # Vision model configuration for multimodal document understanding
+    vision_model: str = Field(default="gpt4v", description="Vision model: gpt4v or llava")
+    vision_api_key: Optional[str] = Field(None, description="API key for vision model (required for GPT-4V)")
+    # Memory backend configuration for AI learning
+    memory_backend: str = Field(default="qdrant", description="Memory backend: qdrant or pinecone")
+    pinecone_api_key: Optional[str] = Field(None, description="API key for Pinecone (required for Pinecone backend)")
     metadata: Dict[str, Any] = Field(default={}, description="Additional metadata")
 
 class SchemaInferenceResult(BaseModel):
@@ -894,11 +900,330 @@ class DataProcessingTool(BaseTool):
             "validity": 1.0      # Simplified - would implement validation rules
         }
 
+class VisualDocumentAnalysisTool(BaseTool):
+    """LangChain tool for multimodal document understanding using vision models"""
+    
+    name = "visual_document_analyzer"
+    description = "Analyze documents visually using AI vision models (GPT-4V or LLaVA) to extract structured information"
+    
+    def __init__(self, vision_model: str = "gpt4v", vision_api_key: Optional[str] = None):
+        """
+        Initialize the visual document analysis tool
+        
+        Args:
+            vision_model: Vision model to use ("gpt4v" or "llava")
+            vision_api_key: API key for GPT-4V (required for GPT-4V model)
+        """
+        super().__init__()
+        self.vision_model = vision_model
+        self.vision_api_key = vision_api_key
+        
+        # Initialize OpenAI client for GPT-4V
+        if vision_model == "gpt4v" and vision_api_key:
+            self.openai_client = AsyncOpenAI(api_key=vision_api_key)
+        elif vision_model == "gpt4v" and not vision_api_key:
+            logger.warning("GPT-4V selected but no API key provided")
+            self.openai_client = None
+        else:
+            self.openai_client = None
+    
+    def _run(self, document_path: str, document_type: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Analyze document visually to extract structured information
+        
+        Args:
+            document_path: Path to the document file
+            document_type: Optional hint about document type
+            
+        Returns:
+            Dictionary containing extracted structured information
+        """
+        try:
+            logger.info("Starting visual document analysis", 
+                       document_path=document_path, 
+                       vision_model=self.vision_model)
+            
+            # Check if file exists and is supported
+            if not os.path.exists(document_path):
+                raise FileNotFoundError(f"Document not found: {document_path}")
+            
+            # Get file extension and MIME type
+            file_extension = Path(document_path).suffix.lower()
+            mime_type = magic.from_file(document_path, mime=True)
+            
+            # Check if file is an image or PDF
+            supported_types = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.pdf']
+            if file_extension not in supported_types:
+                return {
+                    "error": f"Unsupported file type: {file_extension}",
+                    "supported_types": supported_types
+                }
+            
+            # Convert document to image if needed
+            image_data = self._prepare_image_data(document_path, mime_type)
+            
+            if not image_data:
+                return {"error": "Failed to prepare image data from document"}
+            
+            # Analyze based on vision model
+            if self.vision_model == "gpt4v":
+                return asyncio.run(self._analyze_with_gpt4v(image_data, document_type))
+            elif self.vision_model == "llava":
+                return self._analyze_with_llava(image_data, document_type)
+            else:
+                return {"error": f"Unsupported vision model: {self.vision_model}"}
+                
+        except Exception as e:
+            logger.error("Visual document analysis failed", 
+                        error=str(e), 
+                        document_path=document_path)
+            return {"error": str(e)}
+    
+    def _prepare_image_data(self, document_path: str, mime_type: str) -> Optional[bytes]:
+        """
+        Prepare image data from document (convert PDF to image if needed)
+        
+        Args:
+            document_path: Path to the document
+            mime_type: MIME type of the document
+            
+        Returns:
+            Image data as bytes or None if failed
+        """
+        try:
+            if mime_type == "application/pdf":
+                # Convert PDF first page to image
+                return self._pdf_to_image(document_path)
+            else:
+                # Read image file directly
+                with open(document_path, 'rb') as f:
+                    return f.read()
+                    
+        except Exception as e:
+            logger.error("Failed to prepare image data", error=str(e))
+            return None
+    
+    def _pdf_to_image(self, pdf_path: str) -> Optional[bytes]:
+        """
+        Convert first page of PDF to image
+        
+        Args:
+            pdf_path: Path to PDF file
+            
+        Returns:
+            Image data as bytes or None if failed
+        """
+        try:
+            import fitz  # PyMuPDF
+            
+            # Open PDF
+            pdf_document = fitz.open(pdf_path)
+            
+            # Get first page
+            first_page = pdf_document[0]
+            
+            # Convert to image
+            pix = first_page.get_pixmap(matrix=fitz.Matrix(2, 2))  # 2x zoom for better quality
+            img_data = pix.tobytes("png")
+            
+            pdf_document.close()
+            
+            return img_data
+            
+        except ImportError:
+            logger.error("PyMuPDF not available for PDF processing. Install with: pip install PyMuPDF")
+            return None
+        except Exception as e:
+            logger.error("PDF to image conversion failed", error=str(e))
+            return None
+    
+    async def _analyze_with_gpt4v(self, image_data: bytes, document_type: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Analyze document using GPT-4V
+        
+        Args:
+            image_data: Image data as bytes
+            document_type: Optional document type hint
+            
+        Returns:
+            Structured analysis results
+        """
+        try:
+            if not self.openai_client:
+                return {"error": "GPT-4V client not initialized. Check API key."}
+            
+            # Encode image to base64
+            import base64
+            image_base64 = base64.b64encode(image_data).decode('utf-8')
+            
+            # Prepare prompt based on document type
+            prompt = self._get_analysis_prompt(document_type)
+            
+            # Make API call to GPT-4V
+            response = await self.openai_client.chat.completions.create(
+                model="gpt-4-vision-preview",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": prompt
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{image_base64}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=1000
+            )
+            
+            # Extract and parse response
+            analysis_text = response.choices[0].message.content
+            
+            # Try to parse as JSON, fallback to structured text
+            try:
+                analysis_result = json.loads(analysis_text)
+            except json.JSONDecodeError:
+                analysis_result = {
+                    "raw_analysis": analysis_text,
+                    "extracted_text": analysis_text,
+                    "document_type": "unknown",
+                    "confidence": 0.8
+                }
+            
+            # Add metadata
+            analysis_result.update({
+                "vision_model": "gpt4v",
+                "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+                "processing_method": "multimodal_vision"
+            })
+            
+            logger.info("GPT-4V analysis completed successfully")
+            return analysis_result
+            
+        except Exception as e:
+            logger.error("GPT-4V analysis failed", error=str(e))
+            return {"error": f"GPT-4V analysis failed: {str(e)}"}
+    
+    def _analyze_with_llava(self, image_data: bytes, document_type: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Analyze document using LLaVA (placeholder for local implementation)
+        
+        Args:
+            image_data: Image data as bytes
+            document_type: Optional document type hint
+            
+        Returns:
+            Structured analysis results
+        """
+        try:
+            # This is a placeholder implementation
+            # In production, this would connect to a local LLaVA instance
+            logger.warning("LLaVA implementation is placeholder - using OCR fallback")
+            
+            # Fallback to OCR for now
+            ocr_result = self._ocr_fallback(image_data)
+            
+            return {
+                "vision_model": "llava",
+                "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
+                "processing_method": "ocr_fallback",
+                "extracted_text": ocr_result.get("text", ""),
+                "document_type": "unknown",
+                "confidence": 0.6,
+                "note": "LLaVA implementation pending - using OCR fallback"
+            }
+            
+        except Exception as e:
+            logger.error("LLaVA analysis failed", error=str(e))
+            return {"error": f"LLaVA analysis failed: {str(e)}"}
+    
+    def _ocr_fallback(self, image_data: bytes) -> Dict[str, Any]:
+        """
+        Fallback OCR processing using Tesseract
+        
+        Args:
+            image_data: Image data as bytes
+            
+        Returns:
+            OCR results
+        """
+        try:
+            # Convert bytes to PIL Image
+            from PIL import Image
+            import io
+            
+            image = Image.open(io.BytesIO(image_data))
+            
+            # Perform OCR
+            extracted_text = pytesseract.image_to_string(image)
+            
+            return {
+                "text": extracted_text,
+                "method": "tesseract_ocr",
+                "confidence": 0.7
+            }
+            
+        except Exception as e:
+            logger.error("OCR fallback failed", error=str(e))
+            return {"text": "", "error": str(e)}
+    
+    def _get_analysis_prompt(self, document_type: Optional[str] = None) -> str:
+        """
+        Generate analysis prompt based on document type
+        
+        Args:
+            document_type: Optional document type hint
+            
+        Returns:
+            Formatted prompt for vision model
+        """
+        base_prompt = """You are a KYC (Know Your Customer) analyst. Analyze this document image and extract all relevant information as a structured JSON object.
+
+Please identify:
+1. Document type (e.g., "Passport", "Driver's License", "Utility Bill", "Bank Statement", etc.)
+2. All visible text and data fields
+3. Key information like names, dates, addresses, ID numbers
+4. Document validity indicators (expiration dates, stamps, etc.)
+5. Any suspicious or unusual elements
+
+Return your analysis as a valid JSON object with the following structure:
+{
+    "document_type": "identified document type",
+    "extracted_data": {
+        "personal_info": {},
+        "addresses": [],
+        "dates": {},
+        "identifiers": {},
+        "financial_info": {}
+    },
+    "confidence": 0.95,
+    "validity_indicators": [],
+    "suspicious_elements": [],
+    "recommendations": []
+}"""
+        
+        if document_type:
+            base_prompt += f"\n\nDocument type hint: {document_type}"
+        
+        return base_prompt
+
 class AutonomousDataIngestionAgent:
     """Main autonomous data ingestion agent using LangChain"""
     
-    def __init__(self):
-        """Initialize the autonomous agent with LangChain components"""
+    def __init__(self, vision_model: str = "gpt4v", vision_api_key: Optional[str] = None):
+        """
+        Initialize the autonomous agent with LangChain components
+        
+        Args:
+            vision_model: Vision model to use ("gpt4v" or "llava")
+            vision_api_key: API key for GPT-4V (required for GPT-4V model)
+        """
         
         # Initialize OpenAI model for reasoning
         self.llm = ChatOpenAI(
@@ -907,11 +1232,12 @@ class AutonomousDataIngestionAgent:
             openai_api_key=os.getenv("OPENAI_API_KEY")
         )
         
-        # Initialize tools
+        # Initialize tools (including new visual document analysis tool)
         self.tools = [
             DataFormatDetectionTool(),
             SchemaInferenceTool(),
-            DataProcessingTool()
+            DataProcessingTool(),
+            VisualDocumentAnalysisTool(vision_model=vision_model, vision_api_key=vision_api_key)
         ]
         
         # Initialize memory for conversation context
@@ -1203,6 +1529,29 @@ async def health_check():
         ]
     }
 
+# Global agent instance (will be initialized on first request)
+autonomous_agent: Optional[AutonomousDataIngestionAgent] = None
+
+def get_autonomous_agent(vision_model: str = "gpt4v", vision_api_key: Optional[str] = None) -> AutonomousDataIngestionAgent:
+    """Get or create the autonomous agent instance with vision configuration"""
+    global autonomous_agent
+    
+    # Create new agent if not exists or vision config changed
+    if (autonomous_agent is None or 
+        getattr(autonomous_agent, 'vision_model', None) != vision_model or
+        getattr(autonomous_agent, 'vision_api_key', None) != vision_api_key):
+        
+        logger.info("Creating new autonomous agent", vision_model=vision_model)
+        autonomous_agent = AutonomousDataIngestionAgent(
+            vision_model=vision_model,
+            vision_api_key=vision_api_key
+        )
+        # Store config for comparison
+        autonomous_agent.vision_model = vision_model
+        autonomous_agent.vision_api_key = vision_api_key
+    
+    return autonomous_agent
+
 @app.post("/api/v1/data/ingest", response_model=DataIngestionResult)
 async def ingest_data(request: DataIngestionRequest, background_tasks: BackgroundTasks):
     """Main data ingestion endpoint with autonomous processing"""
@@ -1210,8 +1559,14 @@ async def ingest_data(request: DataIngestionRequest, background_tasks: Backgroun
     logger.info("Data ingestion request received", request_id=request.request_id)
     
     try:
+        # Get autonomous agent with vision configuration
+        agent = get_autonomous_agent(
+            vision_model=request.vision_model,
+            vision_api_key=request.vision_api_key
+        )
+        
         # Process data autonomously using LangChain agent
-        result = await autonomous_agent.process_data_autonomously(request)
+        result = await agent.process_data_autonomously(request)
         
         # Add background task for cleanup if needed
         background_tasks.add_task(cleanup_temporary_files, request.request_id)

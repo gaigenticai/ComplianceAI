@@ -108,6 +108,58 @@
                                 </div>
                             </div>
                             
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="vision-model" class="form-label">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Vision Model
+                                        </label>
+                                        <select class="form-select" id="vision-model" onchange="toggleVisionApiKey()">
+                                            <option value="gpt4v">GPT-4V (Proprietary)</option>
+                                            <option value="llava">LLaVA (Open Source)</option>
+                                        </select>
+                                        <div class="form-text">Choose the AI vision model for document analysis</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3" id="vision-api-key-container">
+                                        <label for="vision-api-key" class="form-label">
+                                            <i class="fas fa-key me-1"></i>
+                                            Vision API Key
+                                        </label>
+                                        <input type="password" class="form-control" id="vision-api-key" placeholder="Enter your GPT-4V API key">
+                                        <div class="form-text">Required for GPT-4V model</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="memory-backend" class="form-label">
+                                            <i class="fas fa-brain me-1"></i>
+                                            Memory Backend
+                                        </label>
+                                        <select class="form-select" id="memory-backend" onchange="togglePineconeApiKey()">
+                                            <option value="qdrant">Qdrant (Local Docker)</option>
+                                            <option value="pinecone">Pinecone (Cloud)</option>
+                                        </select>
+                                        <div class="form-text">Choose the vector database for AI memory</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3" id="pinecone-api-key-container" style="display: none;">
+                                        <label for="pinecone-api-key" class="form-label">
+                                            <i class="fas fa-key me-1"></i>
+                                            Pinecone API Key
+                                        </label>
+                                        <input type="password" class="form-control" id="pinecone-api-key" placeholder="Enter your Pinecone API key">
+                                        <div class="form-text">Required for Pinecone cloud service</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="regulatory-requirements" class="form-label">Regulatory Requirements</label>
                                 <div class="form-check-group">

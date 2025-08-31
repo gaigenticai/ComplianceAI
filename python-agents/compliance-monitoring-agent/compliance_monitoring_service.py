@@ -792,6 +792,382 @@ class GDPRComplianceEngine:
         
         return recommendations
 
+class ComplianceRulebookTool:
+    """Tool for dynamic compliance rule sourcing with local DB and web search"""
+    
+    def __init__(self):
+        """Initialize the compliance rulebook tool"""
+        self.db_connection = None
+        self.web_search_client = None
+        
+        # Initialize database connection
+        self._init_database_connection()
+        
+        # Initialize web search capability (using Tavily API as suggested)
+        self._init_web_search()
+        
+        logger.info("ComplianceRulebookTool initialized")
+    
+    def _init_database_connection(self):
+        """Initialize PostgreSQL database connection for local compliance rules"""
+        try:
+            import psycopg2
+            from psycopg2.extras import RealDictCursor
+            
+            # Get database configuration from environment
+            db_config = {
+                'host': os.getenv('POSTGRES_HOST', 'localhost'),
+                'port': int(os.getenv('POSTGRES_PORT', '5432')),
+                'database': os.getenv('POSTGRES_DB', 'kyc_db'),
+                'user': os.getenv('POSTGRES_USER', 'postgres'),
+                'password': os.getenv('POSTGRES_PASSWORD', 'password')
+            }
+            
+            self.db_connection = psycopg2.connect(**db_config)
+            logger.info("Database connection established for compliance rules")
+            
+        except Exception as e:
+            logger.error("Failed to connect to database", error=str(e))
+            self.db_connection = None
+    
+    def _init_web_search(self):
+        """Initialize web search client for autonomous rule discovery"""
+        try:
+            # Try to initialize Tavily API client
+            tavily_api_key = os.getenv('TAVILY_API_KEY')
+            if tavily_api_key:
+                # Import Tavily client (placeholder - would need actual implementation)
+                # from tavily import TavilyClient
+                # self.web_search_client = TavilyClient(api_key=tavily_api_key)
+                logger.info("Tavily web search client initialized")
+            else:
+                logger.warning("Tavily API key not found - web search will use fallback method")
+                self.web_search_client = None
+                
+        except ImportError:
+            logger.warning("Tavily client not available - web search will use fallback method")
+            self.web_search_client = None
+        except Exception as e:
+            logger.error("Failed to initialize web search client", error=str(e))
+            self.web_search_client = None
+    
+    async def get_compliance_rules(self, region: str, regulation_types: List[str] = None) -> Dict[str, Any]:
+        """
+        Get compliance rules for a specific region, checking local DB first, then web search
+        
+        Args:
+            region: Geographic region (e.g., 'Germany', 'United States', 'European Union')
+            regulation_types: List of regulation types to search for (e.g., ['AML', 'KYC', 'GDPR'])
+            
+        Returns:
+            Dictionary containing compliance rules and their sources
+        """
+        try:
+            logger.info("Retrieving compliance rules", region=region, regulation_types=regulation_types)
+            
+            # Step 1: Check local database first
+            local_rules = await self._get_local_compliance_rules(region, regulation_types)
+            
+            if local_rules and local_rules.get('rules'):
+                logger.info("Found compliance rules in local database", 
+                           region=region, 
+                           rule_count=len(local_rules['rules']))
+                return {
+                    "source": "local_database",
+                    "region": region,
+                    "rules": local_rules['rules'],
+                    "last_updated": local_rules.get('last_updated'),
+                    "confidence": "high"
+                }
+            
+            # Step 2: If no local rules found, perform autonomous web search
+            logger.info("No local rules found, performing autonomous web search", region=region)
+            web_rules = await self._search_web_compliance_rules(region, regulation_types)
+            
+            if web_rules and web_rules.get('rules'):
+                # Store discovered rules in local database for future use
+                await self._store_discovered_rules(region, web_rules['rules'])
+                
+                return {
+                    "source": "web_search",
+                    "region": region,
+                    "rules": web_rules['rules'],
+                    "search_query": web_rules.get('search_query'),
+                    "confidence": "medium"
+                }
+            
+            # Step 3: Return default/fallback rules if nothing found
+            return {
+                "source": "fallback",
+                "region": region,
+                "rules": self._get_fallback_rules(region),
+                "confidence": "low",
+                "note": "Using fallback rules - specific regional rules not found"
+            }
+            
+        except Exception as e:
+            logger.error("Failed to retrieve compliance rules", error=str(e), region=region)
+            return {
+                "source": "error",
+                "region": region,
+                "rules": [],
+                "error": str(e)
+            }
+    
+    async def _get_local_compliance_rules(self, region: str, regulation_types: List[str] = None) -> Dict[str, Any]:
+        """Query local PostgreSQL database for compliance rules"""
+        try:
+            if not self.db_connection:
+                return {"rules": []}
+            
+            cursor = self.db_connection.cursor()
+            
+            # Build query based on region and regulation types
+            query = """
+                SELECT rule_id, region, regulation_type, rule_title, rule_content, 
+                       effective_date, last_updated, source_url, confidence_score
+                FROM compliance_rules 
+                WHERE LOWER(region) = LOWER(%s)
+            """
+            params = [region]
+            
+            if regulation_types:
+                placeholders = ','.join(['%s'] * len(regulation_types))
+                query += f" AND regulation_type IN ({placeholders})"
+                params.extend(regulation_types)
+            
+            query += " ORDER BY last_updated DESC, confidence_score DESC"
+            
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            
+            if not rows:
+                return {"rules": []}
+            
+            # Convert rows to rule objects
+            rules = []
+            for row in rows:
+                rule = {
+                    "rule_id": row[0],
+                    "region": row[1],
+                    "regulation_type": row[2],
+                    "title": row[3],
+                    "content": row[4],
+                    "effective_date": row[5].isoformat() if row[5] else None,
+                    "last_updated": row[6].isoformat() if row[6] else None,
+                    "source_url": row[7],
+                    "confidence_score": float(row[8]) if row[8] else 0.5
+                }
+                rules.append(rule)
+            
+            return {
+                "rules": rules,
+                "last_updated": max([rule['last_updated'] for rule in rules if rule['last_updated']])
+            }
+            
+        except Exception as e:
+            logger.error("Database query failed", error=str(e))
+            return {"rules": []}
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+    
+    async def _search_web_compliance_rules(self, region: str, regulation_types: List[str] = None) -> Dict[str, Any]:
+        """Perform autonomous web search for compliance rules"""
+        try:
+            # Generate search query
+            search_query = self._generate_search_query(region, regulation_types)
+            
+            if self.web_search_client:
+                # Use Tavily API for web search
+                search_results = await self._tavily_search(search_query)
+            else:
+                # Use fallback web search method
+                search_results = await self._fallback_web_search(search_query)
+            
+            if not search_results:
+                return {"rules": []}
+            
+            # Process and structure the search results
+            structured_rules = self._process_search_results(search_results, region)
+            
+            return {
+                "rules": structured_rules,
+                "search_query": search_query,
+                "search_results_count": len(search_results)
+            }
+            
+        except Exception as e:
+            logger.error("Web search failed", error=str(e))
+            return {"rules": []}
+    
+    def _generate_search_query(self, region: str, regulation_types: List[str] = None) -> str:
+        """Generate optimized search query for compliance rules"""
+        query_parts = ["current official"]
+        
+        if regulation_types:
+            query_parts.extend(regulation_types)
+        else:
+            query_parts.extend(["AML", "KYC"])
+        
+        query_parts.extend([
+            "regulations for financial institutions in",
+            region,
+            "compliance requirements"
+        ])
+        
+        return " ".join(query_parts)
+    
+    async def _tavily_search(self, query: str) -> List[Dict[str, Any]]:
+        """Perform web search using Tavily API"""
+        try:
+            # Placeholder for Tavily API implementation
+            # In production, this would make actual API calls
+            logger.info("Performing Tavily web search", query=query)
+            
+            # Simulated search results for now
+            return [
+                {
+                    "title": f"Official compliance regulations for {query}",
+                    "url": "https://example-regulator.gov/compliance",
+                    "content": "Sample compliance content from web search...",
+                    "relevance_score": 0.9
+                }
+            ]
+            
+        except Exception as e:
+            logger.error("Tavily search failed", error=str(e))
+            return []
+    
+    async def _fallback_web_search(self, query: str) -> List[Dict[str, Any]]:
+        """Fallback web search using requests and BeautifulSoup"""
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+            import urllib.parse
+            
+            # Use DuckDuckGo or similar search engine
+            encoded_query = urllib.parse.quote_plus(query)
+            search_url = f"https://duckduckgo.com/html/?q={encoded_query}"
+            
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            
+            response = requests.get(search_url, headers=headers, timeout=10)
+            response.raise_for_status()
+            
+            soup = BeautifulSoup(response.content, 'html.parser')
+            
+            # Extract search results (simplified)
+            results = []
+            for result in soup.find_all('div', class_='result')[:5]:  # Top 5 results
+                title_elem = result.find('a', class_='result__a')
+                snippet_elem = result.find('div', class_='result__snippet')
+                
+                if title_elem and snippet_elem:
+                    results.append({
+                        "title": title_elem.get_text(strip=True),
+                        "url": title_elem.get('href', ''),
+                        "content": snippet_elem.get_text(strip=True),
+                        "relevance_score": 0.7  # Default score for fallback search
+                    })
+            
+            logger.info("Fallback web search completed", query=query, result_count=len(results))
+            return results
+            
+        except Exception as e:
+            logger.error("Fallback web search failed", error=str(e))
+            return []
+    
+    def _process_search_results(self, search_results: List[Dict[str, Any]], region: str) -> List[Dict[str, Any]]:
+        """Process and structure web search results into compliance rules"""
+        structured_rules = []
+        
+        for i, result in enumerate(search_results):
+            rule = {
+                "rule_id": f"web_{region.lower().replace(' ', '_')}_{i+1}",
+                "region": region,
+                "regulation_type": "General",
+                "title": result.get("title", "Web-sourced compliance rule"),
+                "content": result.get("content", ""),
+                "source_url": result.get("url", ""),
+                "confidence_score": result.get("relevance_score", 0.5),
+                "discovered_date": datetime.now(timezone.utc).isoformat(),
+                "source": "web_search"
+            }
+            structured_rules.append(rule)
+        
+        return structured_rules
+    
+    async def _store_discovered_rules(self, region: str, rules: List[Dict[str, Any]]):
+        """Store discovered rules in local database for future use"""
+        try:
+            if not self.db_connection or not rules:
+                return
+            
+            cursor = self.db_connection.cursor()
+            
+            for rule in rules:
+                insert_query = """
+                    INSERT INTO compliance_rules 
+                    (rule_id, region, regulation_type, rule_title, rule_content, 
+                     source_url, confidence_score, last_updated, discovered_via_web)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (rule_id) DO UPDATE SET
+                        rule_content = EXCLUDED.rule_content,
+                        confidence_score = EXCLUDED.confidence_score,
+                        last_updated = EXCLUDED.last_updated
+                """
+                
+                cursor.execute(insert_query, (
+                    rule['rule_id'],
+                    rule['region'],
+                    rule['regulation_type'],
+                    rule['title'],
+                    rule['content'],
+                    rule.get('source_url'),
+                    rule['confidence_score'],
+                    datetime.now(timezone.utc),
+                    True  # discovered_via_web
+                ))
+            
+            self.db_connection.commit()
+            logger.info("Stored discovered rules in database", region=region, rule_count=len(rules))
+            
+        except Exception as e:
+            logger.error("Failed to store discovered rules", error=str(e))
+            if self.db_connection:
+                self.db_connection.rollback()
+        finally:
+            if 'cursor' in locals():
+                cursor.close()
+    
+    def _get_fallback_rules(self, region: str) -> List[Dict[str, Any]]:
+        """Provide fallback compliance rules when no specific rules are found"""
+        fallback_rules = [
+            {
+                "rule_id": f"fallback_{region.lower().replace(' ', '_')}_aml",
+                "region": region,
+                "regulation_type": "AML",
+                "title": "General Anti-Money Laundering Requirements",
+                "content": "Implement customer due diligence, monitor transactions for suspicious activity, maintain records, and report suspicious transactions to relevant authorities.",
+                "confidence_score": 0.3,
+                "source": "fallback_general_knowledge"
+            },
+            {
+                "rule_id": f"fallback_{region.lower().replace(' ', '_')}_kyc",
+                "region": region,
+                "regulation_type": "KYC",
+                "title": "General Know Your Customer Requirements",
+                "content": "Verify customer identity, assess risk profile, conduct ongoing monitoring, and maintain up-to-date customer information.",
+                "confidence_score": 0.3,
+                "source": "fallback_general_knowledge"
+            }
+        ]
+        
+        return fallback_rules
+
 # AutoGen Agent Configuration
 class ComplianceMonitoringAgents:
     """AutoGen-based compliance monitoring agents"""

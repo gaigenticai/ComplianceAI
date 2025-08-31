@@ -617,6 +617,207 @@ class WatchlistScreeningTool(BaseTool):
         else:
             return RiskLevel.LOW
 
+class RetrieveMemoryTool(BaseTool):
+    """CrewAI tool for retrieving similar KYC cases from AI memory"""
+    
+    name = "retrieve_memory"
+    description = "Retrieve similar KYC cases and patterns from AI memory to inform current analysis"
+    
+    def __init__(self, memory_backend: str = "qdrant", pinecone_api_key: Optional[str] = None):
+        """
+        Initialize the memory retrieval tool
+        
+        Args:
+            memory_backend: Memory backend to use ("qdrant" or "pinecone")
+            pinecone_api_key: API key for Pinecone (required for Pinecone backend)
+        """
+        super().__init__()
+        self.memory_backend = memory_backend
+        self.pinecone_api_key = pinecone_api_key
+        self.memory_manager = None
+        
+        # Import memory manager
+        import sys
+        sys.path.append('/app')  # Add parent directory to path
+        try:
+            from memory_manager import create_memory_manager, MemoryType
+            
+            # Initialize memory manager
+            openai_api_key = os.getenv("OPENAI_API_KEY")
+            if not openai_api_key:
+                logger.warning("OpenAI API key not found - memory retrieval will be disabled")
+                return
+            
+            self.memory_manager = create_memory_manager(
+                backend=memory_backend,
+                openai_api_key=openai_api_key,
+                qdrant_host=os.getenv("QDRANT_HOST", "localhost"),
+                qdrant_port=int(os.getenv("QDRANT_PORT", "6333")),
+                pinecone_api_key=pinecone_api_key
+            )
+            
+            logger.info("Memory retrieval tool initialized", backend=memory_backend)
+            
+        except ImportError as e:
+            logger.error("Failed to import memory manager", error=str(e))
+            self.memory_manager = None
+        except Exception as e:
+            logger.error("Failed to initialize memory manager", error=str(e))
+            self.memory_manager = None
+    
+    def _run(self, customer_data: str, analysis_context: str = "") -> str:
+        """
+        Retrieve similar KYC cases from memory
+        
+        Args:
+            customer_data: Customer data as JSON string
+            analysis_context: Additional context for the search
+            
+        Returns:
+            String containing similar cases and insights
+        """
+        try:
+            if not self.memory_manager:
+                return "Memory retrieval not available - memory manager not initialized"
+            
+            # Parse customer data
+            try:
+                customer_dict = json.loads(customer_data) if isinstance(customer_data, str) else customer_data
+            except json.JSONDecodeError:
+                customer_dict = {"raw_data": customer_data}
+            
+            # Create search query from customer data
+            search_query = self._create_search_query(customer_dict, analysis_context)
+            
+            # Search for similar cases
+            import asyncio
+            similar_cases = asyncio.run(self._search_similar_cases(search_query))
+            
+            if not similar_cases:
+                return "No similar cases found in memory"
+            
+            # Format results for CrewAI agent
+            return self._format_memory_results(similar_cases)
+            
+        except Exception as e:
+            logger.error("Memory retrieval failed", error=str(e))
+            return f"Memory retrieval failed: {str(e)}"
+    
+    def _create_search_query(self, customer_data: Dict[str, Any], context: str) -> str:
+        """Create search query from customer data"""
+        query_parts = []
+        
+        # Add personal info
+        personal_info = customer_data.get('personal_info', {})
+        if personal_info.get('nationality'):
+            query_parts.append(f"nationality: {personal_info['nationality']}")
+        if personal_info.get('country'):
+            query_parts.append(f"country: {personal_info['country']}")
+        
+        # Add financial info
+        financial_info = customer_data.get('financial_info', {})
+        if financial_info.get('annual_income'):
+            income = financial_info['annual_income']
+            if income > 100000:
+                query_parts.append("high income customer")
+            elif income < 30000:
+                query_parts.append("low income customer")
+        
+        # Add document types
+        documents = customer_data.get('documents', [])
+        doc_types = [doc.get('type', '') for doc in documents]
+        if doc_types:
+            query_parts.append(f"documents: {', '.join(doc_types)}")
+        
+        # Add context
+        if context:
+            query_parts.append(context)
+        
+        # Default query if no specific info
+        if not query_parts:
+            query_parts.append("KYC customer analysis")
+        
+        return " ".join(query_parts)
+    
+    async def _search_similar_cases(self, query: str) -> List[Dict[str, Any]]:
+        """Search for similar cases in memory"""
+        try:
+            from memory_manager import MemoryType
+            
+            # Search for case summaries and decision patterns
+            results = await self.memory_manager.search_memories(
+                query=query,
+                memory_type=MemoryType.CASE_SUMMARY,
+                limit=3,
+                similarity_threshold=0.7
+            )
+            
+            # Also search for decision patterns
+            decision_results = await self.memory_manager.search_memories(
+                query=query,
+                memory_type=MemoryType.DECISION_PATTERN,
+                limit=2,
+                similarity_threshold=0.7
+            )
+            
+            # Combine results
+            all_results = []
+            for result in results:
+                all_results.append({
+                    "type": "case_summary",
+                    "content": result.content,
+                    "similarity": result.similarity_score,
+                    "metadata": result.metadata
+                })
+            
+            for result in decision_results:
+                all_results.append({
+                    "type": "decision_pattern",
+                    "content": result.content,
+                    "similarity": result.similarity_score,
+                    "metadata": result.metadata
+                })
+            
+            # Sort by similarity
+            all_results.sort(key=lambda x: x['similarity'], reverse=True)
+            
+            return all_results
+            
+        except Exception as e:
+            logger.error("Memory search failed", error=str(e))
+            return []
+    
+    def _format_memory_results(self, results: List[Dict[str, Any]]) -> str:
+        """Format memory results for CrewAI agent consumption"""
+        if not results:
+            return "No relevant cases found in memory."
+        
+        formatted_output = ["=== SIMILAR CASES FROM AI MEMORY ===\n"]
+        
+        for i, result in enumerate(results[:5], 1):  # Limit to top 5 results
+            similarity_pct = int(result['similarity'] * 100)
+            result_type = result['type'].replace('_', ' ').title()
+            
+            formatted_output.append(f"{i}. {result_type} (Similarity: {similarity_pct}%)")
+            formatted_output.append(f"   Content: {result['content'][:200]}...")
+            
+            # Add relevant metadata
+            metadata = result.get('metadata', {})
+            if metadata.get('customer_id'):
+                formatted_output.append(f"   Customer ID: {metadata['customer_id']}")
+            if metadata.get('created_at'):
+                formatted_output.append(f"   Date: {metadata['created_at'][:10]}")
+            if metadata.get('confidence_score'):
+                confidence_pct = int(float(metadata['confidence_score']) * 100)
+                formatted_output.append(f"   Confidence: {confidence_pct}%")
+            
+            formatted_output.append("")  # Empty line
+        
+        formatted_output.append("=== END OF MEMORY RETRIEVAL ===")
+        formatted_output.append("\nUse these similar cases to inform your analysis, but ensure your decision is based on the current customer's specific circumstances.")
+        
+        return "\n".join(formatted_output)
+
 # CrewAI Agents
 class KYCAnalysisService:
     """Main KYC Analysis Service using CrewAI framework"""

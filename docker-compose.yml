@@ -116,6 +116,24 @@ services:
       timeout: 5s
       retries: 5
 
+  # Vector Database for AI Memory
+  qdrant:
+    image: qdrant/qdrant:v1.7.4
+    hostname: qdrant
+    container_name: kyc-qdrant
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+      - QDRANT__LOG_LEVEL=INFO
+    volumes:
+      - qdrant-data:/qdrant/storage
+    ports:
+      - "${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
+    networks:
+      - kyc-network
+    restart: unless-stopped
+
   # AI Agents
   data-ingestion-agent:
     build:
@@ -168,6 +186,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
       - MONGODB_URL=mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/${MONGO_DB:-kyc_db}?authSource=admin
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       kafka:
@@ -178,6 +198,8 @@ services:
         condition: service_healthy
       mongodb:
         condition: service_healthy
+      qdrant:
+        condition: service_started
     networks:
       - kyc-network
     restart: unless-stopped
@@ -203,6 +225,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
       - MONGODB_URL=mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASSWORD:-password}@mongodb:27017/${MONGO_DB:-kyc_db}?authSource=admin
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       kafka:
@@ -213,6 +237,8 @@ services:
         condition: service_healthy
       mongodb:
         condition: service_healthy
+      qdrant:
+        condition: service_started
     networks:
       - kyc-network
     restart: unless-stopped
@@ -414,4 +440,6 @@ volumes:
   prometheus-data:
     driver: local
   grafana-data:
+    driver: local
+  qdrant-data:
     driver: local

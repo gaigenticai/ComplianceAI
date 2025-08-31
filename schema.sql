@@ -568,11 +568,178 @@ COMMENT ON TABLE system_config IS 'System configuration parameters';
 COMMENT ON TABLE regulatory_rules IS 'Regulatory compliance rules and definitions';
 COMMENT ON TABLE processing_queue IS 'Processing queue for managing workload';
 
+-- =============================================================================
+-- AGENTIC AI ADVANCED FEATURES - NEW TABLES
+-- =============================================================================
+
+-- Compliance Rules table - Dynamic compliance rule storage (Pillar 3)
+CREATE TABLE IF NOT EXISTS compliance_rules (
+    rule_id VARCHAR(200) PRIMARY KEY,
+    region VARCHAR(100) NOT NULL,
+    regulation_type VARCHAR(50) NOT NULL, -- AML, KYC, GDPR, etc.
+    rule_title VARCHAR(500) NOT NULL,
+    rule_content TEXT NOT NULL,
+    effective_date DATE,
+    expiry_date DATE,
+    source_url TEXT,
+    confidence_score DECIMAL(3,2) DEFAULT 0.5, -- 0.0 to 1.0
+    discovered_via_web BOOLEAN DEFAULT FALSE,
+    last_updated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Indexes for efficient querying
+    INDEX idx_compliance_rules_region (region),
+    INDEX idx_compliance_rules_type (regulation_type),
+    INDEX idx_compliance_rules_region_type (region, regulation_type),
+    INDEX idx_compliance_rules_confidence (confidence_score DESC),
+    INDEX idx_compliance_rules_updated (last_updated DESC)
+);
+
+-- AI Memory Storage table - Case summaries and learning patterns (Pillar 2)
+-- Note: This table is for metadata only. Vector embeddings are stored in Qdrant/Pinecone
+CREATE TABLE IF NOT EXISTS ai_memory_metadata (
+    memory_id VARCHAR(200) PRIMARY KEY,
+    memory_type VARCHAR(50) NOT NULL, -- case_summary, compliance_rule, document_analysis, decision_pattern, agent_learning
+    agent_name VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100),
+    session_id VARCHAR(100),
+    content_summary TEXT, -- Brief summary of the stored content
+    tags TEXT[], -- Array of tags for categorization
+    confidence_score DECIMAL(3,2) DEFAULT 1.0,
+    vector_backend VARCHAR(20) DEFAULT 'qdrant', -- qdrant, pinecone
+    vector_id VARCHAR(200), -- ID in the vector database
+    embedding_model VARCHAR(100) DEFAULT 'text-embedding-3-small',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_accessed TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    access_count INTEGER DEFAULT 0,
+    
+    -- Foreign key relationships
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE SET NULL,
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id) ON DELETE SET NULL,
+    
+    -- Indexes for efficient retrieval
+    INDEX idx_ai_memory_type (memory_type),
+    INDEX idx_ai_memory_agent (agent_name),
+    INDEX idx_ai_memory_customer (customer_id),
+    INDEX idx_ai_memory_session (session_id),
+    INDEX idx_ai_memory_created (created_at DESC),
+    INDEX idx_ai_memory_accessed (last_accessed DESC),
+    INDEX idx_ai_memory_tags USING GIN (tags),
+    INDEX idx_ai_memory_composite (memory_type, agent_name, created_at DESC)
+);
+
+-- Document Analysis Results table - Visual document processing results (Pillar 1)
+CREATE TABLE IF NOT EXISTS document_analysis_results (
+    analysis_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    document_path TEXT NOT NULL,
+    document_type VARCHAR(100), -- passport, driver_license, utility_bill, etc.
+    vision_model VARCHAR(50) NOT NULL, -- gpt4v, llava
+    analysis_result JSONB NOT NULL, -- Complete analysis results
+    extracted_data JSONB, -- Structured extracted data
+    confidence_score DECIMAL(3,2),
+    processing_time_seconds DECIMAL(8,3),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign key relationships
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE,
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id) ON DELETE CASCADE,
+    
+    -- Indexes
+    INDEX idx_document_analysis_session (session_id),
+    INDEX idx_document_analysis_customer (customer_id),
+    INDEX idx_document_analysis_type (document_type),
+    INDEX idx_document_analysis_model (vision_model),
+    INDEX idx_document_analysis_confidence (confidence_score DESC),
+    INDEX idx_document_analysis_created (created_at DESC)
+);
+
+-- Web Search History table - Track autonomous web searches for compliance rules
+CREATE TABLE IF NOT EXISTS web_search_history (
+    search_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    search_query TEXT NOT NULL,
+    region VARCHAR(100) NOT NULL,
+    regulation_types TEXT[], -- Array of regulation types searched
+    search_engine VARCHAR(50) DEFAULT 'tavily', -- tavily, duckduckgo, fallback
+    results_count INTEGER DEFAULT 0,
+    rules_discovered INTEGER DEFAULT 0,
+    search_duration_seconds DECIMAL(6,3),
+    success BOOLEAN DEFAULT TRUE,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Indexes
+    INDEX idx_web_search_region (region),
+    INDEX idx_web_search_created (created_at DESC),
+    INDEX idx_web_search_success (success),
+    INDEX idx_web_search_query_text USING GIN (to_tsvector('english', search_query))
+);
+
+-- Agent Performance Metrics table - Enhanced metrics for new capabilities
+CREATE TABLE IF NOT EXISTS agent_performance_metrics (
+    metric_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    agent_name VARCHAR(100) NOT NULL,
+    metric_type VARCHAR(50) NOT NULL, -- vision_processing, memory_retrieval, rule_discovery, etc.
+    metric_value DECIMAL(10,4) NOT NULL,
+    metric_unit VARCHAR(20), -- seconds, count, percentage, etc.
+    session_id VARCHAR(100),
+    customer_id VARCHAR(100),
+    additional_data JSONB,
+    recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign key relationships
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE SET NULL,
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id) ON DELETE SET NULL,
+    
+    -- Indexes
+    INDEX idx_agent_metrics_agent (agent_name),
+    INDEX idx_agent_metrics_type (metric_type),
+    INDEX idx_agent_metrics_recorded (recorded_at DESC),
+    INDEX idx_agent_metrics_composite (agent_name, metric_type, recorded_at DESC)
+);
+
+-- =============================================================================
+-- ADDITIONAL INDEXES FOR ADVANCED FEATURES
+-- =============================================================================
+
+-- Composite indexes for complex queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_compliance_rules_region_confidence
+ON compliance_rules (region, confidence_score DESC, last_updated DESC);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_ai_memory_customer_type
+ON ai_memory_metadata (customer_id, memory_type, created_at DESC);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_document_analysis_customer_type
+ON document_analysis_results (customer_id, document_type, created_at DESC);
+
+-- Full-text search indexes
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_compliance_rules_content_search
+ON compliance_rules USING GIN (to_tsvector('english', rule_title || ' ' || rule_content));
+
+-- =============================================================================
+-- COMMENTS FOR NEW TABLES
+-- =============================================================================
+
+COMMENT ON TABLE compliance_rules IS 'Dynamic compliance rules discovered via web search and local storage';
+COMMENT ON TABLE ai_memory_metadata IS 'Metadata for AI memory entries stored in vector databases';
+COMMENT ON TABLE document_analysis_results IS 'Results from visual document analysis using AI vision models';
+COMMENT ON TABLE web_search_history IS 'History of autonomous web searches for compliance rules';
+COMMENT ON TABLE agent_performance_metrics IS 'Enhanced performance metrics for advanced agent capabilities';
+
 -- Schema version tracking
 INSERT INTO system_config (config_key, config_value, config_type, description) VALUES
-('schema.version', '"1.0.0"', 'application', 'Database schema version')
+('schema.version', '"2.0.0"', 'application', 'Database schema version with agentic AI features')
 ON CONFLICT (config_key) DO UPDATE SET 
-config_value = '"1.0.0"', 
+config_value = '"2.0.0"', 
 updated_at = CURRENT_TIMESTAMP;
+
+-- Insert advanced feature flags
+INSERT INTO system_config (config_key, config_value, config_type, description) VALUES
+('features.vision_processing', 'true', 'feature', 'Enable multimodal document understanding'),
+('features.ai_memory', 'true', 'feature', 'Enable long-term AI memory and learning'),
+('features.autonomous_rules', 'true', 'feature', 'Enable autonomous compliance rule discovery'),
+('features.web_search', 'true', 'feature', 'Enable web search for compliance rules')
+ON CONFLICT (config_key) DO NOTHING;
 
 -- End of schema

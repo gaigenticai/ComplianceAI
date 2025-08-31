@@ -786,6 +786,165 @@ class DecisionMakingWorkflow:
             "reasoning": reasoning,
             "next_actions": next_actions
         }
+    
+    def _log_audit_trail(self, state: DecisionState) -> Dict[str, Any]:
+        """Log audit trail for compliance and store case summary in AI memory"""
+        try:
+            # Create audit log entry
+            audit_entry = {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "customer_id": state.customer_id,
+                "session_id": state.session_id,
+                "decision": state.final_decision,
+                "confidence_scores": state.confidence_scores,
+                "risk_factors": state.risk_factors,
+                "compliance_status": state.compliance_status,
+                "escalation_required": state.escalation_required,
+                "reasoning": state.reasoning_steps,
+                "processing_time": (datetime.now(timezone.utc) - state.start_time).total_seconds() if state.start_time else 0
+            }
+            
+            # Log to audit trail
+            logger.info("Decision audit trail", **audit_entry)
+            
+            # Store case summary in AI memory for future learning
+            asyncio.create_task(self._store_case_memory(state, audit_entry))
+            
+            return {
+                "step": "audit_logging",
+                "status": "completed",
+                "audit_entry": audit_entry
+            }
+            
+        except Exception as e:
+            logger.error("Audit logging failed", error=str(e))
+            return {
+                "step": "audit_logging", 
+                "status": "failed",
+                "error": str(e)
+            }
+    
+    async def _store_case_memory(self, state: DecisionState, audit_entry: Dict[str, Any]):
+        """Store case summary in AI memory for future learning"""
+        try:
+            # Import memory manager
+            import sys
+            sys.path.append('/app')  # Add parent directory to path
+            from memory_manager import create_memory_manager, MemoryType, MemoryMetadata
+            
+            # Get memory configuration from environment or use defaults
+            memory_backend = os.getenv("MEMORY_BACKEND", "qdrant")
+            pinecone_api_key = os.getenv("PINECONE_API_KEY")
+            openai_api_key = os.getenv("OPENAI_API_KEY")
+            
+            if not openai_api_key:
+                logger.warning("OpenAI API key not found - memory storage will be skipped")
+                return
+            
+            # Initialize memory manager
+            memory_manager = create_memory_manager(
+                backend=memory_backend,
+                openai_api_key=openai_api_key,
+                qdrant_host=os.getenv("QDRANT_HOST", "localhost"),
+                qdrant_port=int(os.getenv("QDRANT_PORT", "6333")),
+                pinecone_api_key=pinecone_api_key
+            )
+            
+            # Create case summary content
+            case_summary = self._create_case_summary(state, audit_entry)
+            
+            # Create metadata for the memory
+            metadata = MemoryMetadata(
+                memory_id=f"case_{state.session_id}_{int(datetime.now().timestamp())}",
+                memory_type=MemoryType.CASE_SUMMARY,
+                agent_name="decision_making_agent",
+                customer_id=state.customer_id,
+                session_id=state.session_id,
+                tags=[
+                    state.final_decision.get("decision", "unknown"),
+                    f"confidence_{int(np.mean(list(state.confidence_scores.values())) * 100)}",
+                    f"risk_factors_{len(state.risk_factors)}"
+                ],
+                confidence_score=np.mean(list(state.confidence_scores.values()))
+            )
+            
+            # Store the case summary
+            memory_id = await memory_manager.store_memory(
+                content=case_summary,
+                metadata=metadata
+            )
+            
+            logger.info("Case summary stored in AI memory", 
+                       memory_id=memory_id, 
+                       customer_id=state.customer_id,
+                       decision=state.final_decision.get("decision"))
+            
+        except ImportError as e:
+            logger.warning("Memory manager not available - case summary not stored", error=str(e))
+        except Exception as e:
+            logger.error("Failed to store case summary in memory", error=str(e))
+    
+    def _create_case_summary(self, state: DecisionState, audit_entry: Dict[str, Any]) -> str:
+        """Create a concise case summary for memory storage"""
+        decision = state.final_decision.get("decision", "unknown")
+        reasoning = state.final_decision.get("reasoning", [])
+        
+        summary_parts = [
+            f"KYC Decision Case Summary",
+            f"Decision: {decision.upper()}",
+            f"Customer Profile: {self._extract_customer_profile(state)}",
+            f"Key Risk Factors: {', '.join([rf.get('factor', 'unknown') for rf in state.risk_factors[:3]])}",
+            f"Compliance Status: {state.compliance_status}",
+            f"Confidence Level: {int(np.mean(list(state.confidence_scores.values())) * 100)}%",
+            f"Processing Time: {audit_entry.get('processing_time', 0):.2f}s",
+            "",
+            "Decision Reasoning:",
+        ]
+        
+        # Add reasoning steps
+        for i, reason in enumerate(reasoning[:3], 1):
+            summary_parts.append(f"{i}. {reason}")
+        
+        # Add key insights
+        if state.escalation_required:
+            summary_parts.append("\nKey Insight: Case required human escalation")
+        
+        if len(state.risk_factors) > 2:
+            summary_parts.append(f"\nKey Insight: Multiple risk factors detected ({len(state.risk_factors)} total)")
+        
+        return "\n".join(summary_parts)
+    
+    def _extract_customer_profile(self, state: DecisionState) -> str:
+        """Extract key customer profile information for summary"""
+        try:
+            customer_data = getattr(state, 'customer_data', {})
+            personal_info = customer_data.get('personal_info', {})
+            financial_info = customer_data.get('financial_info', {})
+            
+            profile_parts = []
+            
+            if personal_info.get('country'):
+                profile_parts.append(f"Country: {personal_info['country']}")
+            
+            if financial_info.get('annual_income'):
+                income = financial_info['annual_income']
+                if income > 100000:
+                    profile_parts.append("High income")
+                elif income < 30000:
+                    profile_parts.append("Low income")
+                else:
+                    profile_parts.append("Medium income")
+            
+            documents = customer_data.get('documents', [])
+            if documents:
+                doc_types = [doc.get('type', '') for doc in documents]
+                profile_parts.append(f"Documents: {', '.join(doc_types[:3])}")
+            
+            return "; ".join(profile_parts) if profile_parts else "Standard customer profile"
+            
+        except Exception as e:
+            logger.warning("Failed to extract customer profile", error=str(e))
+            return "Profile extraction failed"
 
 # Main Service Class
 class DecisionMakingService:

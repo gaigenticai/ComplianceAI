@@ -68,3 +68,8 @@ pytest-asyncio==0.21.1
 reportlab==4.0.7
 matplotlib==3.8.2
 seaborn==0.13.0
+
+# Web search for autonomous rule discovery (Pillar 3)
+beautifulsoup4>=4.12.0,<5.0.0
+tavily-python>=0.3.0,<1.0.0
+requests>=2.31.0,<3.0.0
