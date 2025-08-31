@@ -1,0 +1,77 @@
+[package]
+name = "kyc-orchestrator"
+version = "1.0.0"
+edition = "2021"
+authors = ["KYC Team <team@kyc.com>"]
+description = "Production-grade agentic AI KYC orchestration engine"
+
+[dependencies]
+# Web Framework
+actix-web = "4.4"
+actix-cors = "0.6"
+actix-files = "0.6"
+
+# Async Runtime
+tokio = { version = "1.35", features = ["full"] }
+futures = "0.3"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# HTTP Client
+reqwest = { version = "0.11", features = ["json", "multipart"] }
+
+# Kafka Integration
+rdkafka = { version = "0.36", features = ["cmake-build", "ssl", "sasl"] }
+
+# Redis Integration
+redis = { version = "0.24", features = ["tokio-comp", "connection-manager"] }
+
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "chrono", "uuid"] }
+mongodb = "2.8"
+
+# Configuration
+config = "0.13"
+dotenvy = "0.15"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-actix-web = "0.7"
+
+# Error Handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# Time and UUID
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+rand = "0.8"
+
+# Metrics and Monitoring
+prometheus = "0.13"
+
+# Security
+jsonwebtoken = "9.2"
+bcrypt = "0.15"
+
+# Template Engine
+tera = "1.19"
+
+# File Upload
+tempfile = "3.8"
+mime = "0.3"
+
+# Validation
+validator = { version = "0.16", features = ["derive"] }
+
+# Concurrency
+dashmap = "5.5"
+arc-swap = "1.6"
+
+[dev-dependencies]
+actix-rt = "2.9"
+actix-test = "0.1"

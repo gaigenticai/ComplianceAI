@@ -1,0 +1,204 @@
+# Client Override Configuration for Agentic AI KYC Engine
+# This file allows clients to override default settings for their specific deployment
+
+# Example: Production Environment Overrides
+# Uncomment and modify the sections below as needed
+
+# Server Configuration Overrides
+# server:
+#   workers: 8  # Increase workers for production
+#   max_connections: 2000  # Higher connection limit
+
+# Database Configuration Overrides
+# database:
+#   postgres:
+#     max_connections: 20  # More database connections
+#   mongodb:
+#     max_connections: 20
+#   redis:
+#     max_connections: 20
+
+# Security Configuration Overrides
+# security:
+#   jwt_secret: "production-secret-key-minimum-32-characters"
+#   session_timeout: 7200  # 2 hours for production
+#   rate_limit:
+#     requests_per_minute: 500  # Higher rate limit for production
+
+# Processing Configuration Overrides
+# processing:
+#   max_concurrent_sessions: 500  # Handle more concurrent sessions
+#   session_timeout_seconds: 7200  # Longer timeout for complex cases
+
+# Regulatory Configuration Overrides
+# regulatory:
+#   default_requirements:
+#     - "aml"
+#     - "gdpr"
+#     - "basel_iii"  # Add Basel III for banking clients
+#     - "pci_dss"    # Add PCI DSS for payment processors
+
+# ML Configuration Overrides
+# ml:
+#   model_update_frequency: "daily"  # More frequent updates for production
+#   risk_scoring:
+#     default_threshold: 0.8  # Stricter threshold for production
+
+# Monitoring Configuration Overrides
+# monitoring:
+#   log_level: "warn"  # Less verbose logging in production
+#   enable_tracing: false  # Disable detailed tracing for performance
+
+# Notification Configuration Overrides
+# notifications:
+#   email:
+#     enabled: true
+#     smtp_host: "your-smtp-server.com"
+#     smtp_port: 587
+#     username: "kyc-notifications@yourcompany.com"
+#     password: "your-smtp-password"
+#   webhook:
+#     enabled: true
+#     url: "https://your-company.com/kyc-webhook"
+#     secret: "your-webhook-secret"
+
+# Industry-Specific Overrides
+
+# Banking Industry Configuration
+# industry:
+#   type: "banking"
+#   regulatory:
+#     default_requirements:
+#       - "aml"
+#       - "basel_iii"
+#       - "gdpr"
+#     aml:
+#       enhanced_due_diligence: true
+#       transaction_threshold: 10000
+#     basel_iii:
+#       capital_adequacy_checks: true
+#       stress_testing: true
+
+# Fintech Industry Configuration
+# industry:
+#   type: "fintech"
+#   regulatory:
+#     default_requirements:
+#       - "aml"
+#       - "gdpr"
+#       - "pci_dss"
+#     processing:
+#       real_time_scoring: true
+#       instant_decisions: true
+
+# Cryptocurrency Industry Configuration
+# industry:
+#   type: "crypto"
+#   regulatory:
+#     default_requirements:
+#       - "aml"
+#       - "travel_rule"
+#       - "gdpr"
+#     aml:
+#       blockchain_analysis: true
+#       source_of_funds_verification: true
+#       enhanced_monitoring: true
+
+# Insurance Industry Configuration
+# industry:
+#   type: "insurance"
+#   regulatory:
+#     default_requirements:
+#       - "aml"
+#       - "gdpr"
+#       - "solvency_ii"
+#     processing:
+#       underwriting_integration: true
+#       claims_verification: true
+
+# Regional/Jurisdiction Overrides
+
+# European Union Configuration
+# jurisdiction:
+#   primary: "EU"
+#   regulatory:
+#     gdpr:
+#       strict_consent_management: true
+#       data_localization: true
+#       dpo_notifications: true
+#     mifid_ii:
+#       investor_protection: true
+#       best_execution: true
+
+# United States Configuration
+# jurisdiction:
+#   primary: "US"
+#   regulatory:
+#     bsa_aml:
+#       ctr_reporting: true
+#       sar_filing: true
+#     patriot_act:
+#       enhanced_verification: true
+#     sox:
+#       financial_reporting_controls: true
+
+# United Kingdom Configuration
+# jurisdiction:
+#   primary: "UK"
+#   regulatory:
+#     fca_rules:
+#       conduct_risk: true
+#       consumer_duty: true
+#     pci_dss:
+#       card_data_protection: true
+
+# Performance Tuning Overrides
+
+# High-Performance Configuration
+# performance:
+#   server:
+#     workers: 16
+#     max_connections: 5000
+#   database:
+#     postgres:
+#       max_connections: 50
+#     mongodb:
+#       max_connections: 50
+#     redis:
+#       max_connections: 50
+#   processing:
+#     max_concurrent_sessions: 1000
+#     batch_size: 1000
+#   kafka:
+#     producer:
+#       batch_size: 65536
+#       linger_ms: 10
+
+# Development Environment Overrides
+# development:
+#   monitoring:
+#     log_level: "debug"
+#     enable_tracing: true
+#   security:
+#     jwt_secret: "development-secret-key"
+#   features:
+#     enable_mock_services: true
+#     enable_test_data: true
+
+# Client-Specific Customizations
+# client:
+#   name: "YourCompanyName"
+#   branding:
+#     logo_url: "https://yourcompany.com/logo.png"
+#     primary_color: "#007bff"
+#     company_name: "Your Company KYC Portal"
+#   custom_fields:
+#     - name: "internal_customer_id"
+#       type: "string"
+#       required: true
+#     - name: "business_unit"
+#       type: "enum"
+#       values: ["retail", "commercial", "investment"]
+#   workflows:
+#     custom_approval_process: true
+#     multi_level_review: true

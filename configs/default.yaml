@@ -1,0 +1,230 @@
+# Default Configuration for Agentic AI KYC Engine
+# This file contains the default system configuration
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 4
+  max_connections: 1000
+  timeout: 30
+
+# Database Configuration
+database:
+  postgres:
+    host: "postgres"
+    port: 5432
+    database: "kyc_db"
+    username: "postgres"
+    password: "password"
+    max_connections: 10
+    connection_timeout: 30
+    
+  mongodb:
+    host: "mongodb"
+    port: 27017
+    database: "kyc_db"
+    username: "admin"
+    password: "password"
+    max_connections: 10
+    connection_timeout: 30
+    
+  redis:
+    host: "redis"
+    port: 6379
+    password: ""
+    max_connections: 10
+    connection_timeout: 5
+    command_timeout: 5
+
+# Message Bus Configuration
+kafka:
+  bootstrap_servers: "kafka:29092"
+  group_id: "kyc-orchestrator"
+  
+  topics:
+    data_ingestion: "data-ingestion"
+    kyc_analysis: "kyc-analysis-results"
+    decision_results: "decision-results"
+    compliance_results: "compliance-results"
+    quality_results: "quality-results"
+    notifications: "notifications"
+    
+  producer:
+    acks: "all"
+    retries: 3
+    batch_size: 16384
+    linger_ms: 5
+    
+  consumer:
+    auto_offset_reset: "earliest"
+    enable_auto_commit: true
+    session_timeout_ms: 30000
+
+# AI Agents Configuration
+agents:
+  data_ingestion:
+    url: "http://data-ingestion-agent:8001"
+    timeout: 30
+    max_retries: 3
+    health_check_interval: 30
+    
+  kyc_analysis:
+    url: "http://kyc-analysis-agent:8002"
+    timeout: 60
+    max_retries: 3
+    health_check_interval: 30
+    
+  decision_making:
+    url: "http://decision-making-agent:8003"
+    timeout: 45
+    max_retries: 3
+    health_check_interval: 30
+    
+  compliance_monitoring:
+    url: "http://compliance-monitoring-agent:8004"
+    timeout: 30
+    max_retries: 3
+    health_check_interval: 30
+    
+  data_quality:
+    url: "http://data-quality-agent:8005"
+    timeout: 30
+    max_retries: 3
+    health_check_interval: 30
+
+# Security Configuration
+security:
+  jwt_secret: "your-secret-key-change-in-production"
+  session_timeout: 3600
+  
+  rate_limit:
+    requests_per_minute: 100
+    burst_size: 20
+    
+  encryption:
+    algorithm: "AES-256-GCM"
+    key_rotation_days: 90
+
+# Monitoring Configuration
+monitoring:
+  metrics_port: 9090
+  log_level: "info"
+  enable_tracing: true
+  
+  prometheus:
+    scrape_interval: 15s
+    evaluation_interval: 15s
+    
+  grafana:
+    port: 3000
+    admin_user: "admin"
+    admin_password: "admin"
+
+# Processing Configuration
+processing:
+  max_concurrent_sessions: 100
+  session_timeout_seconds: 3600
+  processing_timeout_seconds: 300
+  
+  retry_policy:
+    max_attempts: 3
+    backoff_multiplier: 2
+    initial_delay_ms: 1000
+    max_delay_ms: 30000
+
+# Regulatory Configuration
+regulatory:
+  default_requirements:
+    - "aml"
+    - "gdpr"
+    
+  aml:
+    sanctions_lists:
+      - "ofac"
+      - "un"
+      - "eu"
+    pep_screening: true
+    transaction_monitoring: true
+    
+  gdpr:
+    data_retention_days: 2555  # 7 years
+    consent_required: true
+    data_minimization: true
+    
+  basel_iii:
+    operational_risk: true
+    model_validation: true
+
+# ML/AI Configuration
+ml:
+  model_update_frequency: "weekly"
+  model_validation_threshold: 0.85
+  enable_continuous_learning: true
+  
+  risk_scoring:
+    default_threshold: 0.7
+    high_risk_threshold: 0.9
+    
+  anomaly_detection:
+    sensitivity: 0.8
+    min_samples: 100
+
+# Data Processing Configuration
+data_processing:
+  supported_formats:
+    - "csv"
+    - "json"
+    - "xml"
+    - "pdf"
+    - "image"
+    - "database"
+    
+  max_file_size_mb: 100
+  max_processing_time_seconds: 300
+  
+  validation:
+    enable_schema_validation: true
+    enable_data_quality_checks: true
+    min_quality_score: 0.6
+
+# Notification Configuration
+notifications:
+  email:
+    enabled: false
+    smtp_host: "smtp.example.com"
+    smtp_port: 587
+    username: "notifications@example.com"
+    password: "password"
+    
+  webhook:
+    enabled: false
+    url: "https://your-webhook-endpoint.com"
+    secret: "webhook-secret"
+    
+  slack:
+    enabled: false
+    webhook_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+
+# Backup Configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  
+  destinations:
+    - type: "local"
+      path: "/backups"
+    # - type: "s3"
+    #   bucket: "kyc-backups"
+    #   region: "us-east-1"
+
+# Feature Flags
+features:
+  enable_ui: true
+  enable_api: true
+  enable_metrics: true
+  enable_audit_logging: true
+  enable_rate_limiting: true
+  enable_caching: true
+  enable_compression: true

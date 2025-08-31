@@ -1,0 +1,145 @@
+# Prometheus Configuration for Agentic AI KYC Engine
+# Production-grade monitoring configuration
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'kyc-engine'
+    environment: 'production'
+
+# Alertmanager configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+# Scrape configuration
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # KYC Orchestrator (Rust Core)
+  - job_name: 'kyc-orchestrator'
+    static_configs:
+      - targets: ['kyc-orchestrator:8000']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # Data Ingestion Agent
+  - job_name: 'data-ingestion-agent'
+    static_configs:
+      - targets: ['data-ingestion-agent:8001']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # KYC Analysis Agent
+  - job_name: 'kyc-analysis-agent'
+    static_configs:
+      - targets: ['kyc-analysis-agent:8002']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Decision Making Agent
+  - job_name: 'decision-making-agent'
+    static_configs:
+      - targets: ['decision-making-agent:8003']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Compliance Monitoring Agent
+  - job_name: 'compliance-monitoring-agent'
+    static_configs:
+      - targets: ['compliance-monitoring-agent:8004']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Data Quality Agent
+  - job_name: 'data-quality-agent'
+    static_configs:
+      - targets: ['data-quality-agent:8005']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # PostgreSQL Exporter (if available)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Redis Exporter (if available)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Kafka Exporter (if available)
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:29092']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # MongoDB Exporter (if available)
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['mongodb:27017']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Node Exporter for system metrics (if available)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+# Remote write configuration (for external storage)
+# remote_write:
+#   - url: "https://your-remote-storage/api/v1/write"
+#     basic_auth:
+#       username: "username"
+#       password: "password"
+
+# Remote read configuration (for external storage)
+# remote_read:
+#   - url: "https://your-remote-storage/api/v1/read"
+#     basic_auth:
+#       username: "username"
+#       password: "password"

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic AI KYC Engine - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-robot me-2"></i>
+                Agentic AI KYC Engine
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/userguide">
+                    <i class="fas fa-book me-1"></i>
+                    User Guide
+                </a>
+                <a class="nav-link" href="/metrics">
+                    <i class="fas fa-chart-line me-1"></i>
+                    Metrics
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- System Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-heartbeat me-2"></i>
+                            System Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="system-status" class="row">
+                            <div class="col-md-3">
+                                <div class="status-item">
+                                    <div class="status-indicator loading"></div>
+                                    <span>Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agent Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-users-cog me-2"></i>
+                            AI Agents Status
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="agents-status" class="row">
+                            <div class="col-12 text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Loading agent status...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KYC Processing Form -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-file-upload me-2"></i>
+                            Process KYC Request
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="kyc-form">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="customer-id" class="form-label">Customer ID</label>
+                                        <input type="text" class="form-control" id="customer-id" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="priority" class="form-label">Priority</label>
+                                        <select class="form-select" id="priority">
+                                            <option value="normal">Normal</option>
+                                            <option value="high">High</option>
+                                            <option value="urgent">Urgent</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="regulatory-requirements" class="form-label">Regulatory Requirements</label>
+                                <div class="form-check-group">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="aml" value="aml" checked>
+                                        <label class="form-check-label" for="aml">AML</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="gdpr" value="gdpr" checked>
+                                        <label class="form-check-label" for="gdpr">GDPR</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="basel" value="basel_iii">
+                                        <label class="form-check-label" for="basel">Basel III</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="pci" value="pci_dss">
+                                        <label class="form-check-label" for="pci">PCI DSS</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="customer-data" class="form-label">Customer Data (JSON)</label>
+                                <textarea class="form-control" id="customer-data" rows="10" placeholder='Enter customer data in JSON format...'>{
+  "personal_info": {
+    "full_name": "John Doe",
+    "date_of_birth": "1990-01-15",
+    "nationality": "US",
+    "email": "john.doe@example.com",
+    "phone": "+1-555-0123",
+    "address": {
+      "street": "123 Main St",
+      "city": "New York",
+      "state": "NY",
+      "postal_code": "10001",
+      "country": "US"
+    }
+  },
+  "financial_info": {
+    "annual_income": 75000,
+    "employment_status": "employed",
+    "employer": "Tech Corp"
+  },
+  "documents": [
+    {
+      "type": "identity",
+      "document_id": "DL123456789",
+      "issued_date": "2020-01-15",
+      "expiry_date": "2025-01-15"
+    }
+  ]
+}</textarea>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <button type="button" class="btn btn-outline-secondary me-md-2" onclick="validateJSON()">
+                                    <i class="fas fa-check me-1"></i>
+                                    Validate JSON
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-play me-1"></i>
+                                    Process KYC
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Sessions -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history me-2"></i>
+                            Recent Sessions
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="refreshSessions()">
+                            <i class="fas fa-sync-alt me-1"></i>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="recent-sessions">
+                            <div class="text-center">
+                                <p class="text-muted">No recent sessions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-tachometer-alt me-2"></i>
+                            Performance Metrics
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="performance-metrics">
+                            <div class="metric-item">
+                                <span class="metric-label">Total Requests:</span>
+                                <span class="metric-value" id="total-requests">-</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Success Rate:</span>
+                                <span class="metric-value" id="success-rate">-</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Avg Processing Time:</span>
+                                <span class="metric-value" id="avg-processing-time">-</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Throughput/Hour:</span>
+                                <span class="metric-value" id="throughput">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            Decision Distribution
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="decision-chart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">KYC Engine</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-body">
+                <!-- Toast message will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
