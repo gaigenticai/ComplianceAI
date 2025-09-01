@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComplianceAI - Client Pilot Program</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/agentic_style.css" rel="stylesheet">
+    <style>
+        .pilot-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 0;
+        }
+        .pilot-card {
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .pilot-card:hover {
+            transform: translateY(-5px);
+        }
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin: 0 auto 1rem;
+        }
+        .metric-card {
+            background: white;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .pilot-status {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-completed { background: #cce7ff; color: #004085; }
+        .integration-step {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0 10px 10px 0;
+        }
+        .cost-comparison {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-robot me-2"></i>
+                ComplianceAI - Pilot Program
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/agentic">
+                    <i class="fas fa-tachometer-alt me-1"></i>
+                    Dashboard
+                </a>
+                <a class="nav-link" href="/pilot/onboarding">
+                    <i class="fas fa-rocket me-1"></i>
+                    Get Started
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pilot-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6">
+                    <h1 class="display-4 fw-bold mb-4">
+                        Join the ComplianceAI Pilot Program
+                    </h1>
+                    <p class="lead mb-4">
+                        Experience the future of KYC processing with our simplified 3-agent architecture. 
+                        Achieve 85% cost reduction while maintaining 96.7% accuracy.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <button class="btn btn-light btn-lg" onclick="startPilotOnboarding()">
+                            <i class="fas fa-rocket me-2"></i>
+                            Start Pilot Program
+                        </button>
+                        <button class="btn btn-outline-light btn-lg" onclick="scheduleDemo()">
+                            <i class="fas fa-calendar me-2"></i>
+                            Schedule Demo
+                        </button>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="cost-comparison">
+                        <h3 class="mb-3">Cost Comparison</h3>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="h2 mb-1">$3.30</div>
+                                <small>Traditional KYC</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h2 mb-1 text-warning">$0.43</div>
+                                <small>ComplianceAI</small>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="badge bg-warning text-dark fs-6">85% Cost Reduction</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Metrics -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value">12.3s</div>
+                        <div class="metric-label">Avg Processing Time</div>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-down"></i> 67% faster
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value">$0.43</div>
+                        <div class="metric-label">Cost Per Case</div>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-down"></i> 85% reduction
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value">96.7%</div>
+                        <div class="metric-label">Accuracy Rate</div>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-up"></i> Industry leading
+                        </small>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="metric-card">
+                        <div class="metric-value">1,200</div>
+                        <div class="metric-label">Cases/Hour</div>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-up"></i> 3x throughput
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Current Pilot Participants -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-12 text-center">
+                    <h2 class="display-5 fw-bold mb-3">Current Pilot Participants</h2>
+                    <p class="lead text-muted">Join leading fintech companies already testing ComplianceAI</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="pilot-card card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title">
+                                    <i class="fas fa-university text-primary me-2"></i>
+                                    FinTech Alpha
+                                </h5>
+                                <span class="pilot-status status-active">Active</span>
+                            </div>
+                            <p class="card-text text-muted">
+                                Digital banking platform processing 500+ KYC cases daily
+                            </p>
+                            <div class="row text-center mt-4">
+                                <div class="col-4">
+                                    <div class="fw-bold text-primary">2,847</div>
+                                    <small class="text-muted">Cases Processed</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-success">$1,239</div>
+                                    <small class="text-muted">Cost Saved</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-info">97.2%</div>
+                                    <small class="text-muted">Accuracy</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="pilot-card card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title">
+                                    <i class="fas fa-coins text-warning me-2"></i>
+                                    CryptoExchange Pro
+                                </h5>
+                                <span class="pilot-status status-active">Active</span>
+                            </div>
+                            <p class="card-text text-muted">
+                                Cryptocurrency exchange with enhanced compliance requirements
+                            </p>
+                            <div class="row text-center mt-4">
+                                <div class="col-4">
+                                    <div class="fw-bold text-primary">1,523</div>
+                                    <small class="text-muted">Cases Processed</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-success">$4,369</div>
+                                    <small class="text-muted">Cost Saved</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-info">95.8%</div>
+                                    <small class="text-muted">Accuracy</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="pilot-card card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title">
+                                    <i class="fas fa-mobile-alt text-success me-2"></i>
+                                    NeoBank Solutions
+                                </h5>
+                                <span class="pilot-status status-pending">Starting Soon</span>
+                            </div>
+                            <p class="card-text text-muted">
+                                Mobile-first banking platform expanding to new markets
+                            </p>
+                            <div class="row text-center mt-4">
+                                <div class="col-12">
+                                    <div class="text-muted">
+                                        <i class="fas fa-clock me-2"></i>
+                                        Integration scheduled for next week
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integration Process -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-12 text-center">
+                    <h2 class="display-5 fw-bold mb-3">Simple Integration Process</h2>
+                    <p class="lead text-muted">Get started with ComplianceAI in just 4 steps</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="integration-step">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="feature-icon me-3">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1">1. Pilot Agreement</h4>
+                                <p class="text-muted mb-0">Sign pilot agreement and define success metrics</p>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled ms-5">
+                            <li><i class="fas fa-check text-success me-2"></i> 30-day pilot period</li>
+                            <li><i class="fas fa-check text-success me-2"></i> No upfront costs</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Dedicated support team</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="integration-step">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="feature-icon me-3">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1">2. System Integration</h4>
+                                <p class="text-muted mb-0">Connect your systems via REST API or webhooks</p>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled ms-5">
+                            <li><i class="fas fa-check text-success me-2"></i> RESTful API integration</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Webhook notifications</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Real-time status updates</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="integration-step">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="feature-icon me-3">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1">3. Testing & Validation</h4>
+                                <p class="text-muted mb-0">Comprehensive testing with your data and workflows</p>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled ms-5">
+                            <li><i class="fas fa-check text-success me-2"></i> Sandbox environment</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Performance benchmarking</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Compliance validation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="integration-step">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="feature-icon me-3">
+                                <i class="fas fa-rocket"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1">4. Production Deployment</h4>
+                                <p class="text-muted mb-0">Go live with full monitoring and support</p>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled ms-5">
+                            <li><i class="fas fa-check text-success me-2"></i> Gradual rollout</li>
+                            <li><i class="fas fa-check text-success me-2"></i> 24/7 monitoring</li>
+                            <li><i class="fas fa-check text-success me-2"></i> Success metrics tracking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pilot Program Benefits -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row mb-5">
+                <div class="col-12 text-center">
+                    <h2 class="display-5 fw-bold mb-3">Pilot Program Benefits</h2>
+                    <p class="lead text-muted">Exclusive advantages for early adopters</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <h4>No Upfront Costs</h4>
+                        <p class="text-muted">
+                            Free 30-day pilot with full access to all features. 
+                            Pay only for successful cases processed.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h4>Dedicated Support</h4>
+                        <p class="text-muted">
+                            Direct access to our engineering team for integration 
+                            support and custom requirements.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h4>Performance Guarantees</h4>
+                        <p class="text-muted">
+                            Guaranteed 85% cost reduction and 96%+ accuracy, 
+                            or we'll work until targets are met.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4>Compliance Assurance</h4>
+                        <p class="text-muted">
+                            Full regulatory compliance for AML, KYC, GDPR, 
+                            and jurisdiction-specific requirements.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-tachometer-alt"></i>
+                        </div>
+                        <h4>Real-time Monitoring</h4>
+                        <p class="text-muted">
+                            Live dashboard with agent conversations, 
+                            performance metrics, and cost tracking.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="feature-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h4>Early Adopter Pricing</h4>
+                        <p class="text-muted">
+                            Lock in special pricing for the first year 
+                            after successful pilot completion.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container text-center">
+            <h2 class="display-5 fw-bold mb-3">Ready to Transform Your KYC Process?</h2>
+            <p class="lead mb-4">
+                Join the pilot program and experience 85% cost reduction with industry-leading accuracy
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <button class="btn btn-light btn-lg" onclick="startPilotOnboarding()">
+                    <i class="fas fa-rocket me-2"></i>
+                    Start Pilot Application
+                </button>
+                <button class="btn btn-outline-light btn-lg" onclick="downloadRFP()">
+                    <i class="fas fa-download me-2"></i>
+                    Download RFP Response
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pilot Application Modal -->
+    <div class="modal fade" id="pilotApplicationModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-rocket me-2"></i>
+                        Pilot Program Application
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="pilotApplicationForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Company Name *</label>
+                                <input type="text" class="form-control" name="company_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Industry *</label>
+                                <select class="form-select" name="industry" required>
+                                    <option value="">Select Industry</option>
+                                    <option value="digital_banking">Digital Banking</option>
+                                    <option value="cryptocurrency">Cryptocurrency Exchange</option>
+                                    <option value="fintech">FinTech Platform</option>
+                                    <option value="payment_processor">Payment Processor</option>
+                                    <option value="lending">Lending Platform</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Contact Name *</label>
+                                <input type="text" class="form-control" name="contact_name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-control" name="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="tel" class="form-control" name="phone">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Current KYC Volume/Month *</label>
+                                <select class="form-select" name="kyc_volume" required>
+                                    <option value="">Select Volume</option>
+                                    <option value="0-100">0-100 cases</option>
+                                    <option value="100-500">100-500 cases</option>
+                                    <option value="500-2000">500-2,000 cases</option>
+                                    <option value="2000-10000">2,000-10,000 cases</option>
+                                    <option value="10000+">10,000+ cases</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Current KYC Challenges</label>
+                                <textarea class="form-control" name="challenges" rows="3" 
+                                    placeholder="Describe your current KYC pain points, costs, processing times, etc."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Success Metrics</label>
+                                <textarea class="form-control" name="success_metrics" rows="3" 
+                                    placeholder="What would make this pilot successful for your organization?"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="terms_agreed" required>
+                                    <label class="form-check-label">
+                                        I agree to the pilot program terms and conditions *
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="submitPilotApplication()">
+                        <i class="fas fa-paper-plane me-2"></i>
+                        Submit Application
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function startPilotOnboarding() {
+            const modal = new bootstrap.Modal(document.getElementById('pilotApplicationModal'));
+            modal.show();
+        }
+
+        function scheduleDemo() {
+            // Integrate with calendar scheduling system
+            alert('Demo scheduling feature will be integrated with Calendly or similar service');
+        }
+
+        function downloadRFP() {
+            // Generate and download RFP response document
+            window.open('/api/v1/pilot/rfp-response', '_blank');
+        }
+
+        function submitPilotApplication() {
+            const form = document.getElementById('pilotApplicationForm');
+            const formData = new FormData(form);
+            
+            // Convert to JSON
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // Submit application
+            fetch('/api/v1/pilot/apply', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('Application submitted successfully! We will contact you within 24 hours.');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('pilotApplicationModal'));
+                    modal.hide();
+                    form.reset();
+                } else {
+                    alert('Error submitting application. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error submitting application. Please try again.');
+            });
+        }
+
+        // Load pilot metrics on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPilotMetrics();
+        });
+
+        function loadPilotMetrics() {
+            fetch('/api/v1/pilot/metrics')
+                .then(response => response.json())
+                .then(data => {
+                    // Update metrics display with real data
+                    console.log('Pilot metrics loaded:', data);
+                })
+                .catch(error => {
+                    console.error('Error loading pilot metrics:', error);
+                });
+        }
+    </script>
+</body>
+</html>

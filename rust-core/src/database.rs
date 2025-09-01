@@ -20,8 +20,12 @@ impl DatabaseManager {
     pub async fn new(config: &DatabaseConfig) -> Result<Self> {
         info!("Initializing database connections...");
         
-        // Initialize PostgreSQL connection
-        let pg_pool = PgPool::connect(&config.postgres_url)
+        // Initialize PostgreSQL connection with proper pool settings
+        let pg_pool = sqlx::postgres::PgPoolOptions::new()
+            .max_connections(config.max_connections)
+            .acquire_timeout(std::time::Duration::from_secs(config.connection_timeout))
+            .idle_timeout(std::time::Duration::from_secs(600))
+            .connect(&config.postgres_url)
             .await
             .context("Failed to connect to PostgreSQL")?;
         

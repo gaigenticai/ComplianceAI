@@ -1,0 +1,10 @@
+postgres=5433
+redis=6380
+qdrant=6335
+web-interface=8000
+intake-agent=8001
+intelligence-agent=8002
+decision-agent=8003
+prometheus-intake=9001
+prometheus-intelligence=9002
+prometheus-decision=9003

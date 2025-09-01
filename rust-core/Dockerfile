@@ -33,6 +33,7 @@ COPY src ./src
 COPY migrations ./migrations
 
 # Build application
+ENV DATABASE_URL=postgresql://postgres:password@localhost:5432/kyc_db
 RUN cargo build --release
 
 # Runtime stage

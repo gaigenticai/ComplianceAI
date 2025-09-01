@@ -742,4 +742,203 @@ INSERT INTO system_config (config_key, config_value, config_type, description) V
 ('features.web_search', 'true', 'feature', 'Enable web search for compliance rules')
 ON CONFLICT (config_key) DO NOTHING;
 
+-- =============================================================================
+-- REVAMP: SIMPLIFIED 3-AGENT ARCHITECTURE TABLES
+-- =============================================================================
+
+-- Intake & Processing Agent Results (Combines Data Ingestion + Data Quality)
+CREATE TABLE IF NOT EXISTS intake_processing_results (
+    result_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    document_id VARCHAR(100) NOT NULL,
+    extracted_data JSONB NOT NULL,
+    confidence DECIMAL(5,4) CHECK (confidence >= 0 AND confidence <= 1),
+    processing_method VARCHAR(50) NOT NULL, -- local_ocr, ai_vision, failed
+    quality_score DECIMAL(5,4) CHECK (quality_score >= 0 AND quality_score <= 1),
+    anomalies_detected TEXT[],
+    processing_time_seconds DECIMAL(10,3),
+    estimated_cost_dollars DECIMAL(10,4),
+    status VARCHAR(50) NOT NULL DEFAULT 'completed',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for intake_processing_results
+CREATE INDEX IF NOT EXISTS idx_intake_session_id ON intake_processing_results (session_id);
+CREATE INDEX IF NOT EXISTS idx_intake_document_id ON intake_processing_results (document_id);
+CREATE INDEX IF NOT EXISTS idx_intake_processing_method ON intake_processing_results (processing_method);
+CREATE INDEX IF NOT EXISTS idx_intake_confidence ON intake_processing_results (confidence);
+CREATE INDEX IF NOT EXISTS idx_intake_quality_score ON intake_processing_results (quality_score);
+CREATE INDEX IF NOT EXISTS idx_intake_created_at ON intake_processing_results (created_at);
+
+-- Intelligence & Compliance Agent Results (Combines KYC Analysis + Compliance Monitoring)
+CREATE TABLE IF NOT EXISTS intelligence_compliance_results (
+    result_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    risk_assessment JSONB NOT NULL,
+    compliance_checks JSONB NOT NULL,
+    sanctions_screening JSONB NOT NULL,
+    pep_screening JSONB NOT NULL,
+    overall_recommendation VARCHAR(100) NOT NULL,
+    processing_time_seconds DECIMAL(10,3),
+    estimated_cost_dollars DECIMAL(10,4),
+    status VARCHAR(50) NOT NULL DEFAULT 'completed',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign key
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
+);
+
+-- Indexes for intelligence_compliance_results
+CREATE INDEX IF NOT EXISTS idx_intelligence_session_id ON intelligence_compliance_results (session_id);
+CREATE INDEX IF NOT EXISTS idx_intelligence_customer_id ON intelligence_compliance_results (customer_id);
+CREATE INDEX IF NOT EXISTS idx_intelligence_recommendation ON intelligence_compliance_results (overall_recommendation);
+CREATE INDEX IF NOT EXISTS idx_intelligence_created_at ON intelligence_compliance_results (created_at);
+
+-- Decision & Orchestration Agent Results (Enhanced with Cost Optimization)
+CREATE TABLE IF NOT EXISTS decision_orchestration_results (
+    result_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    decision VARCHAR(50) NOT NULL, -- approve, reject, manual_review, escalate
+    confidence DECIMAL(5,4) CHECK (confidence >= 0 AND confidence <= 1),
+    reasoning TEXT NOT NULL,
+    processing_method VARCHAR(50) NOT NULL, -- fast_track, standard, complex_llm
+    risk_assessment JSONB NOT NULL,
+    compliance_summary JSONB NOT NULL,
+    escalation_required BOOLEAN DEFAULT FALSE,
+    human_review_required BOOLEAN DEFAULT FALSE,
+    processing_time_seconds DECIMAL(10,3),
+    estimated_cost_dollars DECIMAL(10,4),
+    audit_trail JSONB NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'completed',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Foreign key
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id) ON DELETE CASCADE
+);
+
+-- Indexes for decision_orchestration_results
+CREATE INDEX IF NOT EXISTS idx_decision_session_id ON decision_orchestration_results (session_id);
+CREATE INDEX IF NOT EXISTS idx_decision_customer_id ON decision_orchestration_results (customer_id);
+CREATE INDEX IF NOT EXISTS idx_decision_decision ON decision_orchestration_results (decision);
+CREATE INDEX IF NOT EXISTS idx_decision_processing_method ON decision_orchestration_results (processing_method);
+CREATE INDEX IF NOT EXISTS idx_decision_escalation ON decision_orchestration_results (escalation_required);
+CREATE INDEX IF NOT EXISTS idx_decision_human_review ON decision_orchestration_results (human_review_required);
+CREATE INDEX IF NOT EXISTS idx_decision_created_at ON decision_orchestration_results (created_at);
+
+-- Cost Optimization Metrics Table
+CREATE TABLE IF NOT EXISTS cost_optimization_metrics (
+    metric_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    agent_name VARCHAR(50) NOT NULL, -- intake_processing, intelligence_compliance, decision_orchestration
+    processing_method VARCHAR(50) NOT NULL,
+    cost_dollars DECIMAL(10,4) NOT NULL,
+    processing_time_seconds DECIMAL(10,3) NOT NULL,
+    success BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for cost_optimization_metrics
+CREATE INDEX IF NOT EXISTS idx_cost_metrics_session_id ON cost_optimization_metrics (session_id);
+CREATE INDEX IF NOT EXISTS idx_cost_metrics_agent ON cost_optimization_metrics (agent_name);
+CREATE INDEX IF NOT EXISTS idx_cost_metrics_method ON cost_optimization_metrics (processing_method);
+CREATE INDEX IF NOT EXISTS idx_cost_metrics_cost ON cost_optimization_metrics (cost_dollars);
+CREATE INDEX IF NOT EXISTS idx_cost_metrics_created_at ON cost_optimization_metrics (created_at);
+
+-- Performance Benchmarks Table
+CREATE TABLE IF NOT EXISTS performance_benchmarks (
+    benchmark_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    test_date DATE NOT NULL,
+    architecture_version VARCHAR(50) NOT NULL, -- 5-agent, 3-agent-simplified
+    total_cases_processed INTEGER NOT NULL,
+    average_processing_time_seconds DECIMAL(10,3) NOT NULL,
+    average_cost_per_case_dollars DECIMAL(10,4) NOT NULL,
+    fast_track_percentage DECIMAL(5,2) NOT NULL,
+    accuracy_percentage DECIMAL(5,2) NOT NULL,
+    throughput_cases_per_hour INTEGER NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance_benchmarks
+CREATE INDEX IF NOT EXISTS idx_benchmarks_test_date ON performance_benchmarks (test_date);
+CREATE INDEX IF NOT EXISTS idx_benchmarks_architecture ON performance_benchmarks (architecture_version);
+CREATE INDEX IF NOT EXISTS idx_benchmarks_cost ON performance_benchmarks (average_cost_per_case_dollars);
+CREATE INDEX IF NOT EXISTS idx_benchmarks_throughput ON performance_benchmarks (throughput_cases_per_hour);
+
+-- Comments for new simplified architecture tables
+COMMENT ON TABLE intake_processing_results IS 'Results from Intake & Processing Agent (combines data ingestion and quality assessment)';
+COMMENT ON TABLE intelligence_compliance_results IS 'Results from Intelligence & Compliance Agent (combines KYC analysis and compliance monitoring)';
+COMMENT ON TABLE decision_orchestration_results IS 'Results from Decision & Orchestration Agent (enhanced with cost optimization)';
+COMMENT ON TABLE cost_optimization_metrics IS 'Metrics for tracking cost optimization across the simplified 3-agent architecture';
+COMMENT ON TABLE performance_benchmarks IS 'Performance benchmarks comparing 5-agent vs 3-agent simplified architecture';
+
+-- Update schema version for simplified architecture
+INSERT INTO system_config (config_key, config_value, config_type, description) VALUES
+('schema.version', '"3.0.0"', 'application', 'Database schema version with simplified 3-agent architecture')
+ON CONFLICT (config_key) DO UPDATE SET 
+config_value = '"3.0.0"', 
+updated_at = CURRENT_TIMESTAMP;
+
+-- Insert simplified architecture feature flags
+INSERT INTO system_config (config_key, config_value, config_type, description) VALUES
+('architecture.simplified', 'true', 'feature', 'Enable simplified 3-agent architecture'),
+('cost_optimization.enabled', 'true', 'feature', 'Enable cost optimization features'),
+('cost_optimization.target_per_case', '0.50', 'setting', 'Target cost per KYC case in USD'),
+('processing.fast_track_percentage', '80', 'setting', 'Target percentage of cases for fast-track processing')
+ON CONFLICT (config_key) DO NOTHING;
+
+-- =============================================================================
+-- REVAMPED AGENT TABLES (Added for Rule 5 compliance)
+-- =============================================================================
+
+-- Agent performance metrics for the 3-agent architecture
+CREATE TABLE IF NOT EXISTS agent_performance_metrics (
+    id SERIAL PRIMARY KEY,
+    agent_name VARCHAR(100) NOT NULL, -- 'intake', 'intelligence', 'decision'
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value DECIMAL(10,4) NOT NULL,
+    metric_unit VARCHAR(50),
+    recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    case_id UUID REFERENCES cases(id),
+    
+    CONSTRAINT unique_agent_metric_case UNIQUE(agent_name, metric_name, case_id, recorded_at)
+);
+
+-- Agent communication logs for debugging and monitoring
+CREATE TABLE IF NOT EXISTS agent_communications (
+    id SERIAL PRIMARY KEY,
+    from_agent VARCHAR(100) NOT NULL,
+    to_agent VARCHAR(100) NOT NULL,
+    message_type VARCHAR(50) NOT NULL, -- 'request', 'response', 'notification'
+    message_content JSONB NOT NULL,
+    case_id UUID REFERENCES cases(id),
+    correlation_id UUID NOT NULL,
+    sent_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    received_at TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(20) DEFAULT 'sent' -- 'sent', 'received', 'processed', 'failed'
+);
+
+-- Cost tracking for the simplified architecture
+CREATE TABLE IF NOT EXISTS cost_tracking (
+    id SERIAL PRIMARY KEY,
+    case_id UUID REFERENCES cases(id),
+    agent_name VARCHAR(100) NOT NULL,
+    operation_type VARCHAR(100) NOT NULL, -- 'ocr', 'ai_vision', 'llm_analysis', 'decision'
+    cost_usd DECIMAL(10,6) NOT NULL,
+    processing_time_ms INTEGER,
+    tokens_used INTEGER,
+    model_used VARCHAR(100),
+    recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_agent_performance_agent_name ON agent_performance_metrics(agent_name);
+CREATE INDEX IF NOT EXISTS idx_agent_performance_recorded_at ON agent_performance_metrics(recorded_at);
+CREATE INDEX IF NOT EXISTS idx_agent_communications_case_id ON agent_communications(case_id);
+CREATE INDEX IF NOT EXISTS idx_agent_communications_correlation_id ON agent_communications(correlation_id);
+CREATE INDEX IF NOT EXISTS idx_cost_tracking_case_id ON cost_tracking(case_id);
+CREATE INDEX IF NOT EXISTS idx_cost_tracking_agent_name ON cost_tracking(agent_name);
+
 -- End of schema

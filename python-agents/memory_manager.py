@@ -597,3 +597,4 @@ def create_memory_manager(
     """
     backend_enum = MemoryBackend(backend.lower())
     return MemoryManager(backend=backend_enum, openai_api_key=openai_api_key, **kwargs)
+

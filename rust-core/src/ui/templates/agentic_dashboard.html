@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComplianceAI Agentic Platform - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.css" rel="stylesheet">
+    <link href="/static/agentic_style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-robot me-2"></i>
+                ComplianceAI Agentic Platform
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="#dashboard" data-tab="dashboard">
+                    <i class="fas fa-tachometer-alt me-1"></i>
+                    Dashboard
+                </a>
+                <a class="nav-link" href="#live-agents" data-tab="live-agents">
+                    <i class="fas fa-comments me-1"></i>
+                    Live Agents
+                </a>
+                <a class="nav-link" href="#case-processing" data-tab="case-processing">
+                    <i class="fas fa-tasks me-1"></i>
+                    Case Processing
+                </a>
+                <a class="nav-link" href="#learning-dashboard" data-tab="learning-dashboard">
+                    <i class="fas fa-brain me-1"></i>
+                    AI Learning
+                </a>
+                <a class="nav-link" href="#agent-chat" data-tab="agent-chat">
+                    <i class="fas fa-robot me-1"></i>
+                    Agent Chat
+                </a>
+                <a class="nav-link" href="#agent-testing" data-tab="agent-testing">
+                    <i class="fas fa-vial me-1"></i>
+                    Agent Testing
+                </a>
+                <a class="nav-link" href="#user-guides" data-tab="user-guides">
+                    <i class="fas fa-book me-1"></i>
+                    User Guides
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Dashboard Tab -->
+    <div id="dashboard" class="tab-content active">
+        <div class="container-fluid mt-4">
+            <!-- Main Dashboard Layout as per Revamp.md -->
+            <div class="row">
+                <!-- System Status -->
+                <div class="col-md-6">
+                    <div class="card agentic-card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>
+                                System Status
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="agent-status-grid">
+                                <div class="agent-status-item">
+                                    <div class="agent-icon">🤖</div>
+                                    <div class="agent-info">
+                                        <div class="agent-name">Intake Agent</div>
+                                        <div class="agent-status" id="intake-status">Status: <span class="status-active">Active</span></div>
+                                        <div class="agent-queue">Queue: <span id="intake-queue">23 docs</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="agent-status-item">
+                                    <div class="agent-icon">📊</div>
+                                    <div class="agent-info">
+                                        <div class="agent-name">Intel Agent</div>
+                                        <div class="agent-status" id="intel-status">Status: <span class="status-busy">Busy</span></div>
+                                        <div class="agent-queue">Processing: <span id="intel-processing">7</span></div>
+                                    </div>
+                                </div>
+                                
+                                <div class="agent-status-item">
+                                    <div class="agent-icon">⚖️</div>
+                                    <div class="agent-info">
+                                        <div class="agent-name">Decision Agent</div>
+                                        <div class="agent-status" id="decision-status">Status: <span class="status-ready">Ready</span></div>
+                                        <div class="agent-queue">Pending: <span id="decision-pending">2</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Performance -->
+                <div class="col-md-6">
+                    <div class="card agentic-card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-target me-2"></i>
+                                Today's Performance
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="performance-metrics">
+                                <div class="metric-item">
+                                    <div class="metric-label">Cases Processed:</div>
+                                    <div class="metric-value" id="cases-processed">847</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Auto-Approved:</div>
+                                    <div class="metric-value" id="auto-approved">623</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Under Review:</div>
+                                    <div class="metric-value" id="under-review">31</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Avg Time:</div>
+                                    <div class="metric-value" id="avg-time">12.3s</div>
+                                </div>
+                                <div class="metric-item">
+                                    <div class="metric-label">Cost per Case:</div>
+                                    <div class="metric-value" id="cost-per-case">$0.43</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictive Insights -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card agentic-card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-crystal-ball me-2"></i>
+                                Predictive Insights
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-warning" role="alert">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Unusual pattern:</strong> +40% docs from Eastern Europe
+                                <br>
+                                <strong>Recommend:</strong> Enhanced screening enabled
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="insight-card">
+                                        <h6>Volume Prediction</h6>
+                                        <p>Expected surge Mon-Wed: +280% applications</p>
+                                        <small class="text-muted">Recommendation: Auto-scale to 3x capacity</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="insight-card">
+                                        <h6>Geographic Trend</h6>
+                                        <p>+45% applications from APAC region</p>
+                                        <small class="text-muted">Recommendation: Regional compliance update needed</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="insight-card">
+                                        <h6>Efficiency Opportunity</h6>
+                                        <p>12% of manual reviews unnecessary</p>
+                                        <small class="text-muted">Auto-optimization: Adjusting thresholds</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Optimization Dashboard -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card agentic-card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-dollar-sign me-2"></i>
+                                Cost Optimization Dashboard
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="cost-metric">
+                                        <div class="cost-label">Target Cost</div>
+                                        <div class="cost-value">$0.50</div>
+                                        <div class="cost-subtitle">per case</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="cost-metric">
+                                        <div class="cost-label">Current Cost</div>
+                                        <div class="cost-value text-success">$0.43</div>
+                                        <div class="cost-subtitle">14% under target</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="cost-metric">
+                                        <div class="cost-label">Local Processing</div>
+                                        <div class="cost-value">82%</div>
+                                        <div class="cost-subtitle">vs 80% target</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="cost-metric">
+                                        <div class="cost-label">Fast Track</div>
+                                        <div class="cost-value">78%</div>
+                                        <div class="cost-subtitle">vs 80% target</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Agent Conversations Tab -->
+    <div id="live-agents" class="tab-content">
+        <div class="container-fluid mt-4">
+            <div class="card agentic-card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>
+                        Live Agent Conversations
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="agent-conversation-stream" class="conversation-stream">
+                        <!-- Agent conversations will be populated here -->
+                        <div class="conversation-entry">
+                            <div class="conversation-header">
+                                <span class="agent-badge intake">🤖 Intake Agent</span>
+                                <span class="timestamp">[14:23:45]</span>
+                            </div>
+                            <div class="conversation-message">
+                                "Processing passport for John Smith. OCR confidence: 94%.<br>
+                                Detected discrepancy in address field - forwarding for analysis."
+                            </div>
+                        </div>
+
+                        <div class="conversation-entry">
+                            <div class="conversation-header">
+                                <span class="agent-badge intelligence">📊 Intel Agent</span>
+                                <span class="timestamp">[14:23:47]</span>
+                            </div>
+                            <div class="conversation-message">
+                                "Received John Smith case. Running sanctions check... CLEAR.<br>
+                                Risk factors: New country (Romania) = +0.2, High income = -0.1<br>
+                                Current risk score: 0.34 (Medium-Low)"
+                            </div>
+                        </div>
+
+                        <div class="conversation-entry">
+                            <div class="conversation-header">
+                                <span class="agent-badge decision">⚖️ Decision Agent</span>
+                                <span class="timestamp">[14:23:52]</span>
+                            </div>
+                            <div class="conversation-message">
+                                "Analyzing John Smith: Risk=0.34, Compliance=CLEAR, Confidence=94%<br>
+                                Decision: AUTO-APPROVE with Standard monitoring tier.<br>
+                                Reasoning: Clean background, standard risk profile."
+                            </div>
+                        </div>
+
+                        <div class="conversation-entry case-closed">
+                            <div class="conversation-header">
+                                <span class="agent-badge system">🎯 Case Closed</span>
+                                <span class="timestamp">[14:23:52]</span>
+                            </div>
+                            <div class="conversation-message">
+                                <strong>John Smith → APPROVED</strong> (Processing time: 7.3s)
+                            </div>
+                        </div>
+
+                        <div class="conversation-separator"></div>
+
+                        <div class="conversation-entry">
+                            <div class="conversation-header">
+                                <span class="agent-badge intake">🤖 Intake Agent</span>
+                                <span class="timestamp">[14:24:12]</span>
+                            </div>
+                            <div class="conversation-message">
+                                "Complex document detected for Maria Garcia. Standard OCR failed.<br>
+                                Escalating to AI vision processing..."
+                            </div>
+                        </div>
+
+                        <div class="conversation-entry">
+                            <div class="conversation-header">
+                                <span class="agent-badge system">💡 System Learning</span>
+                                <span class="timestamp">[14:24:15]</span>
+                            </div>
+                            <div class="conversation-message">
+                                "Added new document pattern to training set"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Processing View Tab -->
+    <div id="case-processing" class="tab-content">
+        <div class="container-fluid mt-4">
+            <div class="card agentic-card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tasks me-2"></i>
+                        Case Processing View
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Case Selection -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="case-selector" class="form-label">Select Case:</label>
+                            <select id="case-selector" class="form-select">
+                                <option value="">Select a case to view details...</option>
+                                <option value="CUST_789123">CUST_789123 - Sarah Johnson</option>
+                                <option value="CUST_789124">CUST_789124 - Michael Chen</option>
+                                <option value="CUST_789125">CUST_789125 - Emma Rodriguez</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <button class="btn btn-primary" onclick="loadCaseDetails()">
+                                    <i class="fas fa-search me-2"></i>Load Case Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Case Details (Initially Hidden) -->
+                    <div id="case-details" class="case-details" style="display: none;">
+                        <div class="row">
+                            <!-- Case Overview -->
+                            <div class="col-md-6">
+                                <div class="case-overview-card">
+                                    <h6>📋 Case Overview</h6>
+                                    <div class="case-info">
+                                        <div><strong>Customer:</strong> <span id="case-customer">Sarah Johnson</span></div>
+                                        <div><strong>Type:</strong> <span id="case-type">Individual KYC</span></div>
+                                        <div><strong>Priority:</strong> <span id="case-priority">Standard</span></div>
+                                        <div><strong>Status:</strong> <span id="case-status" class="badge bg-warning">📊 Under Analysis</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Timeline -->
+                            <div class="col-md-6">
+                                <div class="case-timeline-card">
+                                    <h6>🕐 Timeline</h6>
+                                    <div class="timeline" id="case-timeline">
+                                        <div class="timeline-item">14:25:01 - Case initiated</div>
+                                        <div class="timeline-item">14:25:03 - Documents OCR'd</div>
+                                        <div class="timeline-item">14:25:05 - Risk analysis</div>
+                                        <div class="timeline-item">14:25:07 - Compliance check</div>
+                                        <div class="timeline-item active">14:25:09 - Decision pending</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Agent Workflow -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="workflow-card">
+                                    <h6>🔄 AGENT WORKFLOW (Live)</h6>
+                                    <div class="workflow-diagram">
+                                        <div class="workflow-step completed">
+                                            <div class="step-icon">🤖</div>
+                                            <div class="step-name">Intake</div>
+                                            <div class="step-status">✅ Complete</div>
+                                            <div class="step-detail">Confidence: 96%</div>
+                                        </div>
+                                        <div class="workflow-arrow">→</div>
+                                        <div class="workflow-step processing">
+                                            <div class="step-icon">📊</div>
+                                            <div class="step-name">Intel</div>
+                                            <div class="step-status">🔄 Processing</div>
+                                            <div class="step-detail">Risk: 0.28<br>Compliance: ✅</div>
+                                        </div>
+                                        <div class="workflow-arrow">→</div>
+                                        <div class="workflow-step waiting">
+                                            <div class="step-icon">⚖️</div>
+                                            <div class="step-name">Decision</div>
+                                            <div class="step-status">⏳ Waiting</div>
+                                            <div class="step-detail">Decision: TBD</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Agent Reasoning -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="reasoning-card">
+                                    <h6>💬 Agent Reasoning (Expandable)</h6>
+                                    <div class="reasoning-content">
+                                        <div class="reasoning-entry">
+                                            <strong>🤖 Intake Agent:</strong> "High-quality documents detected. All required fields extracted successfully. Address verification: PASSED"
+                                        </div>
+                                        <div class="reasoning-entry">
+                                            <strong>📊 Intelligence Agent:</strong> "Customer profile: US citizen, stable employment history. No PEP matches. Transaction patterns normal. Low risk."
+                                        </div>
+                                        <div class="reasoning-entry">
+                                            <strong>⚖️ Decision Agent:</strong> "Preparing decision based on low risk + clean compliance... Expected outcome: AUTO-APPROVE"
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Learning Dashboard Tab -->
+    <div id="learning-dashboard" class="tab-content">
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <!-- Learning Status -->
+                <div class="col-md-6">
+                    <div class="card agentic-card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-brain me-2"></i>
+                                Learning Status
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="learning-metrics">
+                                <div class="metric-row">
+                                    <span>Cases Processed:</span>
+                                    <span class="metric-value">15,847</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span>Model Updates:</span>
+                                    <span class="metric-value">Daily</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span>Last Update:</span>
+                                    <span class="metric-value">2 hours ago</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span>Confidence Trend:</span>
+                                    <span class="metric-value text-success">↗️ +3.2%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model Performance -->
+                <div class="col-md-6">
+                    <div class="card agentic-card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Model Performance
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="performance-metrics">
+                                <div class="metric-row">
+                                    <span>Accuracy:</span>
+                                    <span class="metric-value text-success">96.7% ↑+2.1%</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span>False Positives:</span>
+                                    <span class="metric-value text-success">1.2% ↓-0.3%</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span>Processing Speed:</span>
+                                    <span class="metric-value">11.2s avg</span>
+                                </div>
+                                <div class="metric-row">
+                                    <span>Cost per Case:</span>
+                                    <span class="metric-value text-success">$0.41 ↓-$0.07</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Autonomous Improvements -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card agentic-card">
+                        <div class="card-header bg-warning text-dark">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cogs me-2"></i>
+                                Autonomous Improvements (Last 24h)
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="improvements-list">
+                                <div class="improvement-item success">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>New document type learned:</strong> Romanian National ID
+                                </div>
+                                <div class="improvement-item success">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Risk model updated:</strong> Eastern EU risk weights recalibrated
+                                </div>
+                                <div class="improvement-item success">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Performance optimization:</strong> Batch processing improved 23%
+                                </div>
+                                <div class="improvement-item warning">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    <strong>Alert:</strong> Unusual pattern detected in cryptocurrency clients
+                                    → Enhanced screening automatically enabled
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Chart -->
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="card agentic-card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-area me-2"></i>
+                                Performance Trends
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="performance-chart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Chat Interface Tab -->
+    <div id="agent-chat" class="tab-content">
+        <div class="container-fluid mt-4">
+            <div class="card agentic-card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>
+                        Talk to Your Agents
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="chat-interface">
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="chat-message user">
+                                <div class="message-header">
+                                    <strong>You:</strong>
+                                    <span class="timestamp">14:30:15</span>
+                                </div>
+                                <div class="message-content">
+                                    Why was case CUST_789456 flagged for manual review?
+                                </div>
+                            </div>
+
+                            <div class="chat-message agent intelligence">
+                                <div class="message-header">
+                                    <strong>📊 Intel Agent:</strong>
+                                    <span class="timestamp">14:30:18</span>
+                                </div>
+                                <div class="message-content">
+                                    The customer Maria Santos triggered two risk factors: 1) First-time crypto exchange user (+0.3 risk points) 2) Large initial deposit $85K (+0.2 risk points). Combined risk score of 0.67 exceeds our auto-approval threshold of 0.6
+                                </div>
+                            </div>
+
+                            <div class="chat-message user">
+                                <div class="message-header">
+                                    <strong>You:</strong>
+                                    <span class="timestamp">14:30:45</span>
+                                </div>
+                                <div class="message-content">
+                                    Can you show me similar cases that were approved?
+                                </div>
+                            </div>
+
+                            <div class="chat-message agent system">
+                                <div class="message-header">
+                                    <strong>🧠 System:</strong>
+                                    <span class="timestamp">14:30:48</span>
+                                </div>
+                                <div class="message-content">
+                                    Found 23 similar cases in last 30 days. 89% were approved after manual review. Common factors: High-income professionals with clean background checks.
+                                </div>
+                            </div>
+
+                            <div class="chat-message agent decision">
+                                <div class="message-header">
+                                    <strong>⚖️ Decision Agent:</strong>
+                                    <span class="timestamp">14:30:52</span>
+                                </div>
+                                <div class="message-content">
+                                    I recommend expedited review for this case. Would you like me to escalate to senior compliance officer?
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-area">
+                            <div class="input-group">
+                                <input type="text" id="chat-input" class="form-control" placeholder="Ask your agents anything...">
+                                <button class="btn btn-primary" onclick="sendChatMessage()">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div class="chat-actions mt-2">
+                                <button class="btn btn-sm btn-outline-success" onclick="escalateCase()">
+                                    <i class="fas fa-arrow-up me-1"></i>Escalate
+                                </button>
+                                <button class="btn btn-sm btn-outline-primary" onclick="approveCase()">
+                                    <i class="fas fa-check me-1"></i>Approve
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" onclick="askMoreQuestions()">
+                                    <i class="fas fa-question me-1"></i>Ask More Questions
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Testing Tab (Rule 6 Compliance) -->
+    <div id="agent-testing" class="tab-content">
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">
+                                <i class="fas fa-vial me-2"></i>
+                                Agent Testing & Validation Suite
+                            </h4>
+                            <p class="mb-0 mt-2">Comprehensive testing interface for the 3-agent architecture</p>
+                        </div>
+                        <div class="card-body">
+                            <!-- Agent Status Overview -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-inbox text-info"></i>
+                                                Intake Agent
+                                            </h5>
+                                            <div id="intake-status" class="badge bg-secondary">Testing...</div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Port: 8001</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-brain text-warning"></i>
+                                                Intelligence Agent
+                                            </h5>
+                                            <div id="intelligence-status" class="badge bg-secondary">Testing...</div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Port: 8002</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-gavel text-success"></i>
+                                                Decision Agent
+                                            </h5>
+                                            <div id="decision-status" class="badge bg-secondary">Testing...</div>
+                                            <div class="mt-2">
+                                                <small class="text-muted">Port: 8003</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Test Controls -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Test Controls</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <button class="btn btn-primary w-100 mb-2" onclick="testAllAgents()">
+                                                        <i class="fas fa-play me-2"></i>
+                                                        Run Full Agent Test Suite
+                                                    </button>
+                                                    <button class="btn btn-info w-100 mb-2" onclick="testAgentHealth()">
+                                                        <i class="fas fa-heartbeat me-2"></i>
+                                                        Health Check All Agents
+                                                    </button>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <button class="btn btn-warning w-100 mb-2" onclick="testAgentPerformance()">
+                                                        <i class="fas fa-tachometer-alt me-2"></i>
+                                                        Performance Benchmark
+                                                    </button>
+                                                    <button class="btn btn-success w-100 mb-2" onclick="testEndToEndFlow()">
+                                                        <i class="fas fa-route me-2"></i>
+                                                        End-to-End Test
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Individual Agent Testing -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header bg-info text-white">
+                                            <h6 class="mb-0">Intake Agent Tests</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <button class="btn btn-sm btn-outline-info w-100 mb-2" onclick="testIntakeAgent('ocr')">
+                                                Test OCR Processing
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info w-100 mb-2" onclick="testIntakeAgent('validation')">
+                                                Test Data Validation
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-info w-100 mb-2" onclick="testIntakeAgent('quality')">
+                                                Test Quality Scoring
+                                            </button>
+                                            <div id="intake-test-results" class="mt-3">
+                                                <small class="text-muted">No tests run yet</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header bg-warning text-white">
+                                            <h6 class="mb-0">Intelligence Agent Tests</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <button class="btn btn-sm btn-outline-warning w-100 mb-2" onclick="testIntelligenceAgent('kyc')">
+                                                Test KYC Analysis
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning w-100 mb-2" onclick="testIntelligenceAgent('sanctions')">
+                                                Test Sanctions Check
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-warning w-100 mb-2" onclick="testIntelligenceAgent('pep')">
+                                                Test PEP Screening
+                                            </button>
+                                            <div id="intelligence-test-results" class="mt-3">
+                                                <small class="text-muted">No tests run yet</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header bg-success text-white">
+                                            <h6 class="mb-0">Decision Agent Tests</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <button class="btn btn-sm btn-outline-success w-100 mb-2" onclick="testDecisionAgent('rules')">
+                                                Test Rule Engine
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success w-100 mb-2" onclick="testDecisionAgent('llm')">
+                                                Test LLM Decisions
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success w-100 mb-2" onclick="testDecisionAgent('workflow')">
+                                                Test Workflow
+                                            </button>
+                                            <div id="decision-test-results" class="mt-3">
+                                                <small class="text-muted">No tests run yet</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Test Results Display -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Test Results & Logs</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="test-results-container">
+                                                <div class="alert alert-info">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    Click any test button above to see results here.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Performance Metrics -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h5 class="mb-0">Performance Metrics</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <div class="text-center">
+                                                        <h4 id="avg-response-time" class="text-primary">--</h4>
+                                                        <small class="text-muted">Avg Response Time (ms)</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-center">
+                                                        <h4 id="success-rate" class="text-success">--</h4>
+                                                        <small class="text-muted">Success Rate (%)</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-center">
+                                                        <h4 id="cost-per-test" class="text-warning">--</h4>
+                                                        <small class="text-muted">Cost per Test ($)</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="text-center">
+                                                        <h4 id="tests-run" class="text-info">0</h4>
+                                                        <small class="text-muted">Tests Run</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Guides Tab (Rule 9 Compliance) -->
+    <div id="user-guides" class="tab-content">
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h4 class="mb-0">
+                                <i class="fas fa-book me-2"></i>
+                                ComplianceAI User Guides & Documentation
+                            </h4>
+                            <p class="mb-0 mt-2">Comprehensive guides for using the revamped 3-agent system</p>
+                        </div>
+                        <div class="card-body">
+                            <!-- Quick Start Guide -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-rocket me-2"></i>
+                                                Quick Start Guide
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6><i class="fas fa-play-circle text-success me-2"></i>Getting Started</h6>
+                                                    <ol class="list-group list-group-numbered">
+                                                        <li class="list-group-item">Access the <strong>Dashboard</strong> tab to view system overview</li>
+                                                        <li class="list-group-item">Use <strong>Case Processing</strong> to submit KYC documents</li>
+                                                        <li class="list-group-item">Monitor progress in <strong>Live Agents</strong> tab</li>
+                                                        <li class="list-group-item">Review results and decisions in real-time</li>
+                                                        <li class="list-group-item">Use <strong>Agent Testing</strong> to validate functionality</li>
+                                                    </ol>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6><i class="fas fa-info-circle text-info me-2"></i>System Overview</h6>
+                                                    <div class="alert alert-info">
+                                                        <strong>3-Agent Architecture:</strong>
+                                                        <ul class="mb-0 mt-2">
+                                                            <li><strong>Intake Agent:</strong> Document processing & OCR</li>
+                                                            <li><strong>Intelligence Agent:</strong> KYC analysis & compliance</li>
+                                                            <li><strong>Decision Agent:</strong> Final approval/rejection</li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Feature Guides -->
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card border-primary">
+                                        <div class="card-header bg-primary text-white">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-upload me-2"></i>
+                                                Document Processing
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6>Supported Formats:</h6>
+                                            <ul>
+                                                <li>PDF documents</li>
+                                                <li>Image files (JPG, PNG)</li>
+                                                <li>Scanned documents</li>
+                                                <li>Multi-page documents</li>
+                                            </ul>
+                                            <h6>Processing Steps:</h6>
+                                            <ol>
+                                                <li>Upload document via Case Processing</li>
+                                                <li>OCR extraction (local Tesseract)</li>
+                                                <li>AI vision fallback if needed</li>
+                                                <li>Quality scoring and validation</li>
+                                            </ol>
+                                            <div class="alert alert-success">
+                                                <small><strong>Cost:</strong> ~$0.15 per document</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-warning">
+                                        <div class="card-header bg-warning text-white">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-shield-alt me-2"></i>
+                                                Compliance Checking
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6>Regulatory Coverage:</h6>
+                                            <ul>
+                                                <li>AML (Anti-Money Laundering)</li>
+                                                <li>KYC (Know Your Customer)</li>
+                                                <li>GDPR compliance</li>
+                                                <li>Basel III requirements</li>
+                                                <li>FATCA & CRS reporting</li>
+                                            </ul>
+                                            <h6>Screening Databases:</h6>
+                                            <ul>
+                                                <li>OFAC sanctions lists</li>
+                                                <li>UN Security Council lists</li>
+                                                <li>EU sanctions database</li>
+                                                <li>PEP (Politically Exposed Persons)</li>
+                                            </ul>
+                                            <div class="alert alert-warning">
+                                                <small><strong>Cost:</strong> ~$0.25 per analysis</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <h6 class="mb-0">
+                                                <i class="fas fa-gavel me-2"></i>
+                                                Decision Making
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6>Decision Types:</h6>
+                                            <ul>
+                                                <li><span class="badge bg-success">APPROVED</span> - Clear cases</li>
+                                                <li><span class="badge bg-danger">REJECTED</span> - High risk</li>
+                                                <li><span class="badge bg-warning">REVIEW</span> - Manual review needed</li>
+                                                <li><span class="badge bg-info">PENDING</span> - Additional info required</li>
+                                            </ul>
+                                            <h6>Processing Logic:</h6>
+                                            <ol>
+                                                <li>Rule-based fast-track (80%)</li>
+                                                <li>LLM reasoning for edge cases</li>
+                                                <li>Confidence scoring</li>
+                                                <li>Audit trail generation</li>
+                                            </ol>
+                                            <div class="alert alert-success">
+                                                <small><strong>Cost:</strong> ~$0.15 per decision</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- API Documentation -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card border-info">
+                                        <div class="card-header bg-info text-white">
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-code me-2"></i>
+                                                API Integration Guide
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6>REST API Endpoints:</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Endpoint</th>
+                                                                    <th>Method</th>
+                                                                    <th>Purpose</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td><code>/api/v1/process</code></td>
+                                                                    <td><span class="badge bg-success">POST</span></td>
+                                                                    <td>Submit KYC case</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><code>/api/v1/status/{id}</code></td>
+                                                                    <td><span class="badge bg-primary">GET</span></td>
+                                                                    <td>Check case status</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><code>/api/v1/results/{id}</code></td>
+                                                                    <td><span class="badge bg-primary">GET</span></td>
+                                                                    <td>Get final results</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td><code>/health</code></td>
+                                                                    <td><span class="badge bg-primary">GET</span></td>
+                                                                    <td>System health</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6>WebSocket Integration:</h6>
+                                                    <div class="alert alert-info">
+                                                        <strong>Real-time Updates:</strong><br>
+                                                        <code>ws://localhost:8000/ws/agentic</code>
+                                                    </div>
+                                                    <h6>Sample Request:</h6>
+                                                    <pre class="bg-light p-2 rounded"><code>{
+  "document": "base64_encoded_file",
+  "document_type": "passport",
+  "customer_id": "12345",
+  "priority": "normal"
+}</code></pre>
+                                                    <h6>Sample Response:</h6>
+                                                    <pre class="bg-light p-2 rounded"><code>{
+  "case_id": "uuid-here",
+  "status": "processing",
+  "estimated_completion": "2024-01-01T12:00:00Z"
+}</code></pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Troubleshooting Guide -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card border-danger">
+                                        <div class="card-header bg-danger text-white">
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-wrench me-2"></i>
+                                                Troubleshooting Guide
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <h6>Common Issues:</h6>
+                                                    <div class="accordion" id="troubleshootingAccordion">
+                                                        <div class="accordion-item">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue1">
+                                                                    Document Upload Fails
+                                                                </button>
+                                                            </h2>
+                                                            <div id="issue1" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                                                <div class="accordion-body">
+                                                                    <strong>Solutions:</strong>
+                                                                    <ul>
+                                                                        <li>Check file size (max 10MB)</li>
+                                                                        <li>Ensure supported format (PDF, JPG, PNG)</li>
+                                                                        <li>Verify network connection</li>
+                                                                        <li>Check agent status in Live Agents tab</li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="accordion-item">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue2">
+                                                                    Processing Takes Too Long
+                                                                </button>
+                                                            </h2>
+                                                            <div id="issue2" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                                                <div class="accordion-body">
+                                                                    <strong>Expected Times:</strong>
+                                                                    <ul>
+                                                                        <li>Simple documents: 5-8 seconds</li>
+                                                                        <li>Complex documents: 10-15 seconds</li>
+                                                                        <li>High-risk cases: 15-30 seconds</li>
+                                                                    </ul>
+                                                                    <strong>If longer:</strong> Check system load in Dashboard
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="accordion-item">
+                                                            <h2 class="accordion-header">
+                                                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#issue3">
+                                                                    Agent Communication Errors
+                                                                </button>
+                                                            </h2>
+                                                            <div id="issue3" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                                                <div class="accordion-body">
+                                                                    <strong>Check:</strong>
+                                                                    <ul>
+                                                                        <li>All agents healthy in Agent Testing</li>
+                                                                        <li>Database connections active</li>
+                                                                        <li>Redis cache operational</li>
+                                                                        <li>Network connectivity between containers</li>
+                                                                    </ul>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <h6>System Monitoring:</h6>
+                                                    <div class="alert alert-warning">
+                                                        <strong>Key Metrics to Watch:</strong>
+                                                        <ul class="mb-0 mt-2">
+                                                            <li>Processing time per case</li>
+                                                            <li>Cost per KYC check</li>
+                                                            <li>Agent response times</li>
+                                                            <li>Error rates by agent</li>
+                                                            <li>Database connection health</li>
+                                                        </ul>
+                                                    </div>
+                                                    <h6>Performance Targets:</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Metric</th>
+                                                                    <th>Target</th>
+                                                                    <th>Alert If</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>Cost per case</td>
+                                                                    <td>&lt; $0.50</td>
+                                                                    <td>&gt; $0.75</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Processing time</td>
+                                                                    <td>&lt; 12s</td>
+                                                                    <td>&gt; 30s</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Accuracy rate</td>
+                                                                    <td>&gt; 96%</td>
+                                                                    <td>&lt; 94%</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>Uptime</td>
+                                                                    <td>&gt; 99.5%</td>
+                                                                    <td>&lt; 99%</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Best Practices -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card border-secondary">
+                                        <div class="card-header bg-secondary text-white">
+                                            <h5 class="mb-0">
+                                                <i class="fas fa-star me-2"></i>
+                                                Best Practices & Tips
+                                            </h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-4">
+                                                    <h6><i class="fas fa-thumbs-up text-success me-2"></i>Document Quality</h6>
+                                                    <ul>
+                                                        <li>Use high-resolution scans (300+ DPI)</li>
+                                                        <li>Ensure good lighting and contrast</li>
+                                                        <li>Avoid shadows and reflections</li>
+                                                        <li>Keep documents flat and straight</li>
+                                                        <li>Use original documents when possible</li>
+                                                    </ul>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <h6><i class="fas fa-clock text-warning me-2"></i>Processing Optimization</h6>
+                                                    <ul>
+                                                        <li>Submit during off-peak hours for faster processing</li>
+                                                        <li>Use batch processing for multiple cases</li>
+                                                        <li>Monitor system load before large uploads</li>
+                                                        <li>Pre-validate document formats</li>
+                                                        <li>Use appropriate priority levels</li>
+                                                    </ul>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <h6><i class="fas fa-shield-alt text-info me-2"></i>Security & Compliance</h6>
+                                                    <ul>
+                                                        <li>Always use HTTPS for API calls</li>
+                                                        <li>Implement proper authentication</li>
+                                                        <li>Regularly rotate API keys</li>
+                                                        <li>Monitor access logs</li>
+                                                        <li>Follow data retention policies</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="/static/agentic_app.js"></script>
+</body>
+</html>

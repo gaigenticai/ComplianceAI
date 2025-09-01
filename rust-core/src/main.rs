@@ -23,12 +23,21 @@ mod database;
 mod monitoring;
 mod security;
 mod ui;
+mod websocket;
+mod agentic_api;
+mod compliance;
 
 use config::AppConfig;
 use messaging::MessageBus;
 use orchestrator::KYCOrchestrator;
 use database::DatabaseManager;
 use monitoring::MetricsCollector;
+use websocket::{websocket_handler, initialize_connection_manager, ConnectionManager};
+use actix::Addr;
+use agentic_api::{
+    get_dashboard_metrics, get_agent_conversations, get_active_cases, 
+    get_case_details, get_learning_metrics, get_chat_history, send_chat_message
+};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -38,6 +47,7 @@ pub struct AppState {
     pub database: Arc<DatabaseManager>,
     pub metrics: Arc<MetricsCollector>,
     pub active_sessions: Arc<DashMap<String, KYCSession>>,
+    pub connection_manager: Option<Addr<ConnectionManager>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -226,6 +236,13 @@ async fn get_agents_status(_data: web::Data<AppState>) -> Result<HttpResponse> {
 
 async fn serve_ui() -> Result<HttpResponse> {
     let html = include_str!("ui/templates/index.html");
+    Ok(HttpResponse::Ok()
+        .content_type("text/html; charset=utf-8")
+        .body(html))
+}
+
+async fn serve_agentic_dashboard() -> Result<HttpResponse> {
+    let html = include_str!("ui/templates/agentic_dashboard.html");
     Ok(HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
         .body(html))
@@ -473,6 +490,11 @@ async fn initialize_app_state() -> AnyhowResult<AppState> {
     eprintln!("DEBUG: Creating active sessions map");
     let active_sessions = Arc::new(DashMap::new());
     
+    eprintln!("DEBUG: Skipping WebSocket connection manager for now");
+    // Skip WebSocket initialization to avoid actor system issues during startup
+    // WebSocket will be initialized on first connection
+    let connection_manager = None;
+    
     Ok(AppState {
         config,
         message_bus,
@@ -480,12 +502,19 @@ async fn initialize_app_state() -> AnyhowResult<AppState> {
         database,
         metrics,
         active_sessions,
+        connection_manager,
     })
 }
 
 #[tokio::main]
 async fn main() -> AnyhowResult<()> {
     eprintln!("DEBUG: Starting main function");
+    
+    // Set panic hook to capture panics
+    std::panic::set_hook(Box::new(|panic_info| {
+        eprintln!("PANIC: {}", panic_info);
+        std::process::exit(1);
+    }));
     
     // Try to initialize tracing with error handling
     match tracing_subscriber::fmt()
@@ -505,7 +534,13 @@ async fn main() -> AnyhowResult<()> {
             state
         },
         Err(e) => {
-            eprintln!("DEBUG: App state initialization failed: {}", e);
+            eprintln!("ERROR: Failed to initialize application state: {}", e);
+            eprintln!("ERROR: Error chain:");
+            let mut source = e.source();
+            while let Some(err) = source {
+                eprintln!("  Caused by: {}", err);
+                source = err.source();
+            }
             return Err(e);
         }
     };
@@ -527,8 +562,20 @@ async fn main() -> AnyhowResult<()> {
             .route("/api/v1/kyc/status/{session_id}", web::get().to(get_session_status))
             .route("/api/v1/system/status", web::get().to(get_system_status))
             .route("/api/v1/agents/status", web::get().to(get_agents_status))
+            
+            // Agentic Dashboard API Endpoints
+            .route("/api/v1/dashboard/metrics", web::get().to(get_dashboard_metrics))
+            .route("/api/v1/agents/conversations", web::get().to(get_agent_conversations))
+            .route("/api/v1/cases/active", web::get().to(get_active_cases))
+            .route("/api/v1/cases/{case_id}/details", web::get().to(get_case_details))
+            .route("/api/v1/learning/metrics", web::get().to(get_learning_metrics))
+            .route("/api/v1/chat/history", web::get().to(get_chat_history))
+            .route("/api/v1/chat/message", web::post().to(send_chat_message))
+            
+            .route("/ws/agentic", web::get().to(websocket_handler))
             .route("/processing/{session_id}", web::get().to(serve_processing_page))
             .route("/results/{session_id}", web::get().to(serve_results_page))
+            .route("/agentic", web::get().to(serve_agentic_dashboard))
             .route("/", web::get().to(serve_ui))
             
             .service(Files::new("/static", "src/ui/static").show_files_listing())

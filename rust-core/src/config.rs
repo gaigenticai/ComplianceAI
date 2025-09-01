@@ -237,8 +237,21 @@ impl AppConfig {
             self.server.port = port.parse().context("Invalid SERVER_PORT")?;
         }
         
+        // Handle PostgreSQL URL from environment variables
         if let Ok(postgres_url) = env::var("POSTGRES_URL") {
             self.database.postgres_url = postgres_url;
+        } else {
+            // Construct PostgreSQL URL from individual environment variables
+            let host = env::var("POSTGRES_HOST").unwrap_or_else(|_| "localhost".to_string());
+            let port = env::var("POSTGRES_PORT").unwrap_or_else(|_| "5432".to_string());
+            let db = env::var("POSTGRES_DB").unwrap_or_else(|_| "kyc_db".to_string());
+            let user = env::var("POSTGRES_USER").unwrap_or_else(|_| "postgres".to_string());
+            let password = env::var("POSTGRES_PASSWORD").unwrap_or_else(|_| "password".to_string());
+            
+            self.database.postgres_url = format!(
+                "postgresql://{}:{}@{}:{}/{}",
+                user, password, host, port, db
+            );
         }
         
         if let Ok(mongodb_url) = env::var("MONGODB_URL") {
