@@ -113,10 +113,10 @@ class FeedType(str, Enum):
 class FeedStatus(str, Enum):
     """
     Status enumeration for feed health monitoring
-    
+
     Tracks the operational status of each regulatory feed
     for health monitoring and alerting.
-    
+
     Rule Compliance:
     - Rule 17: Clear status definitions for monitoring
     """
@@ -125,6 +125,22 @@ class FeedStatus(str, Enum):
     ERROR = "error"          # Feed is failing consistently
     DISABLED = "disabled"    # Feed is intentionally disabled
     UNKNOWN = "unknown"      # Status cannot be determined
+
+class ProcessingStatus(str, Enum):
+    """
+    Status enumeration for document processing states
+
+    Tracks the processing status of regulatory documents
+    through the parsing and obligation extraction pipeline.
+
+    Rule Compliance:
+    - Rule 17: Clear status definitions for document processing
+    """
+    PENDING = "pending"          # Document queued for processing
+    PROCESSING = "processing"    # Document currently being processed
+    COMPLETED = "completed"      # Document processing completed successfully
+    FAILED = "failed"            # Document processing failed
+    RETRY = "retry"              # Document queued for retry processing
 
 @dataclass
 class FeedSource:

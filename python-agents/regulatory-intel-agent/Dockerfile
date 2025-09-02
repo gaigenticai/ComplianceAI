@@ -57,5 +57,19 @@ ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 ENV REGULATORY_AGENT_PORT=8004
 
+# Create a startup test script
+RUN echo 'import sys\n\
+sys.path.insert(0, "/app")\n\
+print("Starting import test...")\n\
+import traceback\n\
+try:\n\
+    from src.regulatory_intelligence_service import app\n\
+    print("SUCCESS: Import completed!")\n\
+except Exception as e:\n\
+    print("FAILED: Import error:", str(e))\n\
+    traceback.print_exc()\n\
+    import sys\n\
+    sys.exit(1)' > /app/startup_test.py
+
 # Start the regulatory intelligence agent service
-CMD ["python", "-m", "src.regulatory_intelligence_service"]
+CMD ["python", "-m", "uvicorn", "src.regulatory_intelligence_service:app", "--host", "0.0.0.0", "--port", "8004"]

@@ -39,8 +39,9 @@ import uuid
 from pathlib import Path
 
 # FastAPI framework for service endpoints
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from pydantic import BaseModel, Field, validator
 import uvicorn
 
@@ -107,29 +108,50 @@ structlog.configure(
 logger = structlog.get_logger()
 
 # Prometheus metrics for monitoring regulatory intelligence performance
-REGULATORY_FEEDS_PROCESSED = Counter(
-    'regulatory_feeds_processed_total',
-    'Total number of regulatory feeds processed',
-    ['source', 'status']
-)
+# Initialize metrics with duplicate handling to prevent registry conflicts on restart
+try:
+    REGULATORY_FEEDS_PROCESSED = Counter(
+        'regulatory_feeds_processed_total',
+        'Total number of regulatory feeds processed',
+        ['source', 'status']
+    )
+except ValueError:
+    # Metric already exists, retrieve it from registry
+    from prometheus_client import REGISTRY
+    REGULATORY_FEEDS_PROCESSED = REGISTRY._names_to_collectors['regulatory_feeds_processed_total']
 
-REGULATORY_OBLIGATIONS_EXTRACTED = Counter(
-    'regulatory_obligations_extracted_total',
-    'Total number of regulatory obligations extracted',
-    ['regulation_type', 'jurisdiction']
-)
+try:
+    REGULATORY_OBLIGATIONS_EXTRACTED = Counter(
+        'regulatory_obligations_extracted_total',
+        'Total number of regulatory obligations extracted',
+        ['regulation_type', 'jurisdiction']
+    )
+except ValueError:
+    # Metric already exists, retrieve it from registry
+    from prometheus_client import REGISTRY
+    REGULATORY_OBLIGATIONS_EXTRACTED = REGISTRY._names_to_collectors['regulatory_obligations_extracted_total']
 
-REGULATORY_PROCESSING_TIME = Histogram(
-    'regulatory_processing_seconds',
-    'Time spent processing regulatory documents',
-    ['operation']
-)
+try:
+    REGULATORY_PROCESSING_TIME = Histogram(
+        'regulatory_processing_seconds',
+        'Time spent processing regulatory documents',
+        ['operation']
+    )
+except ValueError:
+    # Metric already exists, retrieve it from registry
+    from prometheus_client import REGISTRY
+    REGULATORY_PROCESSING_TIME = REGISTRY._names_to_collectors['regulatory_processing_seconds']
 
-REGULATORY_FEED_HEALTH = Gauge(
-    'regulatory_feed_health',
-    'Health status of regulatory feeds (1=healthy, 0=unhealthy)',
-    ['source']
-)
+try:
+    REGULATORY_FEED_HEALTH = Gauge(
+        'regulatory_feed_health',
+        'Health status of regulatory feeds (1=healthy, 0=unhealthy)',
+        ['source']
+    )
+except ValueError:
+    # Metric already exists, retrieve it from registry
+    from prometheus_client import REGISTRY
+    REGULATORY_FEED_HEALTH = REGISTRY._names_to_collectors['regulatory_feed_health']
 
 class RegulationSource(str, Enum):
     """
@@ -583,13 +605,74 @@ class RegulatoryIntelligenceAgent:
             self.logger.error("Failed to load feed configuration", error=str(e))
             raise
 
-# FastAPI application for regulatory intelligence service
+# CORS middleware will be added to the FastAPI app created in the lifespan handler
+
+# Global agent instance
+regulatory_agent = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan event handler for FastAPI application
+
+    Handles startup and shutdown events for the regulatory intelligence agent.
+
+    Rule Compliance:
+    - Rule 1: Real agent initialization, not mock
+    - Rule 17: Clear startup documentation
+    """
+    global regulatory_agent
+
+    # Startup
+    regulatory_agent = RegulatoryIntelligenceAgent()
+
+    # Initialize and start the feed scheduler
+    if regulatory_agent:
+        # Setup async database connections
+        await regulatory_agent._setup_async_database_connections()
+
+        # Initialize feed scheduler with async connections
+        regulatory_agent.feed_scheduler = RegulatoryFeedScheduler(
+            db_pool=regulatory_agent.db_pool,
+            redis_client=regulatory_agent.redis_async_client
+        )
+        await regulatory_agent.feed_scheduler.initialize()
+
+        # Initialize document parser with async connections
+        regulatory_agent.document_parser = RegulatoryDocumentParser(
+            db_pool=regulatory_agent.db_pool,
+            redis_client=regulatory_agent.redis_async_client
+        )
+        await regulatory_agent.document_parser.initialize()
+
+        # Initialize Kafka producer for regulatory events
+        regulatory_agent.kafka_producer = RegulatoryKafkaProducer()
+
+        # Initialize resilience manager for retry logic and DLQ handling
+        regulatory_agent.resilience_manager = ResilienceManager()
+        await regulatory_agent.resilience_manager.initialize(
+            regulatory_agent.db_pool,
+            regulatory_agent.redis_async_client,
+            regulatory_agent.kafka_producer.producer
+        )
+
+        # Inject components into feed scheduler for integrated processing
+        regulatory_agent.feed_scheduler.document_parser = regulatory_agent.document_parser
+        regulatory_agent.feed_scheduler.kafka_producer = regulatory_agent.kafka_producer
+        regulatory_agent.feed_scheduler.resilience_manager = regulatory_agent.resilience_manager
+
+    yield
+
+    # Shutdown
+    if regulatory_agent and regulatory_agent.feed_scheduler:
+        await regulatory_agent.feed_scheduler.shutdown()
+
+# Configure FastAPI app with lifespan handler
 app = FastAPI(
     title="Regulatory Intelligence Agent",
-    description="Autonomous regulatory monitoring and compliance obligation extraction service",
+    description="Autonomous regulatory monitoring and compliance intelligence service",
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
+    lifespan=lifespan
 )
 
 # Add CORS middleware for web interface integration
@@ -600,56 +683,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Global agent instance
-regulatory_agent = None
-
-@app.on_event("startup")
-async def startup_event():
-    """
-    Initialize the regulatory intelligence agent on service startup
-    
-    Rule Compliance:
-    - Rule 1: Real agent initialization, not mock
-    - Rule 17: Clear startup documentation
-    """
-    global regulatory_agent
-    regulatory_agent = RegulatoryIntelligenceAgent()
-    
-    # Initialize and start the feed scheduler
-    if regulatory_agent:
-        # Setup async database connections
-        await regulatory_agent._setup_async_database_connections()
-        
-        # Initialize feed scheduler with async connections
-        regulatory_agent.feed_scheduler = RegulatoryFeedScheduler(
-            db_pool=regulatory_agent.db_pool,
-            redis_client=regulatory_agent.redis_async_client
-        )
-        await regulatory_agent.feed_scheduler.initialize()
-        
-        # Initialize document parser with async connections
-        regulatory_agent.document_parser = RegulatoryDocumentParser(
-            db_pool=regulatory_agent.db_pool,
-            redis_client=regulatory_agent.redis_async_client
-        )
-        await regulatory_agent.document_parser.initialize()
-        
-        # Initialize Kafka producer for regulatory events
-        regulatory_agent.kafka_producer = RegulatoryKafkaProducer()
-        
-        # Initialize resilience manager for retry logic and DLQ handling
-        regulatory_agent.resilience_manager = ResilienceManager()
-        await regulatory_agent.resilience_manager.initialize(
-            regulatory_agent.db_pool,
-            regulatory_agent.redis_async_client,
-            regulatory_agent.kafka_producer.producer
-        )
-        
-        # Inject components into feed scheduler for integrated processing
-        regulatory_agent.feed_scheduler.document_parser = regulatory_agent.document_parser
-        regulatory_agent.feed_scheduler.kafka_producer = regulatory_agent.kafka_producer
-        regulatory_agent.feed_scheduler.resilience_manager = regulatory_agent.resilience_manager
 
 @app.get("/health")
 async def health_check():
