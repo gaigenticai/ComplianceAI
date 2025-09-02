@@ -14,6 +14,7 @@ use anyhow::{Result as AnyhowResult, Context};
 use tracing::{info, error};
 use std::collections::HashMap;
 use dashmap::DashMap;
+use std::io::Write;
 
 mod config;
 mod messaging;
@@ -508,20 +509,31 @@ async fn initialize_app_state() -> AnyhowResult<AppState> {
 
 #[tokio::main]
 async fn main() -> AnyhowResult<()> {
+    // Force output to stderr immediately
     eprintln!("DEBUG: Starting main function");
+    std::io::stderr().flush().unwrap();
     
     // Set panic hook to capture panics
     std::panic::set_hook(Box::new(|panic_info| {
         eprintln!("PANIC: {}", panic_info);
+        std::io::stderr().flush().unwrap();
         std::process::exit(1);
     }));
     
     // Try to initialize tracing with error handling
+    eprintln!("DEBUG: Initializing tracing...");
+    std::io::stderr().flush().unwrap();
     match tracing_subscriber::fmt()
         .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
         .try_init() {
-        Ok(_) => eprintln!("DEBUG: Tracing initialized successfully"),
-        Err(e) => eprintln!("DEBUG: Tracing init failed: {}", e),
+        Ok(_) => {
+            eprintln!("DEBUG: Tracing initialized successfully");
+            std::io::stderr().flush().unwrap();
+        },
+        Err(e) => {
+            eprintln!("DEBUG: Tracing init failed: {}", e);
+            std::io::stderr().flush().unwrap();
+        },
     }
     
     eprintln!("DEBUG: About to log info message");

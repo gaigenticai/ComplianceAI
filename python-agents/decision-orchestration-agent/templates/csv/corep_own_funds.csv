@@ -1,0 +1,107 @@
+# COREP Own Funds Export Template
+# EBA Taxonomy v3.2.0 Compliant CSV Format
+# Institution: {{institution_name}}
+# LEI: {{institution_lei}}
+# Reporting Period: {{reporting_period}}
+# Currency: {{currency}}
+# Consolidation Basis: {{consolidation_basis}}
+# Generated: {{generation_timestamp}}
+# Data Quality Score: {{data_quality_score}}
+
+# METADATA
+Field,Description,XBRL_Concept,Data_Type,Validation_Rule,Mandatory,Unit
+institution_lei,Legal Entity Identifier,entity:identifier,string,LEI_FORMAT,Y,text
+reporting_date,Reporting Reference Date,period:instant,date,DATE_FORMAT,Y,date
+currency,Reporting Currency,unit:measure,string,ISO4217,Y,text
+consolidation_basis,Consolidation Basis,find:consolidationBasis,string,ENUM,Y,text
+
+# OWN FUNDS DATA
+Section,Item_Code,Item_Description,XBRL_Concept,Amount,Currency,Percentage,Validation_Status,Data_Source,Last_Updated
+
+# COMMON EQUITY TIER 1 CAPITAL: INSTRUMENTS AND RESERVES
+CET1_INSTRUMENTS,001,Capital instruments and the related share premium accounts,corep:CapitalInstrumentsAndTheRelatedSharePremiumAccounts,{{capital_instruments_share_premium}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_INSTRUMENTS,002,Retained earnings,corep:RetainedEarnings,{{retained_earnings}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_INSTRUMENTS,003,Accumulated other comprehensive income (and other reserves),corep:AccumulatedOtherComprehensiveIncomeAndOtherReserves,{{accumulated_oci_other_reserves}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_INSTRUMENTS,004,Independently reviewed interim profits net of any foreseeable charge or dividend,corep:IndependentlyReviewedInterimProfitsNetOfAnyForeseeableChargeOrDividend,{{interim_profits}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_INSTRUMENTS,005,Common Equity Tier 1 (CET1) capital before regulatory adjustments,corep:CommonEquityTier1CET1CapitalBeforeRegulatoryAdjustments,{{cet1_before_adjustments}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+
+# COMMON EQUITY TIER 1 CAPITAL: REGULATORY ADJUSTMENTS
+CET1_ADJUSTMENTS,006,Additional value adjustments (negative amount),corep:AdditionalValueAdjustmentsNegativeAmount,{{additional_value_adjustments}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,007,Intangible assets (net of related tax liability) (negative amount),corep:IntangibleAssetsNetOfRelatedTaxLiabilityNegativeAmount,{{intangible_assets_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,008,Deferred tax assets that rely on future profitability excluding those arising from temporary differences (negative amount),corep:DeferredTaxAssetsThatRelyOnFutureProfitabilityExcludingThoseArisingFromTemporaryDifferencesNegativeAmount,{{deferred_tax_assets_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,009,Fair value reserves related to gains or losses on cash flow hedges,corep:FairValueReservesRelatedToGainsOrLossesOnCashFlowHedges,{{fair_value_reserves_hedges}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,010,Negative amounts resulting from the calculation of expected loss amounts,corep:NegativeAmountsResultingFromTheCalculationOfExpectedLossAmounts,{{negative_expected_loss}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,011,Any increase in equity that results from securitised assets (negative amount),corep:AnyIncreaseInEquityThatResultsFromSecuritisedAssetsNegativeAmount,{{securitised_assets_increase}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,012,Gains or losses on liabilities valued at fair value resulting from changes in own credit standing,corep:GainsOrLossesOnLiabilitiesValuedAtFairValueResultingFromChangesInOwnCreditStanding,{{own_credit_gains_losses}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,013,Defined-benefit pension fund assets (negative amount),corep:DefinedBenefitPensionFundAssetsNegativeAmount,{{pension_fund_assets_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,014,Direct and indirect holdings by the institution of own CET1 instruments (negative amount),corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnCET1InstrumentsNegativeAmount,{{own_cet1_holdings_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,015,Direct indirect and synthetic holdings of the CET1 instruments of financial sector entities where the institution has a significant investment in those entities (amount above 10% threshold and net of eligible short positions) (negative amount),corep:DirectIndirectAndSyntheticHoldingsOfTheCET1InstrumentsOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesAmountAbove10PercentThresholdAndNetOfEligibleShortPositionsNegativeAmount,{{cet1_significant_investments_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,016,Deferred tax assets arising from temporary differences (amount above 10% threshold net of related tax liability where the conditions in Article 38 (3) are met) (negative amount),corep:DeferredTaxAssetsArisingFromTemporaryDifferencesAmountAbove10PercentThresholdNetOfRelatedTaxLiabilityWhereTheConditionsInArticle383AreMet,{{deferred_tax_temp_diff_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,017,Amount exceeding the 17.65% threshold (negative amount),corep:AmountExceedingThe1765PercentThresholdNegativeAmount,{{amount_exceeding_threshold}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,018,Other regulatory adjustments,corep:OtherRegulatoryAdjustments,{{other_regulatory_adjustments}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+CET1_ADJUSTMENTS,019,Total regulatory adjustments to Common Equity Tier 1 (CET1),corep:TotalRegulatoryAdjustmentsToCommonEquityTier1CET1,{{total_cet1_adjustments}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+CET1_ADJUSTMENTS,020,Common Equity Tier 1 (CET1) capital,corep:CommonEquityTier1CET1Capital,{{cet1_capital}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+
+# ADDITIONAL TIER 1 CAPITAL: INSTRUMENTS
+AT1_INSTRUMENTS,021,Qualifying Additional Tier 1 instruments plus related share premium accounts subject to phase out from Additional Tier 1,corep:QualifyingAdditionalTier1InstrumentsPlusRelatedSharePremiumAccountsSubjectToPhaseOutFromAdditionalTier1,{{at1_instruments_phase_out}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+AT1_INSTRUMENTS,022,Qualifying Additional Tier 1 instruments plus related share premium accounts subject to phase out from Additional Tier 1 due to insufficient capacity (instruments whose recognition in Additional Tier 1 is capped),corep:QualifyingAdditionalTier1InstrumentsPlusRelatedSharePremiumAccountsSubjectToPhaseOutFromAdditionalTier1DueToInsufficientCapacityInstrumentsWhoseRecognitionInAdditionalTier1IsCapped,{{at1_instruments_capped}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+AT1_INSTRUMENTS,023,Additional Tier 1 (AT1) capital before regulatory adjustments,corep:AdditionalTier1AT1CapitalBeforeRegulatoryAdjustments,{{at1_before_adjustments}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+
+# ADDITIONAL TIER 1 CAPITAL: REGULATORY ADJUSTMENTS
+AT1_ADJUSTMENTS,024,Direct and indirect holdings by the institution of own AT1 instruments (negative amount),corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnAT1InstrumentsNegativeAmount,{{own_at1_holdings_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+AT1_ADJUSTMENTS,025,Direct indirect and synthetic holdings of the AT1 instruments of financial sector entities where the institution has a significant investment in those entities (net of eligible short positions) (negative amount),corep:DirectIndirectAndSyntheticHoldingsOfTheAT1InstrumentsOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesNetOfEligibleShortPositionsNegativeAmount,{{at1_significant_investments_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+AT1_ADJUSTMENTS,026,Other regulatory adjustments to AT1 capital,corep:OtherRegulatoryAdjustmentsToAT1Capital,{{other_at1_adjustments}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+AT1_ADJUSTMENTS,027,Total regulatory adjustments to Additional Tier 1 (AT1) capital,corep:TotalRegulatoryAdjustmentsToAdditionalTier1AT1Capital,{{total_at1_adjustments}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+AT1_ADJUSTMENTS,028,Additional Tier 1 (AT1) capital,corep:AdditionalTier1AT1Capital,{{at1_capital}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+AT1_ADJUSTMENTS,029,Tier 1 capital (T1 = CET1 + AT1),corep:Tier1CapitalT1CET1AT1,{{tier1_capital}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+
+# TIER 2 CAPITAL: INSTRUMENTS AND PROVISIONS
+T2_INSTRUMENTS,030,Qualifying own funds instruments included in consolidated T2 capital (including minority interests and AT1 instruments not included in T1 capital) issued by subsidiaries and held by third parties,corep:QualifyingOwnFundsInstrumentsIncludedInConsolidatedT2CapitalIncludingMinorityInterestsAndAT1InstrumentsNotIncludedInT1CapitalIssuedBySubsidiariesAndHeldByThirdParties,{{t2_qualifying_instruments}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+T2_INSTRUMENTS,031,Credit risk adjustments,corep:CreditRiskAdjustments,{{credit_risk_adjustments}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+T2_INSTRUMENTS,032,Tier 2 (T2) capital before regulatory adjustments,corep:Tier2T2CapitalBeforeRegulatoryAdjustments,{{t2_before_adjustments}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+
+# TIER 2 CAPITAL: REGULATORY ADJUSTMENTS
+T2_ADJUSTMENTS,033,Direct and indirect holdings by the institution of own T2 instruments and subordinated loans (negative amount),corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnT2InstrumentsAndSubordinatedLoansNegativeAmount,{{own_t2_holdings_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+T2_ADJUSTMENTS,034,Direct indirect and synthetic holdings of the T2 instruments and subordinated loans of financial sector entities where the institution has a significant investment in those entities (net of eligible short positions) (negative amount),corep:DirectIndirectAndSyntheticHoldingsOfTheT2InstrumentsAndSubordinatedLoansOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesNetOfEligibleShortPositionsNegativeAmount,{{t2_significant_investments_negative}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+T2_ADJUSTMENTS,035,Other regulatory adjustments to T2 capital,corep:OtherRegulatoryAdjustmentsToT2Capital,{{other_t2_adjustments}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+T2_ADJUSTMENTS,036,Total regulatory adjustments to Tier 2 (T2) capital,corep:TotalRegulatoryAdjustmentsToTier2T2Capital,{{total_t2_adjustments}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+T2_ADJUSTMENTS,037,Tier 2 (T2) capital,corep:Tier2T2Capital,{{t2_capital}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+T2_ADJUSTMENTS,038,Total capital (TC = T1 + T2),corep:TotalCapitalTCT1T2,{{total_capital}},{{currency}},,VALIDATED,CALCULATED,{{last_updated}}
+T2_ADJUSTMENTS,039,Total risk weighted assets,corep:TotalRiskWeightedAssets,{{total_rwa}},{{currency}},,VALIDATED,{{data_source}},{{last_updated}}
+
+# CAPITAL RATIOS AND BUFFERS
+RATIOS,040,Common Equity Tier 1 (as a percentage of risk weighted assets),corep:CommonEquityTier1AsAPercentageOfRiskWeightedAssets,,{{currency}},{{cet1_ratio}},VALIDATED,CALCULATED,{{last_updated}}
+RATIOS,041,Tier 1 (as a percentage of risk weighted assets),corep:Tier1AsAPercentageOfRiskWeightedAssets,,{{currency}},{{tier1_ratio}},VALIDATED,CALCULATED,{{last_updated}}
+RATIOS,042,Total capital (as a percentage of risk weighted assets),corep:TotalCapitalAsAPercentageOfRiskWeightedAssets,,{{currency}},{{total_capital_ratio}},VALIDATED,CALCULATED,{{last_updated}}
+RATIOS,043,Institution specific buffer requirement (CET1 requirement in accordance with article 92 (1) (a) plus capital conservation and countercyclical buffer requirements plus systemic risk buffer plus systemically important institution buffer expressed as a percentage of risk weighted assets),corep:InstitutionSpecificBufferRequirementCET1RequirementInAccordanceWithArticle921APlusCapitalConservationAndCountercyclicalBufferRequirementsPlusSystemicRiskBufferPlusSystemicallyImportantInstitutionBufferExpressedAsAPercentageOfRiskWeightedAssets,,{{currency}},{{buffer_requirement}},VALIDATED,{{data_source}},{{last_updated}}
+RATIOS,044,of which: capital conservation buffer requirement,corep:OfWhichCapitalConservationBufferRequirement,,{{currency}},{{conservation_buffer}},VALIDATED,{{data_source}},{{last_updated}}
+RATIOS,045,of which: countercyclical buffer requirement,corep:OfWhichCountercyclicalBufferRequirement,,{{currency}},{{countercyclical_buffer}},VALIDATED,{{data_source}},{{last_updated}}
+RATIOS,046,of which: systemic risk buffer requirement,corep:OfWhichSystemicRiskBufferRequirement,,{{currency}},{{systemic_risk_buffer}},VALIDATED,{{data_source}},{{last_updated}}
+RATIOS,047,of which: Global Systemically Important Institution (G-SII) or Other Systemically Important Institution (O-SII) buffer,corep:OfWhichGlobalSystemicallyImportantInstitutionGSIIOrOtherSystemicallyImportantInstitutionOSIIBuffer,,{{currency}},{{sii_buffer}},VALIDATED,{{data_source}},{{last_updated}}
+RATIOS,048,Common Equity Tier 1 available to meet buffers (as a percentage of risk weighted assets),corep:CommonEquityTier1AvailableToMeetBuffersAsAPercentageOfRiskWeightedAssets,,{{currency}},{{cet1_available_buffers}},VALIDATED,CALCULATED,{{last_updated}}
+
+# VALIDATION SUMMARY
+Validation_Rule,Description,Status,Error_Count,Warning_Count
+CAPITAL_CALCULATION,Capital calculations are mathematically correct,{{capital_calc_status}},{{capital_errors}},{{capital_warnings}}
+RATIO_CALCULATION,Capital ratios are correctly calculated,{{ratio_calc_status}},{{ratio_errors}},{{ratio_warnings}}
+REGULATORY_LIMITS,All regulatory limits and thresholds are respected,{{regulatory_status}},{{regulatory_errors}},{{regulatory_warnings}}
+MANDATORY_FIELDS,All mandatory fields populated,{{mandatory_check_status}},{{mandatory_errors}},{{mandatory_warnings}}
+DATA_TYPES,All fields conform to expected data types,{{datatype_check_status}},{{datatype_errors}},{{datatype_warnings}}
+BUSINESS_RULES,All business validation rules passed,{{business_check_status}},{{business_errors}},{{business_warnings}}
+XBRL_TAXONOMY,XBRL taxonomy compliance verified,{{taxonomy_check_status}},{{taxonomy_errors}},{{taxonomy_warnings}}
+
+# AUDIT TRAIL
+Audit_Event,Timestamp,User,Action,Details
+DATA_EXTRACTION,{{extraction_timestamp}},{{extraction_user}},EXTRACT,Data extracted from source systems
+CAPITAL_CALCULATION,{{calculation_timestamp}},{{calculation_user}},CALCULATE,Capital ratios and buffers calculated
+DATA_VALIDATION,{{validation_timestamp}},{{validation_user}},VALIDATE,Data validation completed
+REPORT_GENERATION,{{generation_timestamp}},{{generation_user}},GENERATE,CSV report generated
+QUALITY_CHECK,{{quality_timestamp}},{{quality_user}},QC,Quality control completed
+
+# DIGITAL SIGNATURE
+Signature_Algorithm,RSA-PSS-SHA256
+Signature_Value,{{digital_signature}}
+Certificate_Thumbprint,{{certificate_thumbprint}}
+Signing_Timestamp,{{signing_timestamp}}
+
+# END OF FILE

@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 4: Compliance Report Generation - User Guide</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/design-system.css" rel="stylesheet">
+    <style>
+        .guide-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .guide-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .guide-title {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .guide-subtitle {
+            font-size: 1.3rem;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #ecf0f1;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            font-size: 1.2rem;
+        }
+
+        .guide-navigation {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .nav-item {
+            padding: 15px 20px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(52, 152, 219, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-item:hover {
+            background: rgba(52, 152, 219, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .nav-icon {
+            font-size: 1.2rem;
+        }
+
+        .guide-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .subsection {
+            margin-bottom: 40px;
+        }
+
+        .subsection-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #34495e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .content-block {
+            background: rgba(236, 240, 241, 0.5);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .step-list {
+            counter-reset: step-counter;
+        }
+
+        .step-item {
+            counter-increment: step-counter;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-left: 60px;
+        }
+
+        .step-item::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .step-description {
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .warning-box {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning-title {
+            color: #e74c3c;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .info-title {
+            color: #3498db;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .feature-description {
+            color: #7f8c8d;
+            line-height: 1.5;
+        }
+
+        .api-endpoint {
+            background: #34495e;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .method {
+            background: #27ae60;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+
+        .method.post { background: #e67e22; }
+        .method.get { background: #3498db; }
+
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .parameter-table th,
+        .parameter-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .parameter-table th {
+            background: #34495e;
+            color: white;
+            font-weight: 600;
+        }
+
+        .parameter-table tr:hover {
+            background: rgba(52, 152, 219, 0.05);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .guide-container {
+                padding: 15px;
+            }
+            
+            .guide-title {
+                font-size: 2rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="guide-container">
+        <!-- Header -->
+        <div class="guide-header">
+            <h1 class="guide-title">
+                <i class="fas fa-book-open"></i>
+                Phase 4: Compliance Report Generation
+            </h1>
+            <p class="guide-subtitle">
+                Comprehensive user guide for regulatory report generation including FINREP, COREP, and DORA compliance
+            </p>
+            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Search user guide..." id="searchInput">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="guide-navigation">
+            <h2 class="nav-title">
+                <i class="fas fa-compass"></i>
+                Quick Navigation
+            </h2>
+            <div class="nav-grid">
+                <div class="nav-item active" onclick="showSection('overview')">
+                    <i class="fas fa-home nav-icon"></i>
+                    <span>Overview</span>
+                </div>
+                <div class="nav-item" onclick="showSection('finrep')">
+                    <i class="fas fa-university nav-icon"></i>
+                    <span>FINREP Reports</span>
+                </div>
+                <div class="nav-item" onclick="showSection('corep')">
+                    <i class="fas fa-chart-pie nav-icon"></i>
+                    <span>COREP Reports</span>
+                </div>
+                <div class="nav-item" onclick="showSection('dora')">
+                    <i class="fas fa-shield-virus nav-icon"></i>
+                    <span>DORA ICT Risk</span>
+                </div>
+                <div class="nav-item" onclick="showSection('dashboard')">
+                    <i class="fas fa-tachometer-alt nav-icon"></i>
+                    <span>Dashboard Usage</span>
+                </div>
+                <div class="nav-item" onclick="showSection('api')">
+                    <i class="fas fa-code nav-icon"></i>
+                    <span>API Reference</span>
+                </div>
+                <div class="nav-item" onclick="showSection('troubleshooting')">
+                    <i class="fas fa-tools nav-icon"></i>
+                    <span>Troubleshooting</span>
+                </div>
+                <div class="nav-item" onclick="showSection('compliance')">
+                    <i class="fas fa-shield-check nav-icon"></i>
+                    <span>Compliance Guide</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="guide-content">
+            <!-- Overview Section -->
+            <div class="section active" id="overview">
+                <h1 class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    System Overview
+                </h1>
+                <p class="section-subtitle">
+                    Phase 4 provides comprehensive regulatory report generation capabilities for European banking compliance,
+                    supporting FINREP, COREP, and DORA reporting requirements with full EBA taxonomy compliance.
+                </p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="feature-title">FINREP Generator</div>
+                        <div class="feature-description">
+                            Financial Reporting (FINREP) with EBA taxonomy v3.2.0 compliance, supporting 5 major templates
+                            including balance sheet, P&L, and detailed asset breakdowns.
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="feature-title">COREP Generator</div>
+                        <div class="feature-description">
+                            Capital Requirements Reporting (COREP) with automated capital ratio calculations, risk-weighted
+                            assets, and regulatory threshold validation.
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-shield-virus"></i>
+                        </div>
+                        <div class="feature-title">DORA ICT Risk</div>
+                        <div class="feature-description">
+                            Digital Operational Resilience Act (DORA) ICT risk reporting with comprehensive risk assessment
+                            and automated compliance gap analysis.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-rocket"></i>
+                        Key Features
+                    </h3>
+                    <div class="content-block">
+                        <ul style="line-height: 1.8; color: #2c3e50;">
+                            <li><strong>Multi-Format Output:</strong> XBRL, CSV, and JSON formats with schema validation</li>
+                            <li><strong>Real-Time Validation:</strong> Comprehensive business rules and regulatory compliance checks</li>
+                            <li><strong>Professional Dashboard:</strong> Interactive testing and monitoring interface</li>
+                            <li><strong>Automated Scheduling:</strong> Report generation based on regulatory deadlines</li>
+                            <li><strong>Secure Delivery:</strong> SFTP and API-based report delivery mechanisms</li>
+                            <li><strong>Performance Monitoring:</strong> SLA tracking and breach alerting</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-title">
+                        <i class="fas fa-lightbulb"></i>
+                        Getting Started
+                    </div>
+                    <p>
+                        Begin by accessing the Phase 4 dashboard to explore report generation capabilities.
+                        Use the testing interface to validate your data and generate sample reports before
+                        implementing automated workflows.
+                    </p>
+                </div>
+            </div>
+
+            <!-- FINREP Section -->
+            <div class="section" id="finrep">
+                <h1 class="section-title">
+                    <i class="fas fa-university"></i>
+                    FINREP Report Generation
+                </h1>
+                <p class="section-subtitle">
+                    Financial Reporting (FINREP) according to EBA ITS with full taxonomy compliance and automated validation.
+                </p>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-list-alt"></i>
+                        Supported Templates
+                    </h3>
+                    <div class="content-block">
+                        <table class="parameter-table">
+                            <thead>
+                                <tr>
+                                    <th>Template</th>
+                                    <th>Description</th>
+                                    <th>Frequency</th>
+                                    <th>Format</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>F 01.01</strong></td>
+                                    <td>Statement of Financial Position (Balance Sheet)</td>
+                                    <td>Quarterly, Annual</td>
+                                    <td>XBRL</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>F 02.00</strong></td>
+                                    <td>Statement of Profit or Loss (P&L)</td>
+                                    <td>Quarterly, Annual</td>
+                                    <td>XBRL</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>F 04.00</strong></td>
+                                    <td>Breakdown of Financial Assets</td>
+                                    <td>Quarterly, Annual</td>
+                                    <td>XBRL</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>F 18.00</strong></td>
+                                    <td>Geographical Breakdown of Assets</td>
+                                    <td>Annual</td>
+                                    <td>XBRL</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>F 32.01</strong></td>
+                                    <td>Forbearance and Non-performing Exposures</td>
+                                    <td>Quarterly, Annual</td>
+                                    <td>XBRL</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-cogs"></i>
+                        Report Generation Process
+                    </h3>
+                    <div class="step-list">
+                        <div class="step-item">
+                            <div class="step-title">Data Collection</div>
+                            <div class="step-description">
+                                System automatically gathers financial data from the database based on institution ID and reporting period.
+                                Includes balance sheet items, P&L components, and detailed asset breakdowns.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">Business Rules Validation</div>
+                            <div class="step-description">
+                                Comprehensive validation including balance sheet equation, P&L calculations, cross-field validation,
+                                and regulatory threshold checks with configurable tolerance levels.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">XBRL Generation</div>
+                            <div class="step-description">
+                                Creates EBA-compliant XBRL instance documents with proper namespaces, contexts, and taxonomy mappings.
+                                Includes advanced features like asset breakdowns and geographical distribution.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">Quality Assurance</div>
+                            <div class="step-description">
+                                Final validation against EBA taxonomy, schema compliance checks, and automated quality scoring
+                                before report delivery or storage.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-check-double"></i>
+                        Validation Rules
+                    </h3>
+                    <div class="content-block">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">Key Business Rules:</h4>
+                        <ul style="line-height: 1.8; color: #2c3e50;">
+                            <li><strong>Balance Sheet Equation:</strong> Assets = Liabilities + Equity (±0.01% tolerance)</li>
+                            <li><strong>Net Interest Income:</strong> Interest Income - Interest Expenses</li>
+                            <li><strong>Net Fee Income:</strong> Fee Income - Fee Expenses</li>
+                            <li><strong>Profit Calculation:</strong> Operating Income - Operating Expenses - Impairment</li>
+                            <li><strong>Data Completeness:</strong> Required fields validation by template</li>
+                            <li><strong>Regulatory Limits:</strong> Threshold validation for key ratios</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <div class="warning-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Important Notes
+                    </div>
+                    <p>
+                        FINREP reports must be submitted within regulatory deadlines. Ensure data quality and completeness
+                        before generation. The system automatically validates against EBA taxonomy v3.2.0 requirements.
+                    </p>
+                </div>
+            </div>
+
+            <!-- COREP Section -->
+            <div class="section" id="corep">
+                <h1 class="section-title">
+                    <i class="fas fa-chart-pie"></i>
+                    COREP Report Generation
+                </h1>
+                <p class="section-subtitle">
+                    Capital Requirements Reporting (COREP) with automated capital adequacy calculations and regulatory compliance validation.
+                </p>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-calculator"></i>
+                        Capital Ratio Calculations
+                    </h3>
+                    <div class="content-block">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">Automated Calculations:</h4>
+                        <div class="code-block">
+CET1 Ratio = (Common Equity Tier 1 Capital / Total RWA) × 100
+Tier 1 Ratio = ((CET1 + Additional Tier 1) / Total RWA) × 100
+Total Capital Ratio = (Total Own Funds / Total RWA) × 100
+Leverage Ratio = (Tier 1 Capital / Total Exposure) × 100
+LCR = (High Quality Liquid Assets / Net Cash Outflows) × 100
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-list-alt"></i>
+                        COREP Templates
+                    </h3>
+                    <div class="content-block">
+                        <table class="parameter-table">
+                            <thead>
+                                <tr>
+                                    <th>Template</th>
+                                    <th>Description</th>
+                                    <th>Key Metrics</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>C 01.00</strong></td>
+                                    <td>Own Funds</td>
+                                    <td>CET1, AT1, T2 Capital</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>C 02.00</strong></td>
+                                    <td>Own Funds Requirements</td>
+                                    <td>Credit, Market, Operational Risk</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>C 03.00</strong></td>
+                                    <td>Capital Ratios</td>
+                                    <td>CET1, Tier 1, Total Capital Ratios</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>C 05.01</strong></td>
+                                    <td>Credit Risk Standard Approach</td>
+                                    <td>Exposures by Asset Class, RWA</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>C 16.00</strong></td>
+                                    <td>Liquidity Coverage Ratio</td>
+                                    <td>HQLA, Net Cash Outflows, LCR</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>C 18.00</strong></td>
+                                    <td>Leverage Ratio</td>
+                                    <td>Tier 1 Capital, Exposure Measure</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-shield-check"></i>
+                        Regulatory Thresholds
+                    </h3>
+                    <div class="content-block">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">Minimum Requirements:</h4>
+                        <ul style="line-height: 1.8; color: #2c3e50;">
+                            <li><strong>CET1 Ratio:</strong> Minimum 4.5% (Warning if below)</li>
+                            <li><strong>Tier 1 Ratio:</strong> Minimum 6.0% (Warning if below)</li>
+                            <li><strong>Total Capital Ratio:</strong> Minimum 8.0% (Warning if below)</li>
+                            <li><strong>Leverage Ratio:</strong> Minimum 3.0% (Warning if below)</li>
+                            <li><strong>LCR:</strong> Minimum 100% (Warning if below)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-title">
+                        <i class="fas fa-info-circle"></i>
+                        Calculation Accuracy
+                    </div>
+                    <p>
+                        All capital ratios are calculated with 0.1% tolerance for validation. The system automatically
+                        validates calculation consistency and flags any discrepancies for review.
+                    </p>
+                </div>
+            </div>
+
+            <!-- DORA Section -->
+            <div class="section" id="dora">
+                <h1 class="section-title">
+                    <i class="fas fa-shield-virus"></i>
+                    DORA ICT Risk Reporting
+                </h1>
+                <p class="section-subtitle">
+                    Digital Operational Resilience Act (DORA) ICT risk assessment and reporting with comprehensive risk scoring and compliance analysis.
+                </p>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-chart-line"></i>
+                        Risk Assessment Framework
+                    </h3>
+                    <div class="content-block">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">Multi-Dimensional Risk Scoring:</h4>
+                        <table class="parameter-table">
+                            <thead>
+                                <tr>
+                                    <th>Risk Dimension</th>
+                                    <th>Weight</th>
+                                    <th>Key Factors</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Incident Frequency</td>
+                                    <td>25%</td>
+                                    <td>Total incidents, major incidents, cyber attacks</td>
+                                </tr>
+                                <tr>
+                                    <td>System Criticality</td>
+                                    <td>20%</td>
+                                    <td>Critical systems count, high-risk systems</td>
+                                </tr>
+                                <tr>
+                                    <td>Third-Party Dependency</td>
+                                    <td>20%</td>
+                                    <td>Critical providers, concentration risk</td>
+                                </tr>
+                                <tr>
+                                    <td>Vulnerability Exposure</td>
+                                    <td>15%</td>
+                                    <td>Vulnerabilities identified vs. remediated</td>
+                                </tr>
+                                <tr>
+                                    <td>Recovery Capability</td>
+                                    <td>10%</td>
+                                    <td>RTO, RPO, BCP testing success rate</td>
+                                </tr>
+                                <tr>
+                                    <td>Compliance Gaps</td>
+                                    <td>10%</td>
+                                    <td>DORA compliance status, regulatory gaps</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-file-alt"></i>
+                        Report Types
+                    </h3>
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="feature-title">ICT Risk Management</div>
+                            <div class="feature-description">
+                                Comprehensive governance framework assessment including board oversight,
+                                risk appetite, and assessment procedures.
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="feature-title">Incident Reporting</div>
+                            <div class="feature-description">
+                                Detailed incident analysis with categorization, impact assessment,
+                                and response metrics tracking.
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-network-wired"></i>
+                            </div>
+                            <div class="feature-title">Third-Party Risk</div>
+                            <div class="feature-description">
+                                Provider assessment, concentration risk analysis, and contract
+                                review status with exit strategy documentation.
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="feature-title">Business Continuity</div>
+                            <div class="feature-description">
+                                BCP framework evaluation, testing effectiveness, and recovery
+                                capability assessment with RTO/RPO tracking.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-robot"></i>
+                        Automated Recommendations
+                    </h3>
+                    <div class="content-block">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">AI-Driven Analysis:</h4>
+                        <ul style="line-height: 1.8; color: #2c3e50;">
+                            <li><strong>Risk Prioritization:</strong> Automated identification of highest risk areas</li>
+                            <li><strong>Compliance Gap Analysis:</strong> Specific DORA requirement mapping and remediation plans</li>
+                            <li><strong>Improvement Recommendations:</strong> Actionable steps with timelines and responsible parties</li>
+                            <li><strong>Trend Analysis:</strong> Historical risk progression and predictive insights</li>
+                            <li><strong>Benchmark Comparison:</strong> Industry best practice recommendations</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Section -->
+            <div class="section" id="dashboard">
+                <h1 class="section-title">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard Usage Guide
+                </h1>
+                <p class="section-subtitle">
+                    Interactive dashboard for report generation, testing, and monitoring with real-time metrics and professional interface.
+                </p>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-play"></i>
+                        Quick Start Guide
+                    </h3>
+                    <div class="step-list">
+                        <div class="step-item">
+                            <div class="step-title">Access Dashboard</div>
+                            <div class="step-description">
+                                Navigate to the Phase 4 dashboard from the main menu. The dashboard provides real-time
+                                system status and generation metrics.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">Select Report Type</div>
+                            <div class="step-description">
+                                Choose from FINREP, COREP, or DORA report generators. Each card shows current statistics
+                                and available templates.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">Configure Parameters</div>
+                            <div class="step-description">
+                                Use the testing interface to select institution, reporting period, and output format.
+                                Validate parameters before generation.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">Generate & Monitor</div>
+                            <div class="step-description">
+                                Start report generation and monitor progress. Download completed reports or view
+                                validation results in real-time.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-chart-bar"></i>
+                        Metrics Overview
+                    </h3>
+                    <div class="content-block">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">Key Performance Indicators:</h4>
+                        <ul style="line-height: 1.8; color: #2c3e50;">
+                            <li><strong>Reports Generated:</strong> Total count of reports in the last 30 days</li>
+                            <li><strong>Success Rate:</strong> Percentage of successfully generated reports</li>
+                            <li><strong>Average Generation Time:</strong> Mean processing time across all report types</li>
+                            <li><strong>Compliance Score:</strong> Overall regulatory compliance percentage</li>
+                            <li><strong>System Status:</strong> Real-time operational status indicators</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-title">
+                        <i class="fas fa-lightbulb"></i>
+                        Dashboard Tips
+                    </div>
+                    <p>
+                        Use the testing interface to validate your data before production runs. The dashboard
+                        automatically refreshes metrics every 30 seconds. Download sample reports to understand
+                        output formats and structure.
+                    </p>
+                </div>
+            </div>
+
+            <!-- API Section -->
+            <div class="section" id="api">
+                <h1 class="section-title">
+                    <i class="fas fa-code"></i>
+                    API Reference
+                </h1>
+                <p class="section-subtitle">
+                    RESTful API endpoints for programmatic report generation with comprehensive authentication and validation.
+                </p>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-lock"></i>
+                        Authentication
+                    </h3>
+                    <div class="content-block">
+                        <p>Authentication is controlled by the <span class="highlight">REQUIRE_AUTH</span> environment variable:</p>
+                        <div class="code-block">
+# When REQUIRE_AUTH=false (default)
+curl -X POST /api/phase4/generate-report \
+  -H "Content-Type: application/json" \
+  -d '{"report_type": "FINREP", ...}'
+
+# When REQUIRE_AUTH=true
+curl -X POST /api/phase4/generate-report \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"report_type": "FINREP", ...}'
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-plug"></i>
+                        Core Endpoints
+                    </h3>
+                    
+                    <div class="api-endpoint">
+                        <span class="method post">POST</span> /api/phase4/generate-report
+                    </div>
+                    <div class="content-block">
+                        <p><strong>Generate a compliance report</strong></p>
+                        <table class="parameter-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>report_type</td>
+                                    <td>string</td>
+                                    <td>Yes</td>
+                                    <td>FINREP, COREP, or DORA_ICT</td>
+                                </tr>
+                                <tr>
+                                    <td>institution_id</td>
+                                    <td>string</td>
+                                    <td>Yes</td>
+                                    <td>Institution identifier</td>
+                                </tr>
+                                <tr>
+                                    <td>reporting_period</td>
+                                    <td>string</td>
+                                    <td>Yes</td>
+                                    <td>YYYY-MM or YYYY-QQ format</td>
+                                </tr>
+                                <tr>
+                                    <td>format</td>
+                                    <td>string</td>
+                                    <td>No</td>
+                                    <td>XBRL (default), CSV, or JSON</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="api-endpoint">
+                        <span class="method post">POST</span> /api/phase4/validate-data
+                    </div>
+                    <div class="content-block">
+                        <p><strong>Validate report data without generation</strong></p>
+                    </div>
+
+                    <div class="api-endpoint">
+                        <span class="method get">GET</span> /api/phase4/dashboard-metrics
+                    </div>
+                    <div class="content-block">
+                        <p><strong>Retrieve dashboard metrics and statistics</strong></p>
+                    </div>
+
+                    <div class="api-endpoint">
+                        <span class="method get">GET</span> /api/phase4/sample-report/{report_type}
+                    </div>
+                    <div class="content-block">
+                        <p><strong>Download sample report for specified type</strong></p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-code"></i>
+                        Example Usage
+                    </h3>
+                    <div class="content-block">
+                        <div class="code-block">
+# Generate FINREP report
+curl -X POST http://localhost:8000/api/phase4/generate-report \
+  -H "Content-Type: application/json" \
+  -d '{
+    "report_type": "FINREP",
+    "institution_id": "INST_001",
+    "reporting_period": "2024-Q3",
+    "format": "XBRL",
+    "jurisdiction": "EU"
+  }'
+
+# Response
+{
+  "success": true,
+  "report_id": "RPT-2024-001",
+  "status": "COMPLETED",
+  "message": "FINREP report generated successfully",
+  "file_path": "/reports/FINREP_2024Q3_20240115.xml",
+  "file_size": 45678,
+  "generation_time": 2.34
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Troubleshooting Section -->
+            <div class="section" id="troubleshooting">
+                <h1 class="section-title">
+                    <i class="fas fa-tools"></i>
+                    Troubleshooting Guide
+                </h1>
+                <p class="section-subtitle">
+                    Common issues and solutions for Phase 4 compliance report generation system.
+                </p>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Common Issues
+                    </h3>
+                    
+                    <div class="content-block">
+                        <h4 style="color: #e74c3c; margin-bottom: 15px;">Report Generation Failures</h4>
+                        <ul style="line-height: 1.8; color: #2c3e50;">
+                            <li><strong>Data Validation Errors:</strong> Check business rule compliance and data completeness</li>
+                            <li><strong>Template Not Found:</strong> Verify report type and template version compatibility</li>
+                            <li><strong>Database Connection:</strong> Ensure database connectivity and data availability</li>
+                            <li><strong>Memory Issues:</strong> Large reports may require increased memory allocation</li>
+                        </ul>
+                    </div>
+
+                    <div class="content-block">
+                        <h4 style="color: #e74c3c; margin-bottom: 15px;">Authentication Issues</h4>
+                        <ul style="line-height: 1.8; color: #2c3e50;">
+                            <li><strong>401 Unauthorized:</strong> Check REQUIRE_AUTH setting and token validity</li>
+                            <li><strong>Token Expired:</strong> Refresh authentication token if required</li>
+                            <li><strong>Missing Headers:</strong> Ensure Authorization header is included when auth is enabled</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-search"></i>
+                        Diagnostic Steps
+                    </h3>
+                    <div class="step-list">
+                        <div class="step-item">
+                            <div class="step-title">Check System Health</div>
+                            <div class="step-description">
+                                Use the /health endpoint to verify system status and database connectivity.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">Validate Input Data</div>
+                            <div class="step-description">
+                                Use the validation endpoint to check data quality before report generation.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">Review Error Logs</div>
+                            <div class="step-description">
+                                Check application logs for detailed error messages and stack traces.
+                            </div>
+                        </div>
+                        <div class="step-item">
+                            <div class="step-title">Test with Samples</div>
+                            <div class="step-description">
+                                Generate sample reports to isolate issues with specific data or configurations.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warning-box">
+                    <div class="warning-title">
+                        <i class="fas fa-phone"></i>
+                        Support Contact
+                    </div>
+                    <p>
+                        For persistent issues, contact the technical support team with error logs, request details,
+                        and system configuration information for faster resolution.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Compliance Section -->
+            <div class="section" id="compliance">
+                <h1 class="section-title">
+                    <i class="fas fa-shield-check"></i>
+                    Compliance Guide
+                </h1>
+                <p class="section-subtitle">
+                    Regulatory compliance requirements and best practices for European banking report generation.
+                </p>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-gavel"></i>
+                        Regulatory Framework
+                    </h3>
+                    <div class="content-block">
+                        <table class="parameter-table">
+                            <thead>
+                                <tr>
+                                    <th>Regulation</th>
+                                    <th>Scope</th>
+                                    <th>Reporting Frequency</th>
+                                    <th>Key Requirements</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>EBA ITS FINREP</strong></td>
+                                    <td>Financial Reporting</td>
+                                    <td>Quarterly, Annual</td>
+                                    <td>XBRL taxonomy v3.2.0 compliance</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>EBA ITS COREP</strong></td>
+                                    <td>Capital Requirements</td>
+                                    <td>Quarterly, Annual</td>
+                                    <td>Capital adequacy calculations</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>EU DORA</strong></td>
+                                    <td>ICT Risk Management</td>
+                                    <td>Annual</td>
+                                    <td>Digital resilience assessment</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">
+                        <i class="fas fa-clipboard-check"></i>
+                        Compliance Checklist
+                    </h3>
+                    <div class="content-block">
+                        <h4 style="color: #2c3e50; margin-bottom: 15px;">Pre-Submission Requirements:</h4>
+                        <ul style="line-height: 1.8; color: #2c3e50;">
+                            <li><strong>Data Quality:</strong> Comprehensive validation and business rule compliance</li>
+                            <li><strong>Taxonomy Compliance:</strong> EBA taxonomy version alignment and schema validation</li>
+                            <li><strong>Deadline Adherence:</strong> Submission within regulatory timeframes</li>
+                            <li><strong>Audit Trail:</strong> Complete documentation of report generation process</li>
+                            <li><strong>Digital Signatures:</strong> Cryptographic integrity verification</li>
+                            <li><strong>Backup Procedures:</strong> Secure storage and retrieval capabilities</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-title">
+                        <i class="fas fa-certificate"></i>
+                        Certification Status
+                    </div>
+                    <p>
+                        Phase 4 system maintains full compliance with EBA technical standards and EU regulatory
+                        requirements. Regular updates ensure continued alignment with evolving regulations.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Top Button -->
+        <button class="back-to-top" id="backToTop" onclick="scrollToTop()">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    </div>
+
+    <script>
+        // Navigation functionality
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked nav item
+            event.target.closest('.nav-item').classList.add('active');
+            
+            // Scroll to top of content
+            document.querySelector('.guide-content').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const sections = document.querySelectorAll('.section');
+            
+            if (searchTerm === '') {
+                // Show overview section when search is cleared
+                showSection('overview');
+                return;
+            }
+            
+            let found = false;
+            sections.forEach(section => {
+                const content = section.textContent.toLowerCase();
+                if (content.includes(searchTerm)) {
+                    if (!found) {
+                        // Show first matching section
+                        section.classList.add('active');
+                        found = true;
+                    }
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+            
+            if (!found) {
+                // No matches found, show overview
+                document.getElementById('overview').classList.add('active');
+            }
+        });
+
+        // Back to top functionality
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Smooth scrolling for internal links
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add any initialization code here
+            console.log('Phase 4 User Guide loaded successfully');
+        });
+    </script>
+</body>
+</html>

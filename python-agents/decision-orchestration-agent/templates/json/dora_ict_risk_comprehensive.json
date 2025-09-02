@@ -1,0 +1,743 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eba.europa.eu/schemas/dora/ict-risk-report/v1.0",
+  "title": "DORA ICT Risk Management Report",
+  "description": "Comprehensive DORA ICT Risk Management Report Template - Digital Operational Resilience Act Compliance",
+  "type": "object",
+  "required": [
+    "reportMetadata",
+    "institutionDetails",
+    "ictRiskManagement",
+    "incidentReporting",
+    "thirdPartyRisk",
+    "digitalOperationalResilience",
+    "testingFramework"
+  ],
+  "properties": {
+    "reportMetadata": {
+      "type": "object",
+      "description": "Report metadata and identification",
+      "required": ["reportId", "reportingPeriod", "submissionDate", "reportVersion"],
+      "properties": {
+        "reportId": {
+          "type": "string",
+          "pattern": "^DORA-[A-Z0-9]{20}-[0-9]{4}Q[1-4]$",
+          "description": "Unique report identifier",
+          "example": "DORA-TESTBANK001234567890-2024Q1"
+        },
+        "reportingPeriod": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-Q[1-4]$",
+          "description": "Reporting period in YYYY-QN format",
+          "example": "2024-Q1"
+        },
+        "submissionDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Report submission timestamp",
+          "example": "2024-04-30T23:59:59Z"
+        },
+        "reportVersion": {
+          "type": "string",
+          "pattern": "^v[0-9]+\\.[0-9]+$",
+          "description": "Report template version",
+          "example": "v1.0"
+        },
+        "generatedBy": {
+          "type": "string",
+          "description": "System or user that generated the report",
+          "example": "ComplianceAI-ReportGenerator-v4.0"
+        },
+        "dataQualityScore": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Overall data quality score (0-100)",
+          "example": 95.5
+        }
+      }
+    },
+    "institutionDetails": {
+      "type": "object",
+      "description": "Financial institution identification and details",
+      "required": ["lei", "institutionName", "jurisdiction", "institutionType"],
+      "properties": {
+        "lei": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{18}[0-9]{2}$",
+          "description": "Legal Entity Identifier (LEI)",
+          "example": "TESTBANK001234567890"
+        },
+        "institutionName": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Official institution name",
+          "example": "Test Bank AG"
+        },
+        "jurisdiction": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "description": "Primary jurisdiction (ISO 3166-1 alpha-2)",
+          "example": "DE"
+        },
+        "institutionType": {
+          "type": "string",
+          "enum": ["CREDIT_INSTITUTION", "INVESTMENT_FIRM", "INSURANCE_COMPANY", "PAYMENT_INSTITUTION", "ELECTRONIC_MONEY_INSTITUTION", "CENTRAL_COUNTERPARTY", "TRADE_REPOSITORY"],
+          "description": "Type of financial institution",
+          "example": "CREDIT_INSTITUTION"
+        },
+        "consolidationBasis": {
+          "type": "string",
+          "enum": ["INDIVIDUAL", "CONSOLIDATED"],
+          "description": "Reporting basis",
+          "example": "CONSOLIDATED"
+        },
+        "totalAssets": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Total assets in EUR",
+          "example": 1000000000
+        },
+        "employeeCount": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of employees",
+          "example": 5000
+        }
+      }
+    },
+    "ictRiskManagement": {
+      "type": "object",
+      "description": "ICT risk management framework and governance",
+      "required": ["governance", "riskAssessment", "controls", "businessContinuity"],
+      "properties": {
+        "governance": {
+          "type": "object",
+          "description": "ICT governance structure",
+          "required": ["boardOversight", "managementStructure", "policies"],
+          "properties": {
+            "boardOversight": {
+              "type": "object",
+              "properties": {
+                "ictRiskCommitteeExists": {
+                  "type": "boolean",
+                  "description": "ICT risk committee established at board level"
+                },
+                "boardMeetingsFrequency": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of board meetings addressing ICT risk per year"
+                },
+                "ictRiskReportingFrequency": {
+                  "type": "string",
+                  "enum": ["MONTHLY", "QUARTERLY", "SEMI_ANNUALLY", "ANNUALLY"],
+                  "description": "Frequency of ICT risk reporting to board"
+                }
+              }
+            },
+            "managementStructure": {
+              "type": "object",
+              "properties": {
+                "cioExists": {
+                  "type": "boolean",
+                  "description": "Chief Information Officer role exists"
+                },
+                "cisoExists": {
+                  "type": "boolean",
+                  "description": "Chief Information Security Officer role exists"
+                },
+                "ictRiskOfficerExists": {
+                  "type": "boolean",
+                  "description": "ICT Risk Officer role exists"
+                },
+                "ictStaffCount": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Number of ICT staff members"
+                }
+              }
+            },
+            "policies": {
+              "type": "object",
+              "properties": {
+                "ictRiskPolicyExists": {
+                  "type": "boolean",
+                  "description": "ICT risk management policy exists"
+                },
+                "lastPolicyReview": {
+                  "type": "string",
+                  "format": "date",
+                  "description": "Date of last policy review"
+                },
+                "policyReviewFrequency": {
+                  "type": "string",
+                  "enum": ["ANNUALLY", "SEMI_ANNUALLY", "QUARTERLY"],
+                  "description": "Policy review frequency"
+                }
+              }
+            }
+          }
+        },
+        "riskAssessment": {
+          "type": "object",
+          "description": "ICT risk assessment processes",
+          "properties": {
+            "riskAssessmentFrequency": {
+              "type": "string",
+              "enum": ["CONTINUOUSLY", "QUARTERLY", "SEMI_ANNUALLY", "ANNUALLY"],
+              "description": "Frequency of ICT risk assessments"
+            },
+            "lastRiskAssessment": {
+              "type": "string",
+              "format": "date",
+              "description": "Date of last comprehensive ICT risk assessment"
+            },
+            "criticalSystemsIdentified": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of critical ICT systems identified"
+            },
+            "riskRegisterMaintained": {
+              "type": "boolean",
+              "description": "ICT risk register maintained and updated"
+            },
+            "riskAppetiteStatement": {
+              "type": "boolean",
+              "description": "ICT risk appetite statement defined"
+            }
+          }
+        },
+        "controls": {
+          "type": "object",
+          "description": "ICT risk controls and mitigation measures",
+          "properties": {
+            "accessControlsImplemented": {
+              "type": "boolean",
+              "description": "Access controls implemented for ICT systems"
+            },
+            "multiFactorAuthenticationUsed": {
+              "type": "boolean",
+              "description": "Multi-factor authentication implemented"
+            },
+            "encryptionUsed": {
+              "type": "boolean",
+              "description": "Data encryption implemented"
+            },
+            "networkSegmentationImplemented": {
+              "type": "boolean",
+              "description": "Network segmentation implemented"
+            },
+            "vulnerabilityManagementProgram": {
+              "type": "boolean",
+              "description": "Vulnerability management program in place"
+            },
+            "patchManagementProcess": {
+              "type": "boolean",
+              "description": "Patch management process implemented"
+            }
+          }
+        },
+        "businessContinuity": {
+          "type": "object",
+          "description": "Business continuity and disaster recovery",
+          "properties": {
+            "bcpExists": {
+              "type": "boolean",
+              "description": "Business continuity plan exists"
+            },
+            "drpExists": {
+              "type": "boolean",
+              "description": "Disaster recovery plan exists"
+            },
+            "rtoObjectives": {
+              "type": "object",
+              "description": "Recovery Time Objectives",
+              "properties": {
+                "criticalSystems": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "RTO for critical systems (hours)"
+                },
+                "importantSystems": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "RTO for important systems (hours)"
+                }
+              }
+            },
+            "rpoObjectives": {
+              "type": "object",
+              "description": "Recovery Point Objectives",
+              "properties": {
+                "criticalSystems": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "RPO for critical systems (hours)"
+                },
+                "importantSystems": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "RPO for important systems (hours)"
+                }
+              }
+            },
+            "lastBcpTest": {
+              "type": "string",
+              "format": "date",
+              "description": "Date of last BCP test"
+            },
+            "bcpTestFrequency": {
+              "type": "string",
+              "enum": ["QUARTERLY", "SEMI_ANNUALLY", "ANNUALLY"],
+              "description": "BCP testing frequency"
+            }
+          }
+        }
+      }
+    },
+    "incidentReporting": {
+      "type": "object",
+      "description": "ICT incident reporting and management",
+      "required": ["incidentManagement", "majorIncidents"],
+      "properties": {
+        "incidentManagement": {
+          "type": "object",
+          "properties": {
+            "incidentResponsePlanExists": {
+              "type": "boolean",
+              "description": "Incident response plan exists"
+            },
+            "incidentResponseTeamExists": {
+              "type": "boolean",
+              "description": "Incident response team established"
+            },
+            "incidentClassificationFramework": {
+              "type": "boolean",
+              "description": "Incident classification framework defined"
+            },
+            "totalIncidentsReported": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total ICT incidents reported in period"
+            },
+            "averageResolutionTime": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Average incident resolution time (hours)"
+            }
+          }
+        },
+        "majorIncidents": {
+          "type": "array",
+          "description": "Major ICT incidents during reporting period",
+          "items": {
+            "type": "object",
+            "required": ["incidentId", "incidentDate", "incidentType", "impact", "resolution"],
+            "properties": {
+              "incidentId": {
+                "type": "string",
+                "description": "Unique incident identifier"
+              },
+              "incidentDate": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Incident occurrence date and time"
+              },
+              "incidentType": {
+                "type": "string",
+                "enum": ["CYBER_ATTACK", "SYSTEM_FAILURE", "DATA_BREACH", "NETWORK_OUTAGE", "SOFTWARE_MALFUNCTION", "HUMAN_ERROR", "NATURAL_DISASTER", "OTHER"],
+                "description": "Type of incident"
+              },
+              "severity": {
+                "type": "string",
+                "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                "description": "Incident severity level"
+              },
+              "impact": {
+                "type": "object",
+                "properties": {
+                  "servicesAffected": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "List of affected services"
+                  },
+                  "customersAffected": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Number of customers affected"
+                  },
+                  "financialImpact": {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Estimated financial impact (EUR)"
+                  },
+                  "durationMinutes": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "Service disruption duration (minutes)"
+                  }
+                }
+              },
+              "resolution": {
+                "type": "object",
+                "properties": {
+                  "resolutionDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Incident resolution date and time"
+                  },
+                  "rootCause": {
+                    "type": "string",
+                    "description": "Identified root cause"
+                  },
+                  "correctiveActions": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Corrective actions taken"
+                  },
+                  "preventiveActions": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Preventive actions implemented"
+                  }
+                }
+              },
+              "regulatoryNotification": {
+                "type": "object",
+                "properties": {
+                  "notificationRequired": {
+                    "type": "boolean",
+                    "description": "Regulatory notification required"
+                  },
+                  "notificationSent": {
+                    "type": "boolean",
+                    "description": "Regulatory notification sent"
+                  },
+                  "notificationDate": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Notification date and time"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "thirdPartyRisk": {
+      "type": "object",
+      "description": "Third-party ICT service provider risk management",
+      "required": ["thirdPartyManagement", "criticalProviders"],
+      "properties": {
+        "thirdPartyManagement": {
+          "type": "object",
+          "properties": {
+            "thirdPartyRiskPolicyExists": {
+              "type": "boolean",
+              "description": "Third-party ICT risk policy exists"
+            },
+            "dueDigiligenceProcessExists": {
+              "type": "boolean",
+              "description": "Due diligence process for ICT providers exists"
+            },
+            "contractualArrangementsFramework": {
+              "type": "boolean",
+              "description": "Contractual arrangements framework defined"
+            },
+            "totalIctProviders": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total number of ICT service providers"
+            },
+            "criticalIctProviders": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of critical ICT service providers"
+            },
+            "cloudServiceProviders": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of cloud service providers"
+            }
+          }
+        },
+        "criticalProviders": {
+          "type": "array",
+          "description": "Critical ICT service providers",
+          "items": {
+            "type": "object",
+            "required": ["providerId", "providerName", "serviceType", "criticality"],
+            "properties": {
+              "providerId": {
+                "type": "string",
+                "description": "Unique provider identifier"
+              },
+              "providerName": {
+                "type": "string",
+                "description": "Provider name"
+              },
+              "serviceType": {
+                "type": "string",
+                "enum": ["CLOUD_COMPUTING", "DATA_ANALYTICS", "SOFTWARE_LICENSING", "NETWORK_SERVICES", "CYBERSECURITY", "DATA_STORAGE", "PAYMENT_PROCESSING", "OTHER"],
+                "description": "Type of ICT service provided"
+              },
+              "criticality": {
+                "type": "string",
+                "enum": ["CRITICAL", "IMPORTANT", "STANDARD"],
+                "description": "Service criticality level"
+              },
+              "jurisdiction": {
+                "type": "string",
+                "pattern": "^[A-Z]{2}$",
+                "description": "Provider jurisdiction (ISO 3166-1 alpha-2)"
+              },
+              "contractStartDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Contract start date"
+              },
+              "contractEndDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Contract end date"
+              },
+              "dataProcessing": {
+                "type": "object",
+                "properties": {
+                  "personalDataProcessed": {
+                    "type": "boolean",
+                    "description": "Personal data processed by provider"
+                  },
+                  "dataLocation": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Data processing locations"
+                  },
+                  "dataEncryption": {
+                    "type": "boolean",
+                    "description": "Data encryption implemented"
+                  }
+                }
+              },
+              "riskAssessment": {
+                "type": "object",
+                "properties": {
+                  "lastAssessmentDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date of last risk assessment"
+                  },
+                  "riskLevel": {
+                    "type": "string",
+                    "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+                    "description": "Overall risk level"
+                  },
+                  "mitigationMeasures": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Risk mitigation measures implemented"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "digitalOperationalResilience": {
+      "type": "object",
+      "description": "Digital operational resilience measures",
+      "required": ["resilienceFramework", "monitoringCapabilities"],
+      "properties": {
+        "resilienceFramework": {
+          "type": "object",
+          "properties": {
+            "resilienceStrategyExists": {
+              "type": "boolean",
+              "description": "Digital operational resilience strategy exists"
+            },
+            "resilienceObjectivesDefined": {
+              "type": "boolean",
+              "description": "Resilience objectives defined"
+            },
+            "resilienceMetricsDefined": {
+              "type": "boolean",
+              "description": "Resilience metrics defined"
+            },
+            "redundancyImplemented": {
+              "type": "boolean",
+              "description": "System redundancy implemented"
+            },
+            "failoverCapabilitiesExists": {
+              "type": "boolean",
+              "description": "Failover capabilities exist"
+            }
+          }
+        },
+        "monitoringCapabilities": {
+          "type": "object",
+          "properties": {
+            "realTimeMonitoringImplemented": {
+              "type": "boolean",
+              "description": "Real-time monitoring implemented"
+            },
+            "alertingSystemExists": {
+              "type": "boolean",
+              "description": "Automated alerting system exists"
+            },
+            "performanceMetricsTracked": {
+              "type": "boolean",
+              "description": "Performance metrics tracked"
+            },
+            "capacityManagementImplemented": {
+              "type": "boolean",
+              "description": "Capacity management implemented"
+            },
+            "threatDetectionCapabilities": {
+              "type": "boolean",
+              "description": "Threat detection capabilities exist"
+            }
+          }
+        }
+      }
+    },
+    "testingFramework": {
+      "type": "object",
+      "description": "ICT testing framework and threat-led penetration testing",
+      "required": ["testingProgram", "penetrationTesting"],
+      "properties": {
+        "testingProgram": {
+          "type": "object",
+          "properties": {
+            "testingFrameworkExists": {
+              "type": "boolean",
+              "description": "ICT testing framework exists"
+            },
+            "testingPolicyExists": {
+              "type": "boolean",
+              "description": "ICT testing policy exists"
+            },
+            "testingFrequency": {
+              "type": "string",
+              "enum": ["CONTINUOUSLY", "MONTHLY", "QUARTERLY", "SEMI_ANNUALLY", "ANNUALLY"],
+              "description": "Testing frequency"
+            },
+            "vulnerabilityTestingPerformed": {
+              "type": "boolean",
+              "description": "Vulnerability testing performed"
+            },
+            "scenarioBasedTestingPerformed": {
+              "type": "boolean",
+              "description": "Scenario-based testing performed"
+            }
+          }
+        },
+        "penetrationTesting": {
+          "type": "object",
+          "properties": {
+            "tlptPerformed": {
+              "type": "boolean",
+              "description": "Threat-led penetration testing (TLPT) performed"
+            },
+            "lastTlptDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Date of last TLPT"
+            },
+            "tlptFrequency": {
+              "type": "string",
+              "enum": ["ANNUALLY", "EVERY_2_YEARS", "EVERY_3_YEARS"],
+              "description": "TLPT frequency"
+            },
+            "externalTestingProviderUsed": {
+              "type": "boolean",
+              "description": "External testing provider used"
+            },
+            "criticalVulnerabilitiesFound": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of critical vulnerabilities found"
+            },
+            "remediationPlanExists": {
+              "type": "boolean",
+              "description": "Vulnerability remediation plan exists"
+            }
+          }
+        }
+      }
+    },
+    "complianceAttestation": {
+      "type": "object",
+      "description": "Compliance attestation and certification",
+      "properties": {
+        "managementAttestation": {
+          "type": "object",
+          "properties": {
+            "attestationProvided": {
+              "type": "boolean",
+              "description": "Management attestation provided"
+            },
+            "attestationDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Attestation date"
+            },
+            "attestingOfficer": {
+              "type": "string",
+              "description": "Name and title of attesting officer"
+            }
+          }
+        },
+        "externalAudit": {
+          "type": "object",
+          "properties": {
+            "auditPerformed": {
+              "type": "boolean",
+              "description": "External audit performed"
+            },
+            "auditDate": {
+              "type": "string",
+              "format": "date",
+              "description": "Audit date"
+            },
+            "auditorName": {
+              "type": "string",
+              "description": "External auditor name"
+            },
+            "auditOpinion": {
+              "type": "string",
+              "enum": ["UNQUALIFIED", "QUALIFIED", "ADVERSE", "DISCLAIMER"],
+              "description": "Audit opinion"
+            }
+          }
+        }
+      }
+    },
+    "digitalSignature": {
+      "type": "object",
+      "description": "Digital signature for report integrity",
+      "properties": {
+        "signatureAlgorithm": {
+          "type": "string",
+          "enum": ["RSA-PSS-SHA256", "ECDSA-SHA256"],
+          "description": "Digital signature algorithm used"
+        },
+        "signatureValue": {
+          "type": "string",
+          "description": "Base64 encoded signature value"
+        },
+        "certificateThumbprint": {
+          "type": "string",
+          "description": "Certificate thumbprint"
+        },
+        "signingTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Signing timestamp"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

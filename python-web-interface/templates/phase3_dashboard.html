@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 3: Intelligence & Compliance Agent Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/design-system.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        }
+
+        .dashboard-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 20px 20px;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border: none;
+            overflow: hidden;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+
+        .feature-header {
+            padding: 1.5rem;
+            background: var(--info-gradient);
+            color: white;
+            border-bottom: none;
+        }
+
+        .feature-body {
+            padding: 2rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .status-active {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .status-inactive {
+            background: #6c757d;
+            color: white;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-gradient {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            padding: 0.75rem 2rem;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        .test-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .log-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+
+        .progress-ring {
+            width: 60px;
+            height: 60px;
+        }
+
+        .progress-ring circle {
+            fill: transparent;
+            stroke: #e9ecef;
+            stroke-width: 4;
+        }
+
+        .progress-ring .progress {
+            stroke: #28a745;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-radius: 25px 25px 0 0;
+            margin-right: 0.5rem;
+            background: #f8f9fa;
+            color: #6c757d;
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            padding: 1rem 1.5rem;
+        }
+
+        .spinner-border-sm {
+            width: 1rem;
+            height: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-2">
+                        <i class="fas fa-brain me-3"></i>
+                        Phase 3: Intelligence & Compliance Agent
+                    </h1>
+                    <p class="mb-0 opacity-75">Advanced regulatory rule processing, jurisdiction handling, and audit capabilities</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="status-badge status-active">
+                        <i class="fas fa-check-circle me-2"></i>
+                        System Active
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Performance Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value text-primary" id="rulesCompiled">0</div>
+                    <div class="metric-label">Rules Compiled</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value text-success" id="avgCompileTime">0ms</div>
+                    <div class="metric-label">Avg Compile Time</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value text-info" id="jurisdictionsActive">4</div>
+                    <div class="metric-label">Active Jurisdictions</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <div class="metric-value text-warning" id="auditEntries">0</div>
+                    <div class="metric-label">Audit Entries</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feature Tabs -->
+        <ul class="nav nav-tabs mb-4" id="featureTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="rule-compiler-tab" data-bs-toggle="tab" data-bs-target="#rule-compiler" type="button" role="tab">
+                    <i class="fas fa-code me-2"></i>Rule Compiler
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="kafka-consumer-tab" data-bs-toggle="tab" data-bs-target="#kafka-consumer" type="button" role="tab">
+                    <i class="fas fa-stream me-2"></i>Kafka Consumer
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="jurisdiction-tab" data-bs-toggle="tab" data-bs-target="#jurisdiction" type="button" role="tab">
+                    <i class="fas fa-globe me-2"></i>Jurisdiction Handler
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="overlap-resolver-tab" data-bs-toggle="tab" data-bs-target="#overlap-resolver" type="button" role="tab">
+                    <i class="fas fa-layer-group me-2"></i>Overlap Resolver
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="audit-logger-tab" data-bs-toggle="tab" data-bs-target="#audit-logger" type="button" role="tab">
+                    <i class="fas fa-clipboard-list me-2"></i>Audit Logger
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="featureTabContent">
+            <!-- Rule Compiler Tab -->
+            <div class="tab-pane fade show active" id="rule-compiler" role="tabpanel">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-code me-2"></i>
+                            Rule Compiler - JSON-Logic Generation
+                        </h4>
+                    </div>
+                    <div class="feature-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Test Rule Compilation</h5>
+                                <form id="ruleCompilerForm">
+                                    <div class="mb-3">
+                                        <label for="obligationText" class="form-label">Regulatory Obligation Text</label>
+                                        <textarea class="form-control" id="obligationText" rows="4" placeholder="Enter regulatory obligation text to compile into JSON-Logic rules...">Customer due diligence must be performed for transactions exceeding EUR 15,000 or when the customer is a politically exposed person.</textarea>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="regulationType" class="form-label">Regulation Type</label>
+                                                <select class="form-select" id="regulationType">
+                                                    <option value="AML">Anti-Money Laundering (AML)</option>
+                                                    <option value="KYC">Know Your Customer (KYC)</option>
+                                                    <option value="GDPR">GDPR</option>
+                                                    <option value="BASEL_III">Basel III</option>
+                                                    <option value="PSD2">PSD2</option>
+                                                    <option value="DORA">DORA</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="jurisdiction" class="form-label">Jurisdiction</label>
+                                                <select class="form-select" id="jurisdiction">
+                                                    <option value="EU">European Union</option>
+                                                    <option value="DE">Germany</option>
+                                                    <option value="IE">Ireland</option>
+                                                    <option value="GB">United Kingdom</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-gradient">
+                                        <i class="fas fa-play me-2"></i>
+                                        Compile Rule
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Generated JSON-Logic Rule</h5>
+                                <div class="test-panel">
+                                    <pre id="jsonLogicOutput" class="log-output">Click "Compile Rule" to generate JSON-Logic...</pre>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-outline-primary btn-sm" id="validateRule">
+                                        <i class="fas fa-check me-2"></i>Validate Rule
+                                    </button>
+                                    <button class="btn btn-outline-success btn-sm" id="testRule">
+                                        <i class="fas fa-play me-2"></i>Test Rule
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Compilation Results</h5>
+                                <div id="compilationResults" class="alert alert-info" style="display: none;">
+                                    <div class="d-flex align-items-center">
+                                        <div class="spinner-border spinner-border-sm me-3" role="status"></div>
+                                        <span>Compiling rule...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kafka Consumer Tab -->
+            <div class="tab-pane fade" id="kafka-consumer" role="tabpanel">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-stream me-2"></i>
+                            Kafka Consumer - Regulatory Updates
+                        </h4>
+                    </div>
+                    <div class="feature-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Consumer Status</h5>
+                                <div class="test-panel">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>Status:</strong> <span id="consumerStatus" class="badge bg-success">Active</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Lag:</strong> <span id="consumerLag">0</span> messages
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-6">
+                                            <strong>Processed:</strong> <span id="messagesProcessed">0</span>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Failed:</strong> <span id="messagesFailed">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-gradient" id="startConsumer">
+                                        <i class="fas fa-play me-2"></i>Start Consumer
+                                    </button>
+                                    <button class="btn btn-outline-danger" id="stopConsumer">
+                                        <i class="fas fa-stop me-2"></i>Stop Consumer
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Test Message Processing</h5>
+                                <form id="kafkaTestForm">
+                                    <div class="mb-3">
+                                        <label for="eventType" class="form-label">Event Type</label>
+                                        <select class="form-select" id="eventType">
+                                            <option value="obligation_created">Obligation Created</option>
+                                            <option value="obligation_updated">Obligation Updated</option>
+                                            <option value="obligation_deleted">Obligation Deleted</option>
+                                            <option value="system_status">System Status</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="testPayload" class="form-label">Test Payload</label>
+                                        <textarea class="form-control" id="testPayload" rows="4">{"obligation_id": "test_001", "regulation_type": "AML", "jurisdiction": "EU"}</textarea>
+                                    </div>
+                                    <button type="submit" class="btn btn-gradient">
+                                        <i class="fas fa-paper-plane me-2"></i>Send Test Message
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Recent Messages</h5>
+                                <div id="kafkaMessages" class="log-output">
+                                    Waiting for messages...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jurisdiction Handler Tab -->
+            <div class="tab-pane fade" id="jurisdiction" role="tabpanel">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-globe me-2"></i>
+                            Jurisdiction Handler - Country-Specific Rules
+                        </h4>
+                    </div>
+                    <div class="feature-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Test Jurisdiction Filtering</h5>
+                                <form id="jurisdictionTestForm">
+                                    <div class="mb-3">
+                                        <label for="customerCountry" class="form-label">Customer Country</label>
+                                        <select class="form-select" id="customerCountry">
+                                            <option value="DE">Germany</option>
+                                            <option value="IE">Ireland</option>
+                                            <option value="GB">United Kingdom</option>
+                                            <option value="FR">France</option>
+                                            <option value="US">United States</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="businessCountry" class="form-label">Business Country</label>
+                                        <select class="form-select" id="businessCountry">
+                                            <option value="DE">Germany</option>
+                                            <option value="IE">Ireland</option>
+                                            <option value="GB">United Kingdom</option>
+                                            <option value="FR">France</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="conflictStrategy" class="form-label">Conflict Resolution</label>
+                                        <select class="form-select" id="conflictStrategy">
+                                            <option value="most_restrictive">Most Restrictive</option>
+                                            <option value="customer_preference">Customer Preference</option>
+                                            <option value="business_preference">Business Preference</option>
+                                            <option value="hierarchical">Hierarchical</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-gradient">
+                                        <i class="fas fa-filter me-2"></i>Filter Rules
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Applicable Rules</h5>
+                                <div id="jurisdictionResults" class="test-panel">
+                                    <div class="text-muted text-center py-4">
+                                        <i class="fas fa-globe fa-3x mb-3 opacity-25"></i>
+                                        <p>Select jurisdictions and click "Filter Rules" to see applicable regulations</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Jurisdiction Configuration</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Jurisdiction</th>
+                                                <th>Level</th>
+                                                <th>Parent</th>
+                                                <th>Active Rules</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="jurisdictionTable">
+                                            <!-- Will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overlap Resolver Tab -->
+            <div class="tab-pane fade" id="overlap-resolver" role="tabpanel">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-layer-group me-2"></i>
+                            Overlap Resolver - Rule Consolidation
+                        </h4>
+                    </div>
+                    <div class="feature-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Test Overlap Detection</h5>
+                                <form id="overlapTestForm">
+                                    <div class="mb-3">
+                                        <label for="rule1Text" class="form-label">Rule 1 Text</label>
+                                        <textarea class="form-control" id="rule1Text" rows="3">Customer identification required for transactions above EUR 10,000</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="rule2Text" class="form-label">Rule 2 Text</label>
+                                        <textarea class="form-control" id="rule2Text" rows="3">Enhanced due diligence needed for high-value transactions exceeding EUR 15,000</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="similarityThreshold" class="form-label">Similarity Threshold</label>
+                                        <input type="range" class="form-range" id="similarityThreshold" min="0" max="100" value="75">
+                                        <div class="d-flex justify-content-between">
+                                            <small>0%</small>
+                                            <small id="thresholdValue">75%</small>
+                                            <small>100%</small>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-gradient">
+                                        <i class="fas fa-search me-2"></i>Detect Overlaps
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Overlap Analysis Results</h5>
+                                <div id="overlapResults" class="test-panel">
+                                    <div class="text-muted text-center py-4">
+                                        <i class="fas fa-layer-group fa-3x mb-3 opacity-25"></i>
+                                        <p>Enter rule texts and click "Detect Overlaps" to analyze similarities</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <button class="btn btn-outline-primary btn-sm" id="resolveOverlaps">
+                                        <i class="fas fa-magic me-2"></i>Resolve Overlaps
+                                    </button>
+                                    <button class="btn btn-outline-info btn-sm" id="viewMerged">
+                                        <i class="fas fa-eye me-2"></i>View Merged Rule
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Overlap Statistics</h5>
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value text-primary" id="totalOverlaps">0</div>
+                                            <div class="metric-label">Total Overlaps</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value text-success" id="resolvedOverlaps">0</div>
+                                            <div class="metric-label">Resolved</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value text-warning" id="pendingOverlaps">0</div>
+                                            <div class="metric-label">Pending</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="metric-card">
+                                            <div class="metric-value text-info" id="avgSimilarity">0%</div>
+                                            <div class="metric-label">Avg Similarity</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audit Logger Tab -->
+            <div class="tab-pane fade" id="audit-logger" role="tabpanel">
+                <div class="feature-card">
+                    <div class="feature-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-clipboard-list me-2"></i>
+                            Audit Logger - Compliance Trail
+                        </h4>
+                    </div>
+                    <div class="feature-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Create Test Audit Entry</h5>
+                                <form id="auditTestForm">
+                                    <div class="mb-3">
+                                        <label for="auditAction" class="form-label">Action Type</label>
+                                        <select class="form-select" id="auditAction">
+                                            <option value="rule_compiled">Rule Compiled</option>
+                                            <option value="rule_updated">Rule Updated</option>
+                                            <option value="rule_deleted">Rule Deleted</option>
+                                            <option value="jurisdiction_changed">Jurisdiction Changed</option>
+                                            <option value="overlap_resolved">Overlap Resolved</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="auditDetails" class="form-label">Details</label>
+                                        <textarea class="form-control" id="auditDetails" rows="3">Test audit entry for demonstration purposes</textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="auditUser" class="form-label">User ID</label>
+                                        <input type="text" class="form-control" id="auditUser" value="system_test">
+                                    </div>
+                                    <button type="submit" class="btn btn-gradient">
+                                        <i class="fas fa-plus me-2"></i>Create Audit Entry
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Audit Trail Query</h5>
+                                <form id="auditQueryForm">
+                                    <div class="mb-3">
+                                        <label for="queryDateFrom" class="form-label">From Date</label>
+                                        <input type="date" class="form-control" id="queryDateFrom">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="queryDateTo" class="form-label">To Date</label>
+                                        <input type="date" class="form-control" id="queryDateTo">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="queryAction" class="form-label">Action Filter</label>
+                                        <select class="form-select" id="queryAction">
+                                            <option value="">All Actions</option>
+                                            <option value="rule_compiled">Rule Compiled</option>
+                                            <option value="rule_updated">Rule Updated</option>
+                                            <option value="rule_deleted">Rule Deleted</option>
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-gradient">
+                                        <i class="fas fa-search me-2"></i>Query Audit Trail
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Recent Audit Entries</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Timestamp</th>
+                                                <th>Action</th>
+                                                <th>User</th>
+                                                <th>Details</th>
+                                                <th>Integrity</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="auditTable">
+                                            <!-- Will be populated by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <h5>Export Audit Trail</h5>
+                                <div class="test-panel">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <select class="form-select" id="exportFormat">
+                                                <option value="json">JSON Format</option>
+                                                <option value="csv">CSV Format</option>
+                                                <option value="xml">XML Format</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <button class="btn btn-outline-primary" id="exportAudit">
+                                                <i class="fas fa-download me-2"></i>Export Audit Trail
+                                            </button>
+                                            <button class="btn btn-outline-success" id="verifyIntegrity">
+                                                <i class="fas fa-shield-alt me-2"></i>Verify Integrity
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/phase3_dashboard.js"></script>
+</body>
+</html>

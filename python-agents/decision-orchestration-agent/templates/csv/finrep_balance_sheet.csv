@@ -1,0 +1,86 @@
+# FINREP Balance Sheet Export Template
+# EBA Taxonomy v3.2.0 Compliant CSV Format
+# Institution: {{institution_name}}
+# LEI: {{institution_lei}}
+# Reporting Period: {{reporting_period}}
+# Currency: {{currency}}
+# Consolidation Basis: {{consolidation_basis}}
+# Generated: {{generation_timestamp}}
+# Data Quality Score: {{data_quality_score}}
+
+# METADATA
+Field,Description,XBRL_Concept,Data_Type,Validation_Rule,Mandatory,Unit
+institution_lei,Legal Entity Identifier,entity:identifier,string,LEI_FORMAT,Y,text
+reporting_date,Reporting Reference Date,period:instant,date,DATE_FORMAT,Y,date
+currency,Reporting Currency,unit:measure,string,ISO4217,Y,text
+consolidation_basis,Consolidation Basis,find:consolidationBasis,string,ENUM,Y,text
+
+# BALANCE SHEET DATA
+Section,Item_Code,Item_Description,XBRL_Concept,Amount,Currency,Validation_Status,Data_Source,Last_Updated
+
+# ASSETS
+ASSETS,010,Cash and cash balances at central banks and other demand deposits,finrep:CashBalancesAtCentralBanksAndOtherDemandDeposits,{{cash_balances}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,020,Financial assets held for trading,finrep:FinancialAssetsHeldForTrading,{{financial_assets_hft}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,030,Non-trading financial assets mandatorily at fair value through profit or loss,finrep:NonTradingFinancialAssetsMandatorilyAtFairValueThroughProfitOrLoss,{{financial_assets_mandatorily_fvtpl}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,040,Financial assets designated at fair value through profit or loss,finrep:FinancialAssetsDesignatedAtFairValueThroughProfitOrLoss,{{financial_assets_designated_fvtpl}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,050,Financial assets at fair value through other comprehensive income,finrep:FinancialAssetsAtFairValueThroughOtherComprehensiveIncome,{{financial_assets_fvoci}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,060,Financial assets at amortised cost,finrep:FinancialAssetsAtAmortisedCost,{{financial_assets_amortised_cost}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,070,Derivatives – Hedge accounting,finrep:DerivativesHedgeAccounting,{{derivatives_hedge_accounting}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,080,Fair value changes of the hedged items in portfolio hedge of interest rate risk,finrep:FairValueChangesOfTheHedgedItemsInPortfolioHedgeOfInterestRateRisk,{{fair_value_changes_hedged_items}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,090,Investments in subsidiaries joint ventures and associates,finrep:InvestmentsInSubsidiariesJointVenturesAndAssociates,{{investments_subsidiaries}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,100,Tangible assets,finrep:TangibleAssets,{{tangible_assets}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,110,Intangible assets,finrep:IntangibleAssets,{{intangible_assets}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,120,Tax assets,finrep:TaxAssets,{{tax_assets}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,130,Other assets,finrep:OtherAssets,{{other_assets}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,140,Non-current assets and disposal groups classified as held for sale,finrep:NonCurrentAssetsAndDisposalGroupsClassifiedAsHeldForSale,{{assets_held_for_sale}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+ASSETS,TOTAL,TOTAL ASSETS,finrep:TotalAssets,{{total_assets}},{{currency}},VALIDATED,CALCULATED,{{last_updated}}
+
+# LIABILITIES
+LIABILITIES,010,Financial liabilities held for trading,finrep:FinancialLiabilitiesHeldForTrading,{{financial_liabilities_hft}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,020,Financial liabilities designated at fair value through profit or loss,finrep:FinancialLiabilitiesDesignatedAtFairValueThroughProfitOrLoss,{{financial_liabilities_designated_fvtpl}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,030,Financial liabilities measured at amortised cost,finrep:FinancialLiabilitiesMeasuredAtAmortisedCost,{{financial_liabilities_amortised_cost}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,040,Derivatives – Hedge accounting,finrep:DerivativesHedgeAccountingLiabilities,{{derivatives_hedge_accounting_liab}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,050,Fair value changes of the hedged items in portfolio hedge of interest rate risk,finrep:FairValueChangesOfTheHedgedItemsInPortfolioHedgeOfInterestRateRiskLiabilities,{{fair_value_changes_hedged_items_liab}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,060,Provisions,finrep:Provisions,{{provisions}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,070,Tax liabilities,finrep:TaxLiabilities,{{tax_liabilities}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,080,Share capital repayable on demand,finrep:ShareCapitalRepayableOnDemand,{{share_capital_repayable}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,090,Other liabilities,finrep:OtherLiabilities,{{other_liabilities}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,100,Liabilities included in disposal groups classified as held for sale,finrep:LiabilitiesIncludedInDisposalGroupsClassifiedAsHeldForSale,{{liabilities_held_for_sale}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+LIABILITIES,TOTAL,TOTAL LIABILITIES,finrep:TotalLiabilities,{{total_liabilities}},{{currency}},VALIDATED,CALCULATED,{{last_updated}}
+
+# EQUITY
+EQUITY,010,Capital,finrep:Capital,{{capital}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,020,Share premium,finrep:SharePremium,{{share_premium}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,030,Equity instruments issued other than capital,finrep:EquityInstrumentsIssuedOtherThanCapital,{{equity_instruments_other}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,040,Other equity,finrep:OtherEquity,{{other_equity}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,050,Retained earnings,finrep:RetainedEarnings,{{retained_earnings}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,060,Revaluation reserves,finrep:RevaluationReserves,{{revaluation_reserves}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,070,Other reserves,finrep:OtherReserves,{{other_reserves}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,080,(-) Treasury shares,finrep:TreasuryShares,{{treasury_shares}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,090,Profit or loss attributable to owners of the parent,finrep:ProfitOrLossAttributableToOwnersOfTheParent,{{profit_loss_owners}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,100,(-) Interim dividends,finrep:InterimDividends,{{interim_dividends}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,110,Accumulated other comprehensive income,finrep:AccumulatedOtherComprehensiveIncome,{{accumulated_oci}},{{currency}},VALIDATED,{{data_source}},{{last_updated}}
+EQUITY,TOTAL,TOTAL EQUITY,finrep:TotalEquity,{{total_equity}},{{currency}},VALIDATED,CALCULATED,{{last_updated}}
+
+# VALIDATION SUMMARY
+Validation_Rule,Description,Status,Error_Count,Warning_Count
+BALANCE_CHECK,Total Assets = Total Liabilities + Total Equity,{{balance_check_status}},{{balance_errors}},{{balance_warnings}}
+MANDATORY_FIELDS,All mandatory fields populated,{{mandatory_check_status}},{{mandatory_errors}},{{mandatory_warnings}}
+DATA_TYPES,All fields conform to expected data types,{{datatype_check_status}},{{datatype_errors}},{{datatype_warnings}}
+BUSINESS_RULES,All business validation rules passed,{{business_check_status}},{{business_errors}},{{business_warnings}}
+XBRL_TAXONOMY,XBRL taxonomy compliance verified,{{taxonomy_check_status}},{{taxonomy_errors}},{{taxonomy_warnings}}
+
+# AUDIT TRAIL
+Audit_Event,Timestamp,User,Action,Details
+DATA_EXTRACTION,{{extraction_timestamp}},{{extraction_user}},EXTRACT,Data extracted from source systems
+DATA_VALIDATION,{{validation_timestamp}},{{validation_user}},VALIDATE,Data validation completed
+REPORT_GENERATION,{{generation_timestamp}},{{generation_user}},GENERATE,CSV report generated
+QUALITY_CHECK,{{quality_timestamp}},{{quality_user}},QC,Quality control completed
+
+# DIGITAL SIGNATURE
+Signature_Algorithm,RSA-PSS-SHA256
+Signature_Value,{{digital_signature}}
+Certificate_Thumbprint,{{certificate_thumbprint}}
+Signing_Timestamp,{{signing_timestamp}}
+
+# END OF FILE

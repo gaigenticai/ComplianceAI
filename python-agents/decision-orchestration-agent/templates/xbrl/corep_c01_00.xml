@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- COREP C 01.00 - Own Funds Template -->
+<!-- EBA Taxonomy v3.2.0 Compliant XBRL Template -->
+<xbrl xmlns="http://www.xbrl.org/2003/instance"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      xmlns:corep="http://www.eba.europa.eu/xbrl/corep"
+      xmlns:iso4217="http://www.xbrl.org/2003/iso4217"
+      xmlns:find="http://www.eurofiling.info/xbrl/ext/filing-indicators"
+      xsi:schemaLocation="http://www.xbrl.org/2003/instance http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd">
+
+  <!-- Context definitions for reporting period -->
+  <context id="instant_end">
+    <entity>
+      <identifier scheme="http://standards.iso.org/iso/17442">{{institution_lei}}</identifier>
+    </entity>
+    <period>
+      <instant>{{reporting_date}}</instant>
+    </period>
+  </context>
+
+  <!-- Unit definitions -->
+  <unit id="{{currency}}">
+    <measure>iso4217:{{currency}}</measure>
+  </unit>
+
+  <unit id="pure">
+    <measure>xbrli:pure</measure>
+  </unit>
+
+  <!-- Filing indicators -->
+  <find:fIndicators contextRef="instant_end">
+    <find:filingIndicator>
+      <find:filed>true</find:filed>
+    </find:filingIndicator>
+  </find:fIndicators>
+
+  <!-- COMMON EQUITY TIER 1 (CET1) CAPITAL: INSTRUMENTS AND RESERVES -->
+
+  <!-- Capital instruments and the related share premium accounts -->
+  <corep:CapitalInstrumentsAndTheRelatedSharePremiumAccounts contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{capital_instruments_share_premium}}
+  </corep:CapitalInstrumentsAndTheRelatedSharePremiumAccounts>
+
+  <!-- Retained earnings -->
+  <corep:RetainedEarnings contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{retained_earnings}}
+  </corep:RetainedEarnings>
+
+  <!-- Accumulated other comprehensive income (and other reserves) -->
+  <corep:AccumulatedOtherComprehensiveIncomeAndOtherReserves contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{accumulated_oci_other_reserves}}
+  </corep:AccumulatedOtherComprehensiveIncomeAndOtherReserves>
+
+  <!-- Independently reviewed interim profits net of any foreseeable charge or dividend -->
+  <corep:IndependentlyReviewedInterimProfitsNetOfAnyForeseeableChargeOrDividend contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{interim_profits}}
+  </corep:IndependentlyReviewedInterimProfitsNetOfAnyForeseeableChargeOrDividend>
+
+  <!-- Common Equity Tier 1 (CET1) capital before regulatory adjustments -->
+  <corep:CommonEquityTier1CET1CapitalBeforeRegulatoryAdjustments contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{cet1_before_adjustments}}
+  </corep:CommonEquityTier1CET1CapitalBeforeRegulatoryAdjustments>
+
+  <!-- COMMON EQUITY TIER 1 (CET1) CAPITAL: REGULATORY ADJUSTMENTS -->
+
+  <!-- Additional value adjustments (negative amount) -->
+  <corep:AdditionalValueAdjustmentsNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{additional_value_adjustments}}
+  </corep:AdditionalValueAdjustmentsNegativeAmount>
+
+  <!-- Intangible assets (net of related tax liability) (negative amount) -->
+  <corep:IntangibleAssetsNetOfRelatedTaxLiabilityNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{intangible_assets_negative}}
+  </corep:IntangibleAssetsNetOfRelatedTaxLiabilityNegativeAmount>
+
+  <!-- Deferred tax assets that rely on future profitability excluding those arising from temporary differences (net of related tax liability where the conditions in Article 38 (3) are met) (negative amount) -->
+  <corep:DeferredTaxAssetsThatRelyOnFutureProfitabilityExcludingThoseArisingFromTemporaryDifferencesNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{deferred_tax_assets_negative}}
+  </corep:DeferredTaxAssetsThatRelyOnFutureProfitabilityExcludingThoseArisingFromTemporaryDifferencesNegativeAmount>
+
+  <!-- Fair value reserves related to gains or losses on cash flow hedges -->
+  <corep:FairValueReservesRelatedToGainsOrLossesOnCashFlowHedges contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{fair_value_reserves_hedges}}
+  </corep:FairValueReservesRelatedToGainsOrLossesOnCashFlowHedges>
+
+  <!-- Negative amounts resulting from the calculation of expected loss amounts -->
+  <corep:NegativeAmountsResultingFromTheCalculationOfExpectedLossAmounts contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{negative_expected_loss}}
+  </corep:NegativeAmountsResultingFromTheCalculationOfExpectedLossAmounts>
+
+  <!-- Any increase in equity that results from securitised assets (negative amount) -->
+  <corep:AnyIncreaseInEquityThatResultsFromSecuritisedAssetsNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{securitised_assets_increase}}
+  </corep:AnyIncreaseInEquityThatResultsFromSecuritisedAssetsNegativeAmount>
+
+  <!-- Gains or losses on liabilities valued at fair value resulting from changes in own credit standing -->
+  <corep:GainsOrLossesOnLiabilitiesValuedAtFairValueResultingFromChangesInOwnCreditStanding contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{own_credit_gains_losses}}
+  </corep:GainsOrLossesOnLiabilitiesValuedAtFairValueResultingFromChangesInOwnCreditStanding>
+
+  <!-- Defined-benefit pension fund assets (negative amount) -->
+  <corep:DefinedBenefitPensionFundAssetsNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{pension_fund_assets_negative}}
+  </corep:DefinedBenefitPensionFundAssetsNegativeAmount>
+
+  <!-- Direct and indirect holdings by the institution of own CET1 instruments (negative amount) -->
+  <corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnCET1InstrumentsNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{own_cet1_holdings_negative}}
+  </corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnCET1InstrumentsNegativeAmount>
+
+  <!-- Direct, indirect and synthetic holdings of the CET1 instruments of financial sector entities where the institution has a significant investment in those entities (amount above 10% threshold and net of eligible short positions) (negative amount) -->
+  <corep:DirectIndirectAndSyntheticHoldingsOfTheCET1InstrumentsOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesAmountAbove10PercentThresholdAndNetOfEligibleShortPositionsNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{cet1_significant_investments_negative}}
+  </corep:DirectIndirectAndSyntheticHoldingsOfTheCET1InstrumentsOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesAmountAbove10PercentThresholdAndNetOfEligibleShortPositionsNegativeAmount>
+
+  <!-- Deferred tax assets arising from temporary differences (amount above 10% threshold, net of related tax liability where the conditions in Article 38 (3) are met) (negative amount) -->
+  <corep:DeferredTaxAssetsArisingFromTemporaryDifferencesAmountAbove10PercentThresholdNetOfRelatedTaxLiabilityWhereTheConditionsInArticle383AreMet contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{deferred_tax_temp_diff_negative}}
+  </corep:DeferredTaxAssetsArisingFromTemporaryDifferencesAmountAbove10PercentThresholdNetOfRelatedTaxLiabilityWhereTheConditionsInArticle383AreMet>
+
+  <!-- Amount exceeding the 17.65% threshold (negative amount) -->
+  <corep:AmountExceedingThe1765PercentThresholdNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{amount_exceeding_threshold}}
+  </corep:AmountExceedingThe1765PercentThresholdNegativeAmount>
+
+  <!-- Other regulatory adjustments -->
+  <corep:OtherRegulatoryAdjustments contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{other_regulatory_adjustments}}
+  </corep:OtherRegulatoryAdjustments>
+
+  <!-- Total regulatory adjustments to Common Equity Tier 1 (CET1) -->
+  <corep:TotalRegulatoryAdjustmentsToCommonEquityTier1CET1 contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{total_cet1_adjustments}}
+  </corep:TotalRegulatoryAdjustmentsToCommonEquityTier1CET1>
+
+  <!-- Common Equity Tier 1 (CET1) capital -->
+  <corep:CommonEquityTier1CET1Capital contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{cet1_capital}}
+  </corep:CommonEquityTier1CET1Capital>
+
+  <!-- ADDITIONAL TIER 1 (AT1) CAPITAL: INSTRUMENTS -->
+
+  <!-- Qualifying Additional Tier 1 instruments plus related share premium accounts subject to phase out from Additional Tier 1 -->
+  <corep:QualifyingAdditionalTier1InstrumentsPlusRelatedSharePremiumAccountsSubjectToPhaseOutFromAdditionalTier1 contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{at1_instruments_phase_out}}
+  </corep:QualifyingAdditionalTier1InstrumentsPlusRelatedSharePremiumAccountsSubjectToPhaseOutFromAdditionalTier1>
+
+  <!-- Qualifying Additional Tier 1 instruments plus related share premium accounts subject to phase out from Additional Tier 1 due to insufficient capacity (instruments whose recognition in Additional Tier 1 is capped) -->
+  <corep:QualifyingAdditionalTier1InstrumentsPlusRelatedSharePremiumAccountsSubjectToPhaseOutFromAdditionalTier1DueToInsufficientCapacityInstrumentsWhoseRecognitionInAdditionalTier1IsCapped contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{at1_instruments_capped}}
+  </corep:QualifyingAdditionalTier1InstrumentsPlusRelatedSharePremiumAccountsSubjectToPhaseOutFromAdditionalTier1DueToInsufficientCapacityInstrumentsWhoseRecognitionInAdditionalTier1IsCapped>
+
+  <!-- Additional Tier 1 (AT1) capital before regulatory adjustments -->
+  <corep:AdditionalTier1AT1CapitalBeforeRegulatoryAdjustments contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{at1_before_adjustments}}
+  </corep:AdditionalTier1AT1CapitalBeforeRegulatoryAdjustments>
+
+  <!-- ADDITIONAL TIER 1 (AT1) CAPITAL: REGULATORY ADJUSTMENTS -->
+
+  <!-- Direct and indirect holdings by the institution of own AT1 instruments (negative amount) -->
+  <corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnAT1InstrumentsNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{own_at1_holdings_negative}}
+  </corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnAT1InstrumentsNegativeAmount>
+
+  <!-- Direct, indirect and synthetic holdings of the AT1 instruments of financial sector entities where the institution has a significant investment in those entities (net of eligible short positions) (negative amount) -->
+  <corep:DirectIndirectAndSyntheticHoldingsOfTheAT1InstrumentsOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesNetOfEligibleShortPositionsNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{at1_significant_investments_negative}}
+  </corep:DirectIndirectAndSyntheticHoldingsOfTheAT1InstrumentsOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesNetOfEligibleShortPositionsNegativeAmount>
+
+  <!-- Other regulatory adjustments to AT1 capital -->
+  <corep:OtherRegulatoryAdjustmentsToAT1Capital contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{other_at1_adjustments}}
+  </corep:OtherRegulatoryAdjustmentsToAT1Capital>
+
+  <!-- Total regulatory adjustments to Additional Tier 1 (AT1) capital -->
+  <corep:TotalRegulatoryAdjustmentsToAdditionalTier1AT1Capital contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{total_at1_adjustments}}
+  </corep:TotalRegulatoryAdjustmentsToAdditionalTier1AT1Capital>
+
+  <!-- Additional Tier 1 (AT1) capital -->
+  <corep:AdditionalTier1AT1Capital contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{at1_capital}}
+  </corep:AdditionalTier1AT1Capital>
+
+  <!-- Tier 1 capital (T1 = CET1 + AT1) -->
+  <corep:Tier1CapitalT1CET1AT1 contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{tier1_capital}}
+  </corep:Tier1CapitalT1CET1AT1>
+
+  <!-- TIER 2 (T2) CAPITAL: INSTRUMENTS AND PROVISIONS -->
+
+  <!-- Qualifying own funds instruments included in consolidated T2 capital (including minority interests and AT1 instruments not included in T1 capital) issued by subsidiaries and held by third parties -->
+  <corep:QualifyingOwnFundsInstrumentsIncludedInConsolidatedT2CapitalIncludingMinorityInterestsAndAT1InstrumentsNotIncludedInT1CapitalIssuedBySubsidiariesAndHeldByThirdParties contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{t2_qualifying_instruments}}
+  </corep:QualifyingOwnFundsInstrumentsIncludedInConsolidatedT2CapitalIncludingMinorityInterestsAndAT1InstrumentsNotIncludedInT1CapitalIssuedBySubsidiariesAndHeldByThirdParties>
+
+  <!-- Credit risk adjustments -->
+  <corep:CreditRiskAdjustments contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{credit_risk_adjustments}}
+  </corep:CreditRiskAdjustments>
+
+  <!-- Tier 2 (T2) capital before regulatory adjustments -->
+  <corep:Tier2T2CapitalBeforeRegulatoryAdjustments contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{t2_before_adjustments}}
+  </corep:Tier2T2CapitalBeforeRegulatoryAdjustments>
+
+  <!-- TIER 2 (T2) CAPITAL: REGULATORY ADJUSTMENTS -->
+
+  <!-- Direct and indirect holdings by the institution of own T2 instruments and subordinated loans (negative amount) -->
+  <corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnT2InstrumentsAndSubordinatedLoansNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{own_t2_holdings_negative}}
+  </corep:DirectAndIndirectHoldingsByTheInstitutionOfOwnT2InstrumentsAndSubordinatedLoansNegativeAmount>
+
+  <!-- Direct, indirect and synthetic holdings of the T2 instruments and subordinated loans of financial sector entities where the institution has a significant investment in those entities (net of eligible short positions) (negative amount) -->
+  <corep:DirectIndirectAndSyntheticHoldingsOfTheT2InstrumentsAndSubordinatedLoansOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesNetOfEligibleShortPositionsNegativeAmount contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{t2_significant_investments_negative}}
+  </corep:DirectIndirectAndSyntheticHoldingsOfTheT2InstrumentsAndSubordinatedLoansOfFinancialSectorEntitiesWhereTheInstitutionHasASignificantInvestmentInThoseEntitiesNetOfEligibleShortPositionsNegativeAmount>
+
+  <!-- Other regulatory adjustments to T2 capital -->
+  <corep:OtherRegulatoryAdjustmentsToT2Capital contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{other_t2_adjustments}}
+  </corep:OtherRegulatoryAdjustmentsToT2Capital>
+
+  <!-- Total regulatory adjustments to Tier 2 (T2) capital -->
+  <corep:TotalRegulatoryAdjustmentsToTier2T2Capital contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{total_t2_adjustments}}
+  </corep:TotalRegulatoryAdjustmentsToTier2T2Capital>
+
+  <!-- Tier 2 (T2) capital -->
+  <corep:Tier2T2Capital contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{t2_capital}}
+  </corep:Tier2T2Capital>
+
+  <!-- Total capital (TC = T1 + T2) -->
+  <corep:TotalCapitalTCT1T2 contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{total_capital}}
+  </corep:TotalCapitalTCT1T2>
+
+  <!-- Total risk weighted assets -->
+  <corep:TotalRiskWeightedAssets contextRef="instant_end" unitRef="{{currency}}" decimals="0">
+    {{total_rwa}}
+  </corep:TotalRiskWeightedAssets>
+
+  <!-- CAPITAL RATIOS AND BUFFERS -->
+
+  <!-- Common Equity Tier 1 (as a percentage of risk weighted assets) -->
+  <corep:CommonEquityTier1AsAPercentageOfRiskWeightedAssets contextRef="instant_end" unitRef="pure" decimals="4">
+    {{cet1_ratio}}
+  </corep:CommonEquityTier1AsAPercentageOfRiskWeightedAssets>
+
+  <!-- Tier 1 (as a percentage of risk weighted assets) -->
+  <corep:Tier1AsAPercentageOfRiskWeightedAssets contextRef="instant_end" unitRef="pure" decimals="4">
+    {{tier1_ratio}}
+  </corep:Tier1AsAPercentageOfRiskWeightedAssets>
+
+  <!-- Total capital (as a percentage of risk weighted assets) -->
+  <corep:TotalCapitalAsAPercentageOfRiskWeightedAssets contextRef="instant_end" unitRef="pure" decimals="4">
+    {{total_capital_ratio}}
+  </corep:TotalCapitalAsAPercentageOfRiskWeightedAssets>
+
+  <!-- Institution specific buffer requirement (CET1 requirement in accordance with article 92 (1) (a) plus capital conservation and countercyclical buffer requirements plus systemic risk buffer plus systemically important institution buffer expressed as a percentage of risk weighted assets) -->
+  <corep:InstitutionSpecificBufferRequirementCET1RequirementInAccordanceWithArticle921APlusCapitalConservationAndCountercyclicalBufferRequirementsPlusSystemicRiskBufferPlusSystemicallyImportantInstitutionBufferExpressedAsAPercentageOfRiskWeightedAssets contextRef="instant_end" unitRef="pure" decimals="4">
+    {{buffer_requirement}}
+  </corep:InstitutionSpecificBufferRequirementCET1RequirementInAccordanceWithArticle921APlusCapitalConservationAndCountercyclicalBufferRequirementsPlusSystemicRiskBufferPlusSystemicallyImportantInstitutionBufferExpressedAsAPercentageOfRiskWeightedAssets>
+
+  <!-- of which: capital conservation buffer requirement -->
+  <corep:OfWhichCapitalConservationBufferRequirement contextRef="instant_end" unitRef="pure" decimals="4">
+    {{conservation_buffer}}
+  </corep:OfWhichCapitalConservationBufferRequirement>
+
+  <!-- of which: countercyclical buffer requirement -->
+  <corep:OfWhichCountercyclicalBufferRequirement contextRef="instant_end" unitRef="pure" decimals="4">
+    {{countercyclical_buffer}}
+  </corep:OfWhichCountercyclicalBufferRequirement>
+
+  <!-- of which: systemic risk buffer requirement -->
+  <corep:OfWhichSystemicRiskBufferRequirement contextRef="instant_end" unitRef="pure" decimals="4">
+    {{systemic_risk_buffer}}
+  </corep:OfWhichSystemicRiskBufferRequirement>
+
+  <!-- of which: Global Systemically Important Institution (G-SII) or Other Systemically Important Institution (O-SII) buffer -->
+  <corep:OfWhichGlobalSystemicallyImportantInstitutionGSIIOrOtherSystemicallyImportantInstitutionOSIIBuffer contextRef="instant_end" unitRef="pure" decimals="4">
+    {{sii_buffer}}
+  </corep:OfWhichGlobalSystemicallyImportantInstitutionGSIIOrOtherSystemicallyImportantInstitutionOSIIBuffer>
+
+  <!-- Common Equity Tier 1 available to meet buffers (as a percentage of risk weighted assets) -->
+  <corep:CommonEquityTier1AvailableToMeetBuffersAsAPercentageOfRiskWeightedAssets contextRef="instant_end" unitRef="pure" decimals="4">
+    {{cet1_available_buffers}}
+  </corep:CommonEquityTier1AvailableToMeetBuffersAsAPercentageOfRiskWeightedAssets>
+
+</xbrl>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FINREP F 01.01 - Statement of Financial Position Template -->
+<!-- EBA FINREP Taxonomy v3.2.0 Compliant -->
+<xbrli:xbrl 
+    xmlns:xbrli="http://www.xbrl.org/2003/instance"
+    xmlns:link="http://www.xbrl.org/2003/linkbase"
+    xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:finrep="http://www.eba.europa.eu/xbrl/crr/dict/dom/finrep"
+    xmlns:iso4217="http://www.xbrl.org/2003/iso4217">
+
+    <!-- Schema Reference -->
+    <link:schemaRef 
+        xlink:type="simple" 
+        xlink:href="http://www.eba.europa.eu/eu/fr/xbrl/crr/fws/finrep/its-005-2020/2021-06-30/mod/finrep_cor.xsd"/>
+
+    <!-- Context Definition -->
+    <xbrli:context id="c1">
+        <xbrli:entity>
+            <xbrli:identifier scheme="http://www.eba.europa.eu">{{institution_code}}</xbrli:identifier>
+        </xbrli:entity>
+        <xbrli:period>
+            <xbrli:instant>{{reporting_date}}</xbrli:instant>
+        </xbrli:period>
+        <xbrli:scenario>
+            <finrep:ConsolidationBasis>{{consolidation_basis}}</finrep:ConsolidationBasis>
+        </xbrli:scenario>
+    </xbrli:context>
+
+    <!-- Unit Definition -->
+    <xbrli:unit id="{{currency}}">
+        <xbrli:measure>iso4217:{{currency}}</xbrli:measure>
+    </xbrli:unit>
+
+    <!-- ASSETS -->
+    
+    <!-- Cash, cash balances at central banks and other demand deposits -->
+    <finrep:CashBalancesAtCentralBanksAndOtherDemandDeposits 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{cash_balances}}</finrep:CashBalancesAtCentralBanksAndOtherDemandDeposits>
+
+    <!-- Financial assets held for trading -->
+    <finrep:FinancialAssetsHeldForTrading 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{financial_assets_hft}}</finrep:FinancialAssetsHeldForTrading>
+
+    <!-- Non-trading financial assets mandatorily at fair value through profit or loss -->
+    <finrep:NonTradingFinancialAssetsMandatorilyAtFairValueThroughProfitOrLoss 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{financial_assets_mandatorily_fvtpl}}</finrep:NonTradingFinancialAssetsMandatorilyAtFairValueThroughProfitOrLoss>
+
+    <!-- Financial assets designated at fair value through profit or loss -->
+    <finrep:FinancialAssetsDesignatedAtFairValueThroughProfitOrLoss 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{financial_assets_designated_fvtpl}}</finrep:FinancialAssetsDesignatedAtFairValueThroughProfitOrLoss>
+
+    <!-- Financial assets at fair value through other comprehensive income -->
+    <finrep:FinancialAssetsAtFairValueThroughOtherComprehensiveIncome 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{financial_assets_fvoci}}</finrep:FinancialAssetsAtFairValueThroughOtherComprehensiveIncome>
+
+    <!-- Financial assets at amortised cost -->
+    <finrep:FinancialAssetsAtAmortisedCost 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{financial_assets_amortised_cost}}</finrep:FinancialAssetsAtAmortisedCost>
+
+    <!-- Derivatives – Hedge accounting -->
+    <finrep:DerivativesHedgeAccounting 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{derivatives_hedge_accounting}}</finrep:DerivativesHedgeAccounting>
+
+    <!-- Investments in subsidiaries, joint ventures and associates -->
+    <finrep:InvestmentsInSubsidiariesJointVenturesAndAssociates 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{investments_subsidiaries}}</finrep:InvestmentsInSubsidiariesJointVenturesAndAssociates>
+
+    <!-- Tangible assets -->
+    <finrep:TangibleAssets 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{tangible_assets}}</finrep:TangibleAssets>
+
+    <!-- Intangible assets -->
+    <finrep:IntangibleAssets 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{intangible_assets}}</finrep:IntangibleAssets>
+
+    <!-- Tax assets -->
+    <finrep:TaxAssets 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{tax_assets}}</finrep:TaxAssets>
+
+    <!-- Other assets -->
+    <finrep:OtherAssets 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{other_assets}}</finrep:OtherAssets>
+
+    <!-- TOTAL ASSETS -->
+    <finrep:TotalAssets 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{total_assets}}</finrep:TotalAssets>
+
+    <!-- LIABILITIES -->
+
+    <!-- Financial liabilities held for trading -->
+    <finrep:FinancialLiabilitiesHeldForTrading 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{financial_liabilities_hft}}</finrep:FinancialLiabilitiesHeldForTrading>
+
+    <!-- Financial liabilities designated at fair value through profit or loss -->
+    <finrep:FinancialLiabilitiesDesignatedAtFairValueThroughProfitOrLoss 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{financial_liabilities_designated_fvtpl}}</finrep:FinancialLiabilitiesDesignatedAtFairValueThroughProfitOrLoss>
+
+    <!-- Financial liabilities at amortised cost -->
+    <finrep:FinancialLiabilitiesAtAmortisedCost 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{financial_liabilities_amortised_cost}}</finrep:FinancialLiabilitiesAtAmortisedCost>
+
+    <!-- Derivatives – Hedge accounting (liabilities) -->
+    <finrep:DerivativesHedgeAccountingLiabilities 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{derivatives_hedge_accounting_liab}}</finrep:DerivativesHedgeAccountingLiabilities>
+
+    <!-- Provisions -->
+    <finrep:Provisions 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{provisions}}</finrep:Provisions>
+
+    <!-- Tax liabilities -->
+    <finrep:TaxLiabilities 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{tax_liabilities}}</finrep:TaxLiabilities>
+
+    <!-- Other liabilities -->
+    <finrep:OtherLiabilities 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{other_liabilities}}</finrep:OtherLiabilities>
+
+    <!-- TOTAL LIABILITIES -->
+    <finrep:TotalLiabilities 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{total_liabilities}}</finrep:TotalLiabilities>
+
+    <!-- EQUITY -->
+
+    <!-- Capital -->
+    <finrep:Capital 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{capital}}</finrep:Capital>
+
+    <!-- Retained earnings -->
+    <finrep:RetainedEarnings 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{retained_earnings}}</finrep:RetainedEarnings>
+
+    <!-- Accumulated other comprehensive income -->
+    <finrep:AccumulatedOtherComprehensiveIncome 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{accumulated_oci}}</finrep:AccumulatedOtherComprehensiveIncome>
+
+    <!-- Other reserves -->
+    <finrep:OtherReserves 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{other_reserves}}</finrep:OtherReserves>
+
+    <!-- TOTAL EQUITY -->
+    <finrep:TotalEquity 
+        contextRef="c1" 
+        unitRef="{{currency}}" 
+        decimals="0">{{total_equity}}</finrep:TotalEquity>
+
+</xbrli:xbrl>

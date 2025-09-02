@@ -1,0 +1,552 @@
+name: Regulatory Compliance Testing Pipeline
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run comprehensive tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  DOCKER_COMPOSE_VERSION: '2.20.0'
+
+jobs:
+  # =========================================================================
+  # PHASE 5 UNIT TESTS
+  # =========================================================================
+  unit-tests:
+    name: Phase 5 Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        test-suite:
+          - rule_compiler
+          - jurisdiction_handler
+          - overlap_resolver
+          - compliance_report_generator
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-asyncio pytest-timeout
+        find . -name "requirements.txt" -exec pip install -r {} \;
+    
+    - name: Run unit tests
+      run: |
+        python -m pytest tests/unit/test_${{ matrix.test-suite }}.py \
+          -v --tb=short \
+          --cov=python-agents \
+          --cov-report=xml \
+          --cov-report=html \
+          --timeout=300
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unit-tests-${{ matrix.test-suite }}
+        name: codecov-${{ matrix.test-suite }}
+    
+    - name: Archive coverage reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-${{ matrix.test-suite }}
+        path: htmlcov/
+
+  # =========================================================================
+  # PHASE 5 INTEGRATION TESTS
+  # =========================================================================
+  integration-tests:
+    name: Phase 5 Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: unit-tests
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: compliance_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+      
+      kafka:
+        image: confluentinc/cp-kafka:latest
+        env:
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        ports:
+          - 9092:9092
+      
+      zookeeper:
+        image: confluentinc/cp-zookeeper:latest
+        env:
+          ZOOKEEPER_CLIENT_PORT: 2181
+          ZOOKEEPER_TICK_TIME: 2000
+        ports:
+          - 2181:2181
+    
+    strategy:
+      matrix:
+        test-suite:
+          - regulatory_pipeline
+          - report_delivery
+          - kafka_integration
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-asyncio pytest-timeout
+        find . -name "requirements.txt" -exec pip install -r {} \;
+    
+    - name: Wait for services
+      run: |
+        sleep 30  # Wait for Kafka and Zookeeper to be ready
+    
+    - name: Initialize test database
+      run: |
+        PGPASSWORD=postgres psql -h localhost -U postgres -d compliance_test -f database/init.sql
+      env:
+        PGPASSWORD: postgres
+    
+    - name: Set up Kafka topics
+      run: |
+        python scripts/setup_regulatory_kafka.py --test-mode
+    
+    - name: Run integration tests
+      run: |
+        python -m pytest tests/integration/test_${{ matrix.test-suite }}.py \
+          -v --tb=short \
+          --timeout=600 \
+          -m "not performance"
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/compliance_test
+        REDIS_URL: redis://localhost:6379
+        KAFKA_BOOTSTRAP_SERVERS: localhost:9092
+    
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: integration-test-results-${{ matrix.test-suite }}
+        path: |
+          test-results/
+          logs/
+
+  # =========================================================================
+  # PHASE 5 SCENARIO TESTS
+  # =========================================================================
+  scenario-tests:
+    name: Phase 5 Scenario Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    needs: integration-tests
+    
+    strategy:
+      matrix:
+        jurisdiction:
+          - germany
+          - ireland
+          - overlap
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-asyncio pytest-timeout
+        find . -name "requirements.txt" -exec pip install -r {} \;
+    
+    - name: Run scenario tests
+      run: |
+        python -m pytest tests/scenarios/test_${{ matrix.jurisdiction }}_scenario.py \
+          -v --tb=short \
+          --timeout=900 \
+          --maxfail=3
+    
+    - name: Archive scenario test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: scenario-test-results-${{ matrix.jurisdiction }}
+        path: |
+          test-results/
+          scenario-reports/
+
+  # =========================================================================
+  # PHASE 5 PERFORMANCE TESTS
+  # =========================================================================
+  performance-tests:
+    name: Phase 5 Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    needs: scenario-tests
+    if: github.event_name == 'schedule' || contains(github.event.head_commit.message, '[run-performance]')
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: compliance_perf
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    strategy:
+      matrix:
+        test-type:
+          - load_performance
+          - sla_validation
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-asyncio pytest-timeout psutil
+        find . -name "requirements.txt" -exec pip install -r {} \;
+    
+    - name: Initialize performance test database
+      run: |
+        PGPASSWORD=postgres psql -h localhost -U postgres -d compliance_perf -f database/init.sql
+      env:
+        PGPASSWORD: postgres
+    
+    - name: Run performance tests
+      run: |
+        python -m pytest tests/performance/test_${{ matrix.test-type }}.py \
+          -v --tb=short \
+          --timeout=1800 \
+          -m "not load_test"
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/compliance_perf
+        REDIS_URL: redis://localhost:6379
+        PERFORMANCE_TEST_MODE: true
+    
+    - name: Run load tests (if scheduled)
+      if: github.event_name == 'schedule'
+      run: |
+        python -m pytest tests/performance/test_load_performance.py \
+          -v --tb=short \
+          --timeout=3600 \
+          -m "load_test"
+      env:
+        DATABASE_URL: postgresql://postgres:postgres@localhost:5432/compliance_perf
+        REDIS_URL: redis://localhost:6379
+        LOAD_TEST_MODE: true
+    
+    - name: Generate performance report
+      if: always()
+      run: |
+        python scripts/performance_optimization.py --generate-report
+    
+    - name: Archive performance results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-test-results-${{ matrix.test-type }}
+        path: |
+          performance-reports/
+          performance-metrics/
+          optimization-reports/
+
+  # =========================================================================
+  # COMPREHENSIVE SYSTEM TESTS
+  # =========================================================================
+  system-tests:
+    name: Comprehensive System Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    needs: [unit-tests, integration-tests, scenario-tests]
+    if: github.ref == 'refs/heads/main' || github.event_name == 'schedule'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Install Docker Compose
+      run: |
+        curl -L "https://github.com/docker/compose/releases/download/v${{ env.DOCKER_COMPOSE_VERSION }}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        chmod +x /usr/local/bin/docker-compose
+    
+    - name: Build and start system
+      run: |
+        docker-compose up -d --build
+        sleep 60  # Wait for system to stabilize
+    
+    - name: Install test dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-asyncio requests selenium
+        find . -name "requirements.txt" -exec pip install -r {} \;
+    
+    - name: Run comprehensive automated tests
+      run: |
+        python scripts/automated_tests.py
+    
+    - name: Run system health checks
+      run: |
+        python scripts/verify_deployment.sh
+    
+    - name: Generate system test report
+      if: always()
+      run: |
+        python scripts/generate_test_report.py --comprehensive
+    
+    - name: Archive system test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: system-test-results
+        path: |
+          test-reports/
+          system-metrics/
+          deployment-verification/
+    
+    - name: Stop system
+      if: always()
+      run: |
+        docker-compose down -v
+
+  # =========================================================================
+  # REGULATORY COMPLIANCE VALIDATION
+  # =========================================================================
+  compliance-validation:
+    name: Regulatory Compliance Validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: system-tests
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-asyncio
+        find . -name "requirements.txt" -exec pip install -r {} \;
+    
+    - name: Validate @rules.mdc compliance
+      run: |
+        python scripts/validate_rules_compliance.py --comprehensive
+    
+    - name: Validate Phase 5 completion
+      run: |
+        python scripts/validate_phase5_completion.py
+    
+    - name: Generate compliance report
+      run: |
+        python scripts/generate_compliance_report.py
+    
+    - name: Archive compliance validation
+      uses: actions/upload-artifact@v3
+      with:
+        name: compliance-validation-results
+        path: |
+          compliance-reports/
+          rules-validation/
+          phase5-validation/
+
+  # =========================================================================
+  # TEST RESULT AGGREGATION AND REPORTING
+  # =========================================================================
+  test-reporting:
+    name: Test Result Aggregation
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, scenario-tests, performance-tests, system-tests, compliance-validation]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install reporting dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install jinja2 matplotlib seaborn pandas
+    
+    - name: Generate comprehensive test report
+      run: |
+        python scripts/generate_comprehensive_test_report.py \
+          --include-coverage \
+          --include-performance \
+          --include-compliance \
+          --output-format html,json,pdf
+    
+    - name: Upload comprehensive test report
+      uses: actions/upload-artifact@v3
+      with:
+        name: comprehensive-test-report
+        path: |
+          test-reports/comprehensive-report.*
+          test-reports/summary.*
+          test-reports/metrics.*
+    
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          try {
+            const reportSummary = fs.readFileSync('test-reports/summary.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: reportSummary
+            });
+          } catch (error) {
+            console.log('Could not read test summary:', error);
+          }
+
+  # =========================================================================
+  # DEPLOYMENT GATES
+  # =========================================================================
+  deployment-gate:
+    name: Deployment Gate
+    runs-on: ubuntu-latest
+    needs: [test-reporting]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download test results
+      uses: actions/download-artifact@v3
+      with:
+        name: comprehensive-test-report
+    
+    - name: Evaluate deployment readiness
+      run: |
+        python scripts/evaluate_deployment_readiness.py \
+          --test-results test-reports/ \
+          --min-coverage 95 \
+          --max-failures 0 \
+          --performance-threshold 0.5
+    
+    - name: Update deployment status
+      if: success()
+      run: |
+        echo "✅ All tests passed - System ready for deployment"
+        echo "DEPLOYMENT_READY=true" >> $GITHUB_ENV
+    
+    - name: Block deployment on failures
+      if: failure()
+      run: |
+        echo "❌ Tests failed - Deployment blocked"
+        echo "DEPLOYMENT_READY=false" >> $GITHUB_ENV
+        exit 1
+
+# =========================================================================
+# WORKFLOW CONFIGURATION
+# =========================================================================
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash

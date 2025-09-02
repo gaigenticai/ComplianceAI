@@ -1,7 +1,10 @@
-postgres=5433
-redis=6380
-qdrant=6335
-web-interface=8000
+postgres=5432
+redis=6379
+mongodb=27017
+qdrant=6333
+zookeeper=2181
+kafka=9092
+web-interface=8001
 intake-agent=8001
 intelligence-agent=8002
 decision-agent=8003

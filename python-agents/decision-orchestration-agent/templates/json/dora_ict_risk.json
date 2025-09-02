@@ -1,0 +1,531 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DORA ICT Risk Reporting Schema",
+  "description": "JSON schema for DORA (Digital Operational Resilience Act) ICT risk reporting",
+  "version": "1.0",
+  "type": "object",
+  "required": [
+    "institution_info",
+    "reporting_period",
+    "ict_risk_management",
+    "incident_reporting",
+    "third_party_risk",
+    "business_continuity"
+  ],
+  "properties": {
+    "institution_info": {
+      "type": "object",
+      "required": ["institution_code", "institution_name", "jurisdiction"],
+      "properties": {
+        "institution_code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{4,20}$",
+          "description": "Institution identifier (LEI or national code)"
+        },
+        "institution_name": {
+          "type": "string",
+          "maxLength": 200,
+          "description": "Full legal name of the institution"
+        },
+        "jurisdiction": {
+          "type": "string",
+          "enum": ["EU", "DE", "IE", "GB", "FR", "IT", "ES", "NL"],
+          "description": "Primary regulatory jurisdiction"
+        },
+        "contact_person": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string", "maxLength": 100},
+            "email": {"type": "string", "format": "email"},
+            "phone": {"type": "string", "maxLength": 20}
+          }
+        }
+      }
+    },
+    "reporting_period": {
+      "type": "object",
+      "required": ["start_date", "end_date", "frequency"],
+      "properties": {
+        "start_date": {
+          "type": "string",
+          "format": "date",
+          "description": "Start date of reporting period (YYYY-MM-DD)"
+        },
+        "end_date": {
+          "type": "string", 
+          "format": "date",
+          "description": "End date of reporting period (YYYY-MM-DD)"
+        },
+        "frequency": {
+          "type": "string",
+          "enum": ["QUARTERLY", "SEMI_ANNUAL", "ANNUAL"],
+          "description": "Reporting frequency"
+        }
+      }
+    },
+    "ict_risk_management": {
+      "type": "object",
+      "required": ["governance_framework", "risk_appetite", "risk_assessment"],
+      "properties": {
+        "governance_framework": {
+          "type": "object",
+          "properties": {
+            "board_oversight": {
+              "type": "boolean",
+              "description": "Board-level ICT risk oversight in place"
+            },
+            "risk_committee_exists": {
+              "type": "boolean",
+              "description": "Dedicated ICT risk committee exists"
+            },
+            "policies_updated": {
+              "type": "string",
+              "format": "date",
+              "description": "Date of last ICT risk policy update"
+            },
+            "staff_training_hours": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total ICT risk training hours provided"
+            }
+          }
+        },
+        "risk_appetite": {
+          "type": "object",
+          "properties": {
+            "risk_tolerance_level": {
+              "type": "string",
+              "enum": ["LOW", "MEDIUM", "HIGH"],
+              "description": "Overall ICT risk tolerance level"
+            },
+            "maximum_downtime_hours": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Maximum acceptable system downtime per incident"
+            },
+            "data_loss_tolerance": {
+              "type": "string",
+              "enum": ["ZERO", "MINIMAL", "LIMITED"],
+              "description": "Data loss tolerance level"
+            }
+          }
+        },
+        "risk_assessment": {
+          "type": "object",
+          "properties": {
+            "last_assessment_date": {
+              "type": "string",
+              "format": "date",
+              "description": "Date of last comprehensive ICT risk assessment"
+            },
+            "critical_systems_count": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of systems classified as critical"
+            },
+            "high_risk_systems_count": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of systems classified as high risk"
+            },
+            "vulnerabilities_identified": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total vulnerabilities identified in assessment"
+            },
+            "vulnerabilities_remediated": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Vulnerabilities remediated during period"
+            }
+          }
+        }
+      }
+    },
+    "incident_reporting": {
+      "type": "object",
+      "required": ["total_incidents", "major_incidents", "incident_categories"],
+      "properties": {
+        "total_incidents": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of ICT-related incidents"
+        },
+        "major_incidents": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of major ICT incidents (regulatory threshold)"
+        },
+        "incident_categories": {
+          "type": "object",
+          "properties": {
+            "cyber_attacks": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Incidents caused by cyber attacks"
+            },
+            "system_failures": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Incidents caused by system failures"
+            },
+            "human_error": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Incidents caused by human error"
+            },
+            "third_party_failures": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Incidents caused by third-party failures"
+            },
+            "natural_disasters": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Incidents caused by natural disasters"
+            }
+          }
+        },
+        "incident_impact": {
+          "type": "object",
+          "properties": {
+            "total_downtime_hours": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total system downtime in hours"
+            },
+            "customers_affected": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of customers affected by incidents"
+            },
+            "financial_impact": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Estimated financial impact in EUR"
+            },
+            "regulatory_notifications": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of incidents reported to regulators"
+            }
+          }
+        },
+        "response_metrics": {
+          "type": "object",
+          "properties": {
+            "average_detection_time_minutes": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Average time to detect incidents"
+            },
+            "average_response_time_minutes": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Average time to respond to incidents"
+            },
+            "average_resolution_time_hours": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Average time to resolve incidents"
+            }
+          }
+        }
+      }
+    },
+    "third_party_risk": {
+      "type": "object",
+      "required": ["total_providers", "critical_providers", "risk_assessment"],
+      "properties": {
+        "total_providers": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Total number of ICT third-party providers"
+        },
+        "critical_providers": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of critical ICT third-party providers"
+        },
+        "provider_categories": {
+          "type": "object",
+          "properties": {
+            "cloud_services": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Cloud service providers"
+            },
+            "software_providers": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Software vendors"
+            },
+            "data_centers": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Data center providers"
+            },
+            "network_providers": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Network service providers"
+            },
+            "security_services": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Cybersecurity service providers"
+            }
+          }
+        },
+        "risk_assessment": {
+          "type": "object",
+          "properties": {
+            "providers_assessed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of providers assessed for risk"
+            },
+            "high_risk_providers": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Providers classified as high risk"
+            },
+            "contracts_reviewed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Third-party contracts reviewed for ICT risk"
+            },
+            "exit_strategies_documented": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Providers with documented exit strategies"
+            }
+          }
+        },
+        "concentration_risk": {
+          "type": "object",
+          "properties": {
+            "single_provider_dependency": {
+              "type": "boolean",
+              "description": "Significant dependency on single provider exists"
+            },
+            "geographic_concentration": {
+              "type": "string",
+              "enum": ["LOW", "MEDIUM", "HIGH"],
+              "description": "Geographic concentration level of providers"
+            },
+            "service_concentration": {
+              "type": "string",
+              "enum": ["LOW", "MEDIUM", "HIGH"],
+              "description": "Service type concentration level"
+            }
+          }
+        }
+      }
+    },
+    "business_continuity": {
+      "type": "object",
+      "required": ["bcp_framework", "testing_program", "recovery_capabilities"],
+      "properties": {
+        "bcp_framework": {
+          "type": "object",
+          "properties": {
+            "bcp_policy_updated": {
+              "type": "string",
+              "format": "date",
+              "description": "Date of last BCP policy update"
+            },
+            "crisis_management_team": {
+              "type": "boolean",
+              "description": "Crisis management team established"
+            },
+            "communication_procedures": {
+              "type": "boolean",
+              "description": "Communication procedures documented"
+            },
+            "alternative_sites": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of alternative operational sites"
+            }
+          }
+        },
+        "testing_program": {
+          "type": "object",
+          "properties": {
+            "tests_conducted": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of BCP tests conducted"
+            },
+            "last_full_test_date": {
+              "type": "string",
+              "format": "date",
+              "description": "Date of last full-scale BCP test"
+            },
+            "test_success_rate": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Percentage of successful BCP tests"
+            },
+            "issues_identified": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Issues identified during testing"
+            },
+            "issues_resolved": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Issues resolved from testing"
+            }
+          }
+        },
+        "recovery_capabilities": {
+          "type": "object",
+          "properties": {
+            "recovery_time_objective_hours": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Target recovery time in hours"
+            },
+            "recovery_point_objective_hours": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Target recovery point in hours"
+            },
+            "data_backup_frequency": {
+              "type": "string",
+              "enum": ["REAL_TIME", "HOURLY", "DAILY", "WEEKLY"],
+              "description": "Data backup frequency"
+            },
+            "backup_testing_frequency": {
+              "type": "string",
+              "enum": ["DAILY", "WEEKLY", "MONTHLY", "QUARTERLY"],
+              "description": "Backup testing frequency"
+            },
+            "cross_border_arrangements": {
+              "type": "boolean",
+              "description": "Cross-border recovery arrangements in place"
+            }
+          }
+        }
+      }
+    },
+    "digital_resilience_testing": {
+      "type": "object",
+      "properties": {
+        "threat_intelligence": {
+          "type": "object",
+          "properties": {
+            "threat_feeds_subscribed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of threat intelligence feeds"
+            },
+            "threat_indicators_processed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Threat indicators processed during period"
+            },
+            "threat_hunting_activities": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Proactive threat hunting activities conducted"
+            }
+          }
+        },
+        "vulnerability_management": {
+          "type": "object",
+          "properties": {
+            "vulnerability_scans": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Vulnerability scans conducted"
+            },
+            "penetration_tests": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Penetration tests conducted"
+            },
+            "red_team_exercises": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Red team exercises conducted"
+            }
+          }
+        }
+      }
+    },
+    "regulatory_compliance": {
+      "type": "object",
+      "properties": {
+        "dora_compliance_status": {
+          "type": "string",
+          "enum": ["COMPLIANT", "PARTIALLY_COMPLIANT", "NON_COMPLIANT"],
+          "description": "Overall DORA compliance status"
+        },
+        "compliance_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "requirement": {"type": "string"},
+              "gap_description": {"type": "string"},
+              "remediation_plan": {"type": "string"},
+              "target_date": {"type": "string", "format": "date"}
+            }
+          }
+        },
+        "regulatory_interactions": {
+          "type": "object",
+          "properties": {
+            "supervisory_meetings": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Meetings with supervisory authorities"
+            },
+            "regulatory_requests": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Regulatory information requests received"
+            },
+            "enforcement_actions": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Regulatory enforcement actions"
+            }
+          }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "report_version": {
+          "type": "string",
+          "description": "Version of this report"
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when report was generated"
+        },
+        "generated_by": {
+          "type": "string",
+          "description": "System or user that generated the report"
+        },
+        "data_sources": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "List of data sources used"
+        },
+        "validation_status": {
+          "type": "string",
+          "enum": ["VALID", "WARNINGS", "ERRORS"],
+          "description": "Data validation status"
+        }
+      }
+    }
+  }
+}

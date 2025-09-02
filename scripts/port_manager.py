@@ -21,21 +21,54 @@ class PortManager:
     - Maintains port mapping consistency
     """
     
-    def __init__(self, compose_file: str = "docker-compose-simplified.yml"):
+    def __init__(self, compose_file: str = "docker-compose.yml"):
         self.compose_file = compose_file
+        self.port_assignments_file = ".port_assignments"
         self.base_ports = {
             'postgres': 5432,
             'redis': 6379,
+            'mongodb': 27017,
             'qdrant': 6333,
+            'zookeeper': 2181,
+            'kafka': 9092,
             'web-interface': 8000,
             'intake-agent': 8001,
             'intelligence-agent': 8002,
             'decision-agent': 8003,
+            'regulatory-intel-agent': 8004,
             'prometheus-intake': 9001,
             'prometheus-intelligence': 9002,
-            'prometheus-decision': 9003
+            'prometheus-decision': 9003,
+            'prometheus-regulatory': 9004,
+            'grafana': 3000,
+            'prometheus': 9090,
+            # Phase 3 specific ports
+            'phase3-dashboard': 8005,
+            'phase3-api': 8006,
+            'kafka-ui': 8080
         }
         self.assigned_ports = {}
+        self.load_existing_assignments()
+    
+    def load_existing_assignments(self):
+        """Load existing port assignments from file"""
+        try:
+            if os.path.exists(self.port_assignments_file):
+                with open(self.port_assignments_file, 'r') as f:
+                    self.assigned_ports = yaml.safe_load(f) or {}
+                print(f"Loaded existing port assignments: {self.assigned_ports}")
+        except Exception as e:
+            print(f"Warning: Could not load port assignments: {e}")
+            self.assigned_ports = {}
+    
+    def save_port_assignments(self):
+        """Save current port assignments to file"""
+        try:
+            with open(self.port_assignments_file, 'w') as f:
+                yaml.dump(self.assigned_ports, f, default_flow_style=False)
+            print(f"Saved port assignments to {self.port_assignments_file}")
+        except Exception as e:
+            print(f"Warning: Could not save port assignments: {e}")
         
     def is_port_available(self, port: int, host: str = 'localhost') -> bool:
         """Check if a port is available on the given host"""
@@ -76,6 +109,9 @@ class PortManager:
             print("✅ No port conflicts detected")
         else:
             print("🔧 Port conflicts resolved automatically")
+        
+        # Save port assignments for persistence
+        self.save_port_assignments()
             
         return self.assigned_ports
     
@@ -191,7 +227,7 @@ def main():
     if len(sys.argv) > 1:
         compose_file = sys.argv[1]
     else:
-        compose_file = "docker-compose-simplified.yml"
+        compose_file = "docker-compose.yml"
     
     print("🚀 Starting Automatic Port Conflict Resolution")
     print(f"📁 Using compose file: {compose_file}")

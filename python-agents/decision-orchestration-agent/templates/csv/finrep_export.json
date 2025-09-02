@@ -1,0 +1,396 @@
+{
+  "template_name": "FINREP CSV Export Template",
+  "version": "1.0",
+  "description": "CSV template for FINREP data export with validation rules",
+  "headers": [
+    "Institution Code",
+    "Institution Name", 
+    "Reporting Period",
+    "Currency",
+    "Consolidation Basis",
+    "Cash Balances",
+    "Financial Assets HFT",
+    "Financial Assets Mandatorily FVTPL",
+    "Financial Assets Designated FVTPL",
+    "Financial Assets FVOCI",
+    "Financial Assets Amortised Cost",
+    "Derivatives Hedge Accounting",
+    "Investments in Subsidiaries",
+    "Tangible Assets",
+    "Intangible Assets",
+    "Tax Assets",
+    "Other Assets",
+    "Total Assets",
+    "Financial Liabilities HFT",
+    "Financial Liabilities Designated FVTPL",
+    "Financial Liabilities Amortised Cost",
+    "Derivatives Hedge Accounting Liab",
+    "Provisions",
+    "Tax Liabilities",
+    "Other Liabilities",
+    "Total Liabilities",
+    "Capital",
+    "Retained Earnings",
+    "Accumulated OCI",
+    "Other Reserves",
+    "Total Equity",
+    "Interest Income",
+    "Interest Expenses",
+    "Net Interest Income",
+    "Fee Income",
+    "Fee Expenses",
+    "Net Fee Income",
+    "Trading Income",
+    "Other Operating Income",
+    "Total Operating Income",
+    "Staff Expenses",
+    "Other Administrative Expenses",
+    "Depreciation",
+    "Total Operating Expenses",
+    "Impairment Losses",
+    "Profit Before Tax",
+    "Tax Expense",
+    "Net Profit"
+  ],
+  "field_mappings": {
+    "Institution Code": "institution_code",
+    "Institution Name": "institution_name",
+    "Reporting Period": "reporting_period",
+    "Currency": "currency",
+    "Consolidation Basis": "consolidation_basis",
+    "Cash Balances": "cash_balances",
+    "Financial Assets HFT": "financial_assets_hft",
+    "Financial Assets Mandatorily FVTPL": "financial_assets_mandatorily_fvtpl",
+    "Financial Assets Designated FVTPL": "financial_assets_designated_fvtpl",
+    "Financial Assets FVOCI": "financial_assets_fvoci",
+    "Financial Assets Amortised Cost": "financial_assets_amortised_cost",
+    "Derivatives Hedge Accounting": "derivatives_hedge_accounting",
+    "Investments in Subsidiaries": "investments_subsidiaries",
+    "Tangible Assets": "tangible_assets",
+    "Intangible Assets": "intangible_assets",
+    "Tax Assets": "tax_assets",
+    "Other Assets": "other_assets",
+    "Total Assets": "total_assets",
+    "Financial Liabilities HFT": "financial_liabilities_hft",
+    "Financial Liabilities Designated FVTPL": "financial_liabilities_designated_fvtpl",
+    "Financial Liabilities Amortised Cost": "financial_liabilities_amortised_cost",
+    "Derivatives Hedge Accounting Liab": "derivatives_hedge_accounting_liab",
+    "Provisions": "provisions",
+    "Tax Liabilities": "tax_liabilities",
+    "Other Liabilities": "other_liabilities",
+    "Total Liabilities": "total_liabilities",
+    "Capital": "capital",
+    "Retained Earnings": "retained_earnings",
+    "Accumulated OCI": "accumulated_oci",
+    "Other Reserves": "other_reserves",
+    "Total Equity": "total_equity",
+    "Interest Income": "interest_income",
+    "Interest Expenses": "interest_expenses",
+    "Net Interest Income": "net_interest_income",
+    "Fee Income": "fee_income",
+    "Fee Expenses": "fee_expenses",
+    "Net Fee Income": "net_fee_income",
+    "Trading Income": "trading_income",
+    "Other Operating Income": "other_operating_income",
+    "Total Operating Income": "total_operating_income",
+    "Staff Expenses": "staff_expenses",
+    "Other Administrative Expenses": "other_administrative_expenses",
+    "Depreciation": "depreciation",
+    "Total Operating Expenses": "total_operating_expenses",
+    "Impairment Losses": "impairment_losses",
+    "Profit Before Tax": "profit_before_tax",
+    "Tax Expense": "tax_expense",
+    "Net Profit": "net_profit"
+  },
+  "validation_rules": {
+    "institution_code": {
+      "type": "string",
+      "max_length": 20,
+      "pattern": "^[A-Z0-9]+$",
+      "required": true
+    },
+    "institution_name": {
+      "type": "string",
+      "max_length": 100,
+      "required": true
+    },
+    "reporting_period": {
+      "type": "string",
+      "pattern": "^\\d{4}(-Q[1-4])?$",
+      "required": true
+    },
+    "currency": {
+      "type": "string",
+      "enum": ["EUR", "USD", "GBP", "CHF", "JPY"],
+      "required": true
+    },
+    "consolidation_basis": {
+      "type": "string",
+      "enum": ["Individual", "Consolidated", "Sub-consolidated"],
+      "required": true
+    },
+    "cash_balances": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "financial_assets_hft": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "financial_assets_mandatorily_fvtpl": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "financial_assets_designated_fvtpl": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "financial_assets_fvoci": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "financial_assets_amortised_cost": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "derivatives_hedge_accounting": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "investments_subsidiaries": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "tangible_assets": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "intangible_assets": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "tax_assets": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "other_assets": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "total_assets": {
+      "type": "number",
+      "min": 1,
+      "max": 999999999999,
+      "required": true
+    },
+    "financial_liabilities_hft": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "financial_liabilities_designated_fvtpl": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "financial_liabilities_amortised_cost": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "derivatives_hedge_accounting_liab": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "provisions": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "tax_liabilities": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "other_liabilities": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "total_liabilities": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999,
+      "required": true
+    },
+    "capital": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "retained_earnings": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "accumulated_oci": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "other_reserves": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "total_equity": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999,
+      "required": true
+    },
+    "interest_income": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "interest_expenses": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "net_interest_income": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "fee_income": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "fee_expenses": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "net_fee_income": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "trading_income": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "other_operating_income": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "total_operating_income": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "staff_expenses": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "other_administrative_expenses": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "depreciation": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "total_operating_expenses": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "impairment_losses": {
+      "type": "number",
+      "min": 0,
+      "max": 999999999999
+    },
+    "profit_before_tax": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "tax_expense": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    },
+    "net_profit": {
+      "type": "number",
+      "min": -999999999999,
+      "max": 999999999999
+    }
+  },
+  "business_rules": [
+    {
+      "name": "balance_sheet_equation",
+      "description": "Assets must equal Liabilities plus Equity",
+      "formula": "total_assets == total_liabilities + total_equity",
+      "tolerance": 1000,
+      "severity": "error"
+    },
+    {
+      "name": "net_interest_income_calculation",
+      "description": "Net Interest Income = Interest Income - Interest Expenses",
+      "formula": "net_interest_income == interest_income - interest_expenses",
+      "tolerance": 100,
+      "severity": "error"
+    },
+    {
+      "name": "net_fee_income_calculation",
+      "description": "Net Fee Income = Fee Income - Fee Expenses",
+      "formula": "net_fee_income == fee_income - fee_expenses",
+      "tolerance": 100,
+      "severity": "error"
+    },
+    {
+      "name": "profit_calculation",
+      "description": "Profit Before Tax = Total Operating Income - Total Operating Expenses - Impairment Losses",
+      "formula": "profit_before_tax == total_operating_income - total_operating_expenses - impairment_losses",
+      "tolerance": 100,
+      "severity": "error"
+    },
+    {
+      "name": "net_profit_calculation",
+      "description": "Net Profit = Profit Before Tax - Tax Expense",
+      "formula": "net_profit == profit_before_tax - tax_expense",
+      "tolerance": 100,
+      "severity": "error"
+    }
+  ],
+  "export_settings": {
+    "delimiter": ",",
+    "quote_char": "\"",
+    "encoding": "utf-8",
+    "include_header": true,
+    "date_format": "YYYY-MM-DD",
+    "number_format": "0.00"
+  }
+}

@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComplianceAI System Architecture Overview</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        /* Professional UI/UX Design - Rule 7 Compliance */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab {
+            padding: 12px 24px;
+            margin: 0 5px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #555;
+        }
+
+        .nav-tab:hover {
+            background: #e3f2fd;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab.active {
+            background: #2196f3;
+            color: white;
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #2196f3;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h3 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .icon {
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+
+        .diagram-container {
+            background: #fafafa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .component-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .component-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .component-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .component-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .component-card li {
+            padding: 5px 0;
+            color: #555;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .component-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .flow-description {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+            margin: 15px 0;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .tech-badge {
+            background: #3498db;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top:hover {
+            background: #1976d2;
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                margin: 5px 0;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ ComplianceAI System Architecture</h1>
+            <p>Comprehensive 4-Agent Regulatory Compliance Platform</p>
+            <p><strong>Version:</strong> 4.0 | <strong>Last Updated:</strong> <span id="lastUpdated"></span></p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">🔍 Overview</button>
+            <button class="nav-tab" onclick="showTab('agents')">🤖 Agents</button>
+            <button class="nav-tab" onclick="showTab('dataflow')">📊 Data Flow</button>
+            <button class="nav-tab" onclick="showTab('deployment')">🚀 Deployment</button>
+            <button class="nav-tab" onclick="showTab('monitoring')">📈 Monitoring</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="section">
+                <h2><span class="icon">🎯</span>System Overview</h2>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">4</div>
+                        <div class="metric-label">Specialized Agents</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">15+</div>
+                        <div class="metric-label">Regulatory Frameworks</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">50+</div>
+                        <div class="metric-label">Jurisdictions Supported</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">99.9%</div>
+                        <div class="metric-label">SLA Compliance</div>
+                    </div>
+                </div>
+
+                <h3>🏗️ High-Level Architecture</h3>
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        graph TB
+                            subgraph "External Sources"
+                                EBA[EBA Portal]
+                                ESMA[ESMA Updates]
+                                BaFin[BaFin Regulations]
+                                CBI[Central Bank Ireland]
+                                ECB[ECB Guidelines]
+                            end
+
+                            subgraph "ComplianceAI Platform"
+                                subgraph "Agent Layer"
+                                    RI[Regulatory Intelligence Agent]
+                                    IC[Intelligence & Compliance Agent]
+                                    DO[Decision & Orchestration Agent]
+                                    IP[Intake & Processing Agent]
+                                end
+
+                                subgraph "Infrastructure Layer"
+                                    K[Kafka Message Bus]
+                                    PG[(PostgreSQL)]
+                                    R[(Redis Cache)]
+                                    M[Monitoring Stack]
+                                end
+
+                                subgraph "Interface Layer"
+                                    WI[Web Interface]
+                                    API[REST APIs]
+                                    UI[Professional Dashboard]
+                                end
+                            end
+
+                            subgraph "External Integrations"
+                                SFTP[SFTP Servers]
+                                EBA_API[EBA Submission API]
+                                ALERTS[Alert Systems]
+                            end
+
+                            EBA --> RI
+                            ESMA --> RI
+                            BaFin --> RI
+                            CBI --> RI
+                            ECB --> RI
+
+                            RI --> K
+                            K --> IC
+                            IC --> K
+                            K --> DO
+                            DO --> K
+                            K --> IP
+
+                            RI -.-> PG
+                            IC -.-> PG
+                            DO -.-> PG
+                            IP -.-> PG
+
+                            IC -.-> R
+                            DO -.-> R
+
+                            WI --> API
+                            API --> DO
+                            UI --> WI
+
+                            DO --> SFTP
+                            DO --> EBA_API
+                            M --> ALERTS
+
+                            classDef agent fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+                            classDef infra fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+                            classDef external fill:#e8f5e8,stroke:#1b5e20,stroke-width:2px
+                            classDef interface fill:#fff3e0,stroke:#e65100,stroke-width:2px
+
+                            class RI,IC,DO,IP agent
+                            class K,PG,R,M infra
+                            class EBA,ESMA,BaFin,CBI,ECB,SFTP,EBA_API,ALERTS external
+                            class WI,API,UI interface
+                    </div>
+                </div>
+
+                <div class="flow-description">
+                    <strong>🔄 Core Processing Flow:</strong>
+                    <ol>
+                        <li><strong>Regulatory Intelligence Agent</strong> monitors external regulatory sources</li>
+                        <li><strong>Kafka Message Bus</strong> distributes regulatory updates across agents</li>
+                        <li><strong>Intelligence & Compliance Agent</strong> processes and analyzes regulatory obligations</li>
+                        <li><strong>Decision & Orchestration Agent</strong> generates compliance reports and manages delivery</li>
+                        <li><strong>Intake & Processing Agent</strong> handles customer data and transaction processing</li>
+                    </ol>
+                </div>
+
+                <h3>🛠️ Technology Stack</h3>
+                <div class="tech-stack">
+                    <span class="tech-badge">Python 3.11+</span>
+                    <span class="tech-badge">FastAPI</span>
+                    <span class="tech-badge">PostgreSQL 15</span>
+                    <span class="tech-badge">Redis 7</span>
+                    <span class="tech-badge">Apache Kafka</span>
+                    <span class="tech-badge">Docker</span>
+                    <span class="tech-badge">Prometheus</span>
+                    <span class="tech-badge">Grafana</span>
+                    <span class="tech-badge">LangChain</span>
+                    <span class="tech-badge">OpenAI GPT</span>
+                    <span class="tech-badge">SpaCy</span>
+                    <span class="tech-badge">NLTK</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Agents Tab -->
+        <div id="agents" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🤖</span>Agent Architecture</h2>
+                
+                <div class="component-grid">
+                    <div class="component-card">
+                        <h4>🔍 Regulatory Intelligence Agent</h4>
+                        <ul>
+                            <li>Real-time regulatory feed monitoring</li>
+                            <li>Document parsing and analysis</li>
+                            <li>Obligation extraction and classification</li>
+                            <li>Multi-jurisdiction support</li>
+                            <li>Automated feed scheduling</li>
+                            <li>Resilience and error handling</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tech-badge">Python</span>
+                            <span class="tech-badge">BeautifulSoup</span>
+                            <span class="tech-badge">Requests</span>
+                            <span class="tech-badge">Schedule</span>
+                        </div>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>🧠 Intelligence & Compliance Agent</h4>
+                        <ul>
+                            <li>JSON-Logic rule compilation</li>
+                            <li>Jurisdiction precedence handling</li>
+                            <li>Regulatory overlap resolution</li>
+                            <li>AI-powered text analysis</li>
+                            <li>Kafka consumer/producer</li>
+                            <li>Dead Letter Queue management</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tech-badge">LangChain</span>
+                            <span class="tech-badge">OpenAI</span>
+                            <span class="tech-badge">SpaCy</span>
+                            <span class="tech-badge">JSON-Logic</span>
+                        </div>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>⚡ Decision & Orchestration Agent</h4>
+                        <ul>
+                            <li>FINREP/COREP/DORA report generation</li>
+                            <li>XBRL, CSV, JSON format support</li>
+                            <li>SFTP and EBA API delivery</li>
+                            <li>SLA monitoring and alerting</li>
+                            <li>Performance optimization</li>
+                            <li>Deadline management</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tech-badge">XBRL</span>
+                            <span class="tech-badge">Pandas</span>
+                            <span class="tech-badge">Paramiko</span>
+                            <span class="tech-badge">Celery</span>
+                        </div>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>📥 Intake & Processing Agent</h4>
+                        <ul>
+                            <li>Customer data ingestion</li>
+                            <li>Transaction processing</li>
+                            <li>KYC/AML compliance checks</li>
+                            <li>Data quality validation</li>
+                            <li>Batch processing capabilities</li>
+                            <li>Real-time monitoring</li>
+                        </ul>
+                        <div class="tech-stack">
+                            <span class="tech-badge">Pandas</span>
+                            <span class="tech-badge">NumPy</span>
+                            <span class="tech-badge">Pydantic</span>
+                            <span class="tech-badge">AsyncIO</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>🔄 Inter-Agent Communication</h3>
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant RI as Regulatory Intelligence
+                            participant K as Kafka
+                            participant IC as Intelligence & Compliance
+                            participant DO as Decision & Orchestration
+                            participant IP as Intake & Processing
+
+                            RI->>K: Publish regulatory update
+                            K->>IC: Consume regulatory update
+                            IC->>IC: Process and compile rules
+                            IC->>K: Publish compiled rules
+                            K->>DO: Consume compiled rules
+                            DO->>DO: Generate compliance reports
+                            K->>IP: Consume customer data
+                            IP->>IP: Apply compliance rules
+                            IP->>K: Publish compliance results
+                            K->>DO: Consume compliance results
+                            DO->>DO: Aggregate and deliver reports
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Flow Tab -->
+        <div id="dataflow" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">📊</span>Data Flow Architecture</h2>
+                
+                <h3>🔄 Primary Data Flows</h3>
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        graph LR
+                            subgraph "Regulatory Data Flow"
+                                A[External Sources] --> B[Regulatory Intelligence]
+                                B --> C[Kafka: regulatory.updates]
+                                C --> D[Intelligence & Compliance]
+                                D --> E[Kafka: rules.compiled]
+                                E --> F[Decision & Orchestration]
+                            end
+
+                            subgraph "Customer Data Flow"
+                                G[Customer Systems] --> H[Intake & Processing]
+                                H --> I[Kafka: customer.data]
+                                I --> J[Intelligence & Compliance]
+                                J --> K[Kafka: compliance.results]
+                                K --> F
+                            end
+
+                            subgraph "Report Generation Flow"
+                                F --> L[Report Generation]
+                                L --> M[SFTP Delivery]
+                                L --> N[EBA API Delivery]
+                                L --> O[Monitoring & Alerts]
+                            end
+
+                            classDef regulatory fill:#e3f2fd,stroke:#1976d2
+                            classDef customer fill:#f3e5f5,stroke:#7b1fa2
+                            classDef reports fill:#e8f5e8,stroke:#388e3c
+
+                            class A,B,C,D,E regulatory
+                            class G,H,I,J,K customer
+                            class L,M,N,O reports
+                    </div>
+                </div>
+
+                <h3>💾 Data Storage Architecture</h3>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <h4>🗄️ PostgreSQL Database</h4>
+                        <ul>
+                            <li>Regulatory obligations and rules</li>
+                            <li>Customer and transaction data</li>
+                            <li>Compliance reports and audit logs</li>
+                            <li>SLA metrics and performance data</li>
+                            <li>Configuration and metadata</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>⚡ Redis Cache</h4>
+                        <ul>
+                            <li>Frequently accessed rules</li>
+                            <li>Session and authentication data</li>
+                            <li>Real-time metrics and counters</li>
+                            <li>Temporary processing results</li>
+                            <li>Rate limiting and throttling</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>📨 Kafka Topics</h4>
+                        <ul>
+                            <li>regulatory.updates</li>
+                            <li>rules.compiled</li>
+                            <li>customer.data</li>
+                            <li>compliance.results</li>
+                            <li>reports.generated</li>
+                            <li>alerts.notifications</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>📁 File Storage</h4>
+                        <ul>
+                            <li>Generated compliance reports</li>
+                            <li>Regulatory document archives</li>
+                            <li>Configuration templates</li>
+                            <li>Backup and recovery data</li>
+                            <li>Audit trail documents</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>🔐 Data Security & Compliance</h3>
+                <div class="flow-description">
+                    <strong>Security Measures:</strong>
+                    <ul>
+                        <li><strong>Encryption:</strong> All data encrypted at rest and in transit</li>
+                        <li><strong>Authentication:</strong> REQUIRE_AUTH integration with role-based access</li>
+                        <li><strong>Audit Trails:</strong> HMAC-SHA256 integrity verification</li>
+                        <li><strong>Data Privacy:</strong> GDPR compliance with data anonymization</li>
+                        <li><strong>Network Security:</strong> VPC isolation and firewall rules</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deployment Tab -->
+        <div id="deployment" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🚀</span>Deployment Architecture</h2>
+                
+                <h3>🐳 Docker Container Architecture</h3>
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        graph TB
+                            subgraph "Load Balancer"
+                                LB[NGINX Load Balancer]
+                            end
+
+                            subgraph "Application Tier"
+                                WI[Web Interface Container]
+                                RI[Regulatory Intelligence Container]
+                                IC[Intelligence & Compliance Container]
+                                DO[Decision & Orchestration Container]
+                                IP[Intake & Processing Container]
+                            end
+
+                            subgraph "Data Tier"
+                                PG[(PostgreSQL Container)]
+                                R[(Redis Container)]
+                                K[Kafka Container]
+                                Z[Zookeeper Container]
+                            end
+
+                            subgraph "Monitoring Tier"
+                                P[Prometheus Container]
+                                G[Grafana Container]
+                                AM[AlertManager Container]
+                            end
+
+                            LB --> WI
+                            WI --> RI
+                            WI --> IC
+                            WI --> DO
+                            WI --> IP
+
+                            RI --> PG
+                            IC --> PG
+                            DO --> PG
+                            IP --> PG
+
+                            IC --> R
+                            DO --> R
+
+                            RI --> K
+                            IC --> K
+                            DO --> K
+                            IP --> K
+
+                            K --> Z
+
+                            P --> RI
+                            P --> IC
+                            P --> DO
+                            P --> IP
+                            G --> P
+                            AM --> P
+
+                            classDef app fill:#e1f5fe,stroke:#01579b
+                            classDef data fill:#f3e5f5,stroke:#4a148c
+                            classDef monitor fill:#e8f5e8,stroke:#1b5e20
+                            classDef lb fill:#fff3e0,stroke:#e65100
+
+                            class WI,RI,IC,DO,IP app
+                            class PG,R,K,Z data
+                            class P,G,AM monitor
+                            class LB lb
+                    </div>
+                </div>
+
+                <h3>🌐 Multi-Environment Deployment</h3>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <h4>🧪 Development Environment</h4>
+                        <ul>
+                            <li>Single-node Docker Compose</li>
+                            <li>Minimal resource allocation</li>
+                            <li>Debug logging enabled</li>
+                            <li>Hot-reload for development</li>
+                            <li>Test data and mock services</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>🎭 Staging Environment</h4>
+                        <ul>
+                            <li>Production-like configuration</li>
+                            <li>Full monitoring stack</li>
+                            <li>Performance testing enabled</li>
+                            <li>Automated deployment pipeline</li>
+                            <li>Integration with test systems</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>🏭 Production Environment</h4>
+                        <ul>
+                            <li>High-availability deployment</li>
+                            <li>Auto-scaling capabilities</li>
+                            <li>Comprehensive monitoring</li>
+                            <li>Backup and disaster recovery</li>
+                            <li>Security hardening</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>☁️ Cloud Deployment</h4>
+                        <ul>
+                            <li>Kubernetes orchestration</li>
+                            <li>Managed database services</li>
+                            <li>CDN and edge caching</li>
+                            <li>Auto-scaling and load balancing</li>
+                            <li>Multi-region deployment</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>⚙️ Configuration Management</h3>
+                <div class="flow-description">
+                    <strong>Configuration Strategy:</strong>
+                    <ul>
+                        <li><strong>Environment Variables:</strong> Sensitive configuration via .env files</li>
+                        <li><strong>YAML Configurations:</strong> Application settings and feature flags</li>
+                        <li><strong>Docker Secrets:</strong> Database passwords and API keys</li>
+                        <li><strong>ConfigMaps:</strong> Non-sensitive configuration data</li>
+                        <li><strong>Helm Charts:</strong> Kubernetes deployment templates</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring Tab -->
+        <div id="monitoring" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">📈</span>Monitoring & Observability</h2>
+                
+                <h3>📊 Monitoring Stack</h3>
+                <div class="diagram-container">
+                    <div class="mermaid">
+                        graph TB
+                            subgraph "Application Layer"
+                                A1[Regulatory Intelligence]
+                                A2[Intelligence & Compliance]
+                                A3[Decision & Orchestration]
+                                A4[Intake & Processing]
+                            end
+
+                            subgraph "Metrics Collection"
+                                P[Prometheus]
+                                JE[JMX Exporter]
+                                NE[Node Exporter]
+                                CE[Custom Exporters]
+                            end
+
+                            subgraph "Visualization & Alerting"
+                                G[Grafana Dashboards]
+                                AM[AlertManager]
+                                PD[PagerDuty]
+                                SL[Slack Notifications]
+                            end
+
+                            subgraph "Log Management"
+                                ELK[ELK Stack]
+                                FL[Fluent Bit]
+                                LS[Log Shipping]
+                            end
+
+                            A1 --> P
+                            A2 --> P
+                            A3 --> P
+                            A4 --> P
+
+                            JE --> P
+                            NE --> P
+                            CE --> P
+
+                            P --> G
+                            P --> AM
+                            AM --> PD
+                            AM --> SL
+
+                            A1 --> FL
+                            A2 --> FL
+                            A3 --> FL
+                            A4 --> FL
+                            FL --> ELK
+
+                            classDef app fill:#e1f5fe,stroke:#01579b
+                            classDef metrics fill:#f3e5f5,stroke:#4a148c
+                            classDef viz fill:#e8f5e8,stroke:#1b5e20
+                            classDef logs fill:#fff3e0,stroke:#e65100
+
+                            class A1,A2,A3,A4 app
+                            class P,JE,NE,CE metrics
+                            class G,AM,PD,SL viz
+                            class ELK,FL,LS logs
+                    </div>
+                </div>
+
+                <h3>🎯 Key Performance Indicators</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value">< 2s</div>
+                        <div class="metric-label">API Response Time</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">99.9%</div>
+                        <div class="metric-label">System Uptime</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">< $0.50</div>
+                        <div class="metric-label">Cost per KYC Check</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">100+</div>
+                        <div class="metric-label">Obligations/Min</div>
+                    </div>
+                </div>
+
+                <h3>🚨 Alert Configuration</h3>
+                <div class="component-grid">
+                    <div class="component-card">
+                        <h4>🔴 Critical Alerts</h4>
+                        <ul>
+                            <li>System downtime > 1 minute</li>
+                            <li>Database connection failures</li>
+                            <li>Kafka consumer lag > 1000</li>
+                            <li>Report delivery failures</li>
+                            <li>Security breach attempts</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>🟡 Warning Alerts</h4>
+                        <ul>
+                            <li>High CPU usage > 80%</li>
+                            <li>Memory usage > 85%</li>
+                            <li>Slow API responses > 5s</li>
+                            <li>Failed regulatory updates</li>
+                            <li>SLA threshold breaches</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>🔵 Info Alerts</h4>
+                        <ul>
+                            <li>Successful report deliveries</li>
+                            <li>New regulatory updates</li>
+                            <li>System maintenance windows</li>
+                            <li>Performance optimizations</li>
+                            <li>Configuration changes</li>
+                        </ul>
+                    </div>
+
+                    <div class="component-card">
+                        <h4>📊 Business Metrics</h4>
+                        <ul>
+                            <li>Compliance report accuracy</li>
+                            <li>Regulatory deadline adherence</li>
+                            <li>Customer satisfaction scores</li>
+                            <li>Cost per transaction</li>
+                            <li>Revenue impact metrics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="back-to-top" onclick="scrollToTop()" title="Back to Top">↑</button>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Back to top functionality
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show/hide back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Set last updated date
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
+
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Initialize tooltips and interactive elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to component cards
+            const cards = document.querySelectorAll('.component-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Add click handlers for metric cards
+            const metricCards = document.querySelectorAll('.metric-card');
+            metricCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.animation = 'pulse 0.5s ease-in-out';
+                    setTimeout(() => {
+                        this.style.animation = '';
+                    }, 500);
+                });
+            });
+        });
+
+        // Add CSS animation for pulse effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

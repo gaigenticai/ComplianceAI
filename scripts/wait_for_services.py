@@ -37,15 +37,46 @@ def check_service_health(url: str, timeout: int = 5) -> bool:
     except Exception:
         return False
 
+def load_port_assignments():
+    """Load port assignments from .port_assignments file"""
+    ports = {}
+    try:
+        with open('.port_assignments', 'r') as f:
+            for line in f:
+                if '=' in line:
+                    service, port = line.strip().split('=')
+                    ports[service] = int(port)
+    except FileNotFoundError:
+        # Default ports if file doesn't exist
+        ports = {
+            'postgres': 5432,
+            'redis': 6379,
+            'mongodb': 27017,
+            'qdrant': 6333,
+            'zookeeper': 2181,
+            'kafka': 9092,
+            'web-interface': 8000,
+            'intake-agent': 8001,
+            'intelligence-agent': 8002,
+            'decision-agent': 8003
+        }
+    return ports
+
 def main():
     """Wait for all required services to be ready"""
     print("🔍 Checking service dependencies...")
     
-    # Services to wait for
+    # Load resolved port assignments
+    ports = load_port_assignments()
+    
+    # Services to wait for with resolved ports
     services = [
-        ("PostgreSQL", "localhost", 5432),
-        ("Redis", "localhost", 6379),
-        ("Qdrant", "localhost", 6333),
+        ("PostgreSQL", "localhost", ports.get('postgres', 5432)),
+        ("Redis", "localhost", ports.get('redis', 6379)),
+        ("MongoDB", "localhost", ports.get('mongodb', 27017)),
+        ("Qdrant", "localhost", ports.get('qdrant', 6333)),
+        ("Zookeeper", "localhost", ports.get('zookeeper', 2181)),
+        ("Kafka", "localhost", ports.get('kafka', 9092)),
     ]
     
     # Wait for each service
@@ -59,11 +90,11 @@ def main():
             print(f"❌ {service_name} failed to start within timeout")
             all_ready = False
     
-    # Wait for agents to be healthy
+    # Wait for agents to be healthy with resolved ports
     agent_services = [
-        ("Intake Agent", "http://localhost:8001/health"),
-        ("Intelligence Agent", "http://localhost:8002/health"),
-        ("Decision Agent", "http://localhost:8003/health"),
+        ("Intake Agent", f"http://localhost:{ports.get('intake-agent', 8001)}/health"),
+        ("Intelligence Agent", f"http://localhost:{ports.get('intelligence-agent', 8002)}/health"),
+        ("Decision Agent", f"http://localhost:{ports.get('decision-agent', 8003)}/health"),
     ]
     
     print("\n🔍 Checking agent health...")

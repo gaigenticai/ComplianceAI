@@ -184,7 +184,7 @@ build_images() {
     print_status "Building custom agent images..."
     
     # Build agent images
-    $COMPOSE_CMD -f docker-compose-simplified.yml build --no-cache
+    $COMPOSE_CMD -f docker-compose.yml build --no-cache
     
     print_success "Custom images built successfully"
 }
@@ -192,12 +192,12 @@ build_images() {
 # Function to start the revamped system
 start_system() {
     print_status "Running automatic port conflict resolution..."
-    python3 scripts/port_manager.py docker-compose-simplified.yml
+    python3 scripts/port_manager.py docker-compose.yml
     
     print_status "Starting ComplianceAI Revamped System..."
     
     # Start services in detached mode
-    $COMPOSE_CMD -f docker-compose-simplified.yml up -d
+    $COMPOSE_CMD -f docker-compose.yml up -d
     
     print_success "System started successfully"
 }
@@ -295,9 +295,9 @@ show_status() {
     echo ""
     print_header "USEFUL COMMANDS"
     
-    echo -e "${YELLOW}View logs:${NC} $COMPOSE_CMD -f docker-compose-simplified.yml logs -f"
-    echo -e "${YELLOW}Stop system:${NC} $COMPOSE_CMD -f docker-compose-simplified.yml down"
-    echo -e "${YELLOW}Restart system:${NC} $COMPOSE_CMD -f docker-compose-simplified.yml restart"
+    echo -e "${YELLOW}View logs:${NC} $COMPOSE_CMD -f docker-compose.yml logs -f"
+    echo -e "${YELLOW}Stop system:${NC} $COMPOSE_CMD -f docker-compose.yml down"
+    echo -e "${YELLOW}Restart system:${NC} $COMPOSE_CMD -f docker-compose.yml restart"
     echo -e "${YELLOW}View containers:${NC} docker ps"
     echo -e "${YELLOW}System health:${NC} curl http://localhost:8000/health"
     echo ""
@@ -367,21 +367,21 @@ show_help() {
 # Function to stop the system
 stop_system() {
     print_status "Stopping ComplianceAI Revamped System..."
-    $COMPOSE_CMD -f docker-compose-simplified.yml down
+    $COMPOSE_CMD -f docker-compose.yml down
     print_success "System stopped"
 }
 
 # Function to restart the system
 restart_system() {
     print_status "Restarting ComplianceAI Revamped System..."
-    $COMPOSE_CMD -f docker-compose-simplified.yml restart
+    $COMPOSE_CMD -f docker-compose.yml restart
     print_success "System restarted"
 }
 
 # Function to show logs
 show_logs() {
     print_status "Showing system logs (Ctrl+C to exit)..."
-    $COMPOSE_CMD -f docker-compose-simplified.yml logs -f
+    $COMPOSE_CMD -f docker-compose.yml logs -f
 }
 
 # Function to clean up system
@@ -391,7 +391,7 @@ clean_system() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         print_status "Cleaning up system..."
-        $COMPOSE_CMD -f docker-compose-simplified.yml down -v --remove-orphans
+        $COMPOSE_CMD -f docker-compose.yml down -v --remove-orphans
         docker system prune -f
         print_success "System cleaned up"
     else

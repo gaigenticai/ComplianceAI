@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision & Orchestration Agent API Documentation</title>
+    <style>
+        /* Professional UI/UX Design - Rule 7 Compliance */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 12px 18px;
+            margin: 5px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .nav-tab:hover {
+            background: #e3f2fd;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab.active {
+            background: #e74c3c;
+            color: white;
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #e74c3c;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h3 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .icon {
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+
+        .endpoint-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #e67e22;
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .method-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8em;
+            margin-right: 15px;
+            text-transform: uppercase;
+        }
+
+        .method-get { background: #d4edda; color: #155724; }
+        .method-post { background: #cce5ff; color: #004085; }
+        .method-put { background: #fff3cd; color: #856404; }
+        .method-delete { background: #f8d7da; color: #721c24; }
+
+        .endpoint-url {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .endpoint-description {
+            margin: 15px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-button:hover {
+            background: #c0392b;
+        }
+
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .parameter-table th {
+            background: #34495e;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .parameter-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .parameter-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .type-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .required-badge {
+            background: #ffebee;
+            color: #c62828;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .optional-badge {
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 500;
+        }
+
+        .response-example {
+            background: #e8f5e8;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .response-example h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .alert-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            color: #0d47a1;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+            color: #e65100;
+        }
+
+        .alert-success {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #1b5e20;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-card li {
+            padding: 5px 0;
+            color: #555;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .feature-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .report-format-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .format-card {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .format-card h5 {
+            color: #c53030;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+
+        .format-card .format-description {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .sla-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .sla-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sla-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .sla-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top:hover {
+            background: #c0392b;
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                margin: 5px 0;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .endpoint-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .method-badge {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Decision & Orchestration Agent API</h1>
+            <p>Report Generation, Delivery Management & SLA Monitoring</p>
+            <p><strong>Version:</strong> 4.0 | <strong>Base URL:</strong> http://localhost:8004 | <strong>Last Updated:</strong> <span id="lastUpdated"></span></p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">📋 Overview</button>
+            <button class="nav-tab" onclick="showTab('reports')">📊 Report Generation</button>
+            <button class="nav-tab" onclick="showTab('delivery')">🚀 Delivery Management</button>
+            <button class="nav-tab" onclick="showTab('scheduling')">⏰ Scheduling</button>
+            <button class="nav-tab" onclick="showTab('sla')">📈 SLA Monitoring</button>
+            <button class="nav-tab" onclick="showTab('performance')">⚡ Performance</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="section">
+                <h2><span class="icon">📋</span>API Overview</h2>
+                
+                <div class="alert-box alert-info">
+                    <strong>⚡ Decision & Orchestration Agent:</strong> This agent generates compliance reports (FINREP, COREP, DORA), manages multi-channel delivery, monitors SLA performance, and orchestrates the entire regulatory reporting workflow.
+                </div>
+
+                <h3>🎯 Core Capabilities</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>📊 Report Generation</h4>
+                        <ul>
+                            <li>FINREP, COREP, DORA report creation</li>
+                            <li>XBRL, CSV, JSON format support</li>
+                            <li>Template-based generation</li>
+                            <li>Data validation and quality checks</li>
+                            <li>Automated calculation engines</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>🚀 Multi-Channel Delivery</h4>
+                        <ul>
+                            <li>SFTP secure file transfer</li>
+                            <li>EBA API direct submission</li>
+                            <li>Email with digital signatures</li>
+                            <li>Webhook notifications</li>
+                            <li>Delivery confirmation tracking</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>⏰ Automated Scheduling</h4>
+                        <ul>
+                            <li>Dynamic deadline calculation</li>
+                            <li>Regulatory calendar integration</li>
+                            <li>Business day calculations</li>
+                            <li>Dependency management</li>
+                            <li>Resource allocation optimization</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>📈 SLA Monitoring</h4>
+                        <ul>
+                            <li>Real-time performance tracking</li>
+                            <li>Threshold-based alerting</li>
+                            <li>Trend analysis and reporting</li>
+                            <li>Breach detection and escalation</li>
+                            <li>Performance optimization</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h3>📊 Current SLA Performance</h3>
+                <div class="sla-metrics">
+                    <div class="sla-card">
+                        <div class="sla-value">< 5min</div>
+                        <div class="sla-label">Report Generation Time</div>
+                    </div>
+                    <div class="sla-card">
+                        <div class="sla-value">100%</div>
+                        <div class="sla-label">On-Time Delivery</div>
+                    </div>
+                    <div class="sla-card">
+                        <div class="sla-value">99.98%</div>
+                        <div class="sla-label">Report Accuracy</div>
+                    </div>
+                    <div class="sla-card">
+                        <div class="sla-value">99.9%</div>
+                        <div class="sla-label">System Availability</div>
+                    </div>
+                </div>
+
+                <h3>🔐 Authentication & Security</h3>
+                <div class="code-block">
+                    <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+# API Key Authentication
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     http://localhost:8004/api/v1/reports
+
+# OAuth 2.0 Authentication (Production)
+curl -H "Authorization: Bearer YOUR_OAUTH_TOKEN" \
+     -H "Content-Type: application/json" \
+     http://localhost:8004/api/v1/reports
+                </div>
+
+                <div class="alert-box alert-warning">
+                    <strong>⚠️ REQUIRE_AUTH Integration:</strong> When REQUIRE_AUTH=true in .env, all API endpoints require valid authentication. The agent supports role-based access control for different report types.
+                </div>
+
+                <h3>📄 Supported Report Formats</h3>
+                <div class="report-format-grid">
+                    <div class="format-card">
+                        <h5>XBRL</h5>
+                        <div class="format-description">EBA Taxonomy compliant XBRL files for regulatory submission</div>
+                    </div>
+                    <div class="format-card">
+                        <h5>CSV</h5>
+                        <div class="format-description">Structured CSV files for data analysis and import</div>
+                    </div>
+                    <div class="format-card">
+                        <h5>JSON</h5>
+                        <div class="format-description">JSON format for API integration and modern systems</div>
+                    </div>
+                    <div class="format-card">
+                        <h5>PDF</h5>
+                        <div class="format-description">Human-readable PDF reports with charts and summaries</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Generation Tab -->
+        <div id="reports" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">📊</span>Report Generation API</h2>
+                
+                <!-- Generate Report -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-url">/api/v1/reports/generate</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Generate a regulatory compliance report with specified parameters and format options.
+                    </div>
+                    
+                    <h4>Request Body</h4>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>report_type</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Report type: FINREP, COREP, DORA, AML_SAR, FATCA, CRS</td>
+                            </tr>
+                            <tr>
+                                <td>institution_id</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Unique identifier of the reporting institution</td>
+                            </tr>
+                            <tr>
+                                <td>reporting_date</td>
+                                <td><span class="type-badge">date</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Reporting period end date (YYYY-MM-DD)</td>
+                            </tr>
+                            <tr>
+                                <td>format</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Output format: XBRL, CSV, JSON, PDF (default: XBRL)</td>
+                            </tr>
+                            <tr>
+                                <td>jurisdiction</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Reporting jurisdiction (auto-detected if not provided)</td>
+                            </tr>
+                            <tr>
+                                <td>template_version</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Specific template version to use</td>
+                            </tr>
+                            <tr>
+                                <td>validation_level</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Validation level: basic, standard, strict (default: standard)</td>
+                            </tr>
+                            <tr>
+                                <td>auto_submit</td>
+                                <td><span class="type-badge">boolean</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Automatically submit after generation (default: false)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+curl -X POST http://localhost:8004/api/v1/reports/generate \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "report_type": "FINREP",
+    "institution_id": "BANK_DE_001",
+    "reporting_date": "2024-03-31",
+    "format": "XBRL",
+    "jurisdiction": "DE",
+    "validation_level": "strict",
+    "auto_submit": false
+  }'
+                    </div>
+
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "report_id": "finrep_bank_de_001_2024q1",
+  "generation_status": "completed",
+  "processing_time": 4.23,
+  "report_metadata": {
+    "report_type": "FINREP",
+    "institution_id": "BANK_DE_001",
+    "institution_name": "Deutsche Sample Bank AG",
+    "reporting_date": "2024-03-31",
+    "reporting_period": "Q1 2024",
+    "format": "XBRL",
+    "jurisdiction": "DE",
+    "regulatory_authority": "BaFin",
+    "template_version": "v3.3.1",
+    "file_size": "2.4 MB",
+    "validation_status": "passed"
+  },
+  "generated_files": [
+    {
+      "file_name": "FINREP_BANK_DE_001_2024Q1.xbrl",
+      "file_path": "/reports/finrep/2024/q1/FINREP_BANK_DE_001_2024Q1.xbrl",
+      "file_size": 2457600,
+      "checksum": "sha256:a1b2c3d4e5f6...",
+      "format": "XBRL"
+    },
+    {
+      "file_name": "FINREP_BANK_DE_001_2024Q1_summary.pdf",
+      "file_path": "/reports/finrep/2024/q1/FINREP_BANK_DE_001_2024Q1_summary.pdf",
+      "file_size": 856432,
+      "checksum": "sha256:f6e5d4c3b2a1...",
+      "format": "PDF"
+    }
+  ],
+  "validation_results": {
+    "schema_validation": "passed",
+    "business_rules": "passed",
+    "data_quality_checks": "passed",
+    "warnings": [],
+    "errors": []
+  },
+  "next_steps": [
+    "Review generated report",
+    "Submit to regulatory authority",
+    "Archive for compliance records"
+  ]
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Get Report Status -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/reports/{report_id}/status</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Check the generation status of a specific report, including progress and estimated completion time.
+                    </div>
+                    
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "report_id": "finrep_bank_de_001_2024q1",
+  "status": "processing",
+  "progress": 75,
+  "estimated_completion": "2024-01-15T11:05:00Z",
+  "current_stage": "data_validation",
+  "stages_completed": [
+    "data_collection",
+    "template_processing",
+    "calculation_engine"
+  ],
+  "stages_remaining": [
+    "data_validation",
+    "format_conversion",
+    "file_generation"
+  ],
+  "processing_metrics": {
+    "data_points_processed": 15420,
+    "total_data_points": 20560,
+    "validation_rules_applied": 89,
+    "errors_detected": 0,
+    "warnings_generated": 2
+  }
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List Reports -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/reports</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Retrieve a list of generated reports with filtering and pagination options.
+                    </div>
+                    
+                    <h4>Query Parameters</h4>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>report_type</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Filter by report type</td>
+                            </tr>
+                            <tr>
+                                <td>institution_id</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Filter by institution</td>
+                            </tr>
+                            <tr>
+                                <td>status</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Filter by status: pending, processing, completed, failed</td>
+                            </tr>
+                            <tr>
+                                <td>date_from</td>
+                                <td><span class="type-badge">date</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Reports generated from this date</td>
+                            </tr>
+                            <tr>
+                                <td>date_to</td>
+                                <td><span class="type-badge">date</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Reports generated until this date</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Download Report -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/reports/{report_id}/download</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Download a generated report file with optional format conversion.
+                    </div>
+                    
+                    <h4>Query Parameters</h4>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>format</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Download format (if different from generated format)</td>
+                            </tr>
+                            <tr>
+                                <td>attachment</td>
+                                <td><span class="type-badge">boolean</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Force download as attachment (default: true)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Validate Report -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-url">/api/v1/reports/{report_id}/validate</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Perform additional validation on a generated report using enhanced business rules.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery Management Tab -->
+        <div id="delivery" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🚀</span>Delivery Management API</h2>
+                
+                <!-- Submit Report -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-url">/api/v1/delivery/submit</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Submit a generated report to regulatory authorities via multiple delivery channels.
+                    </div>
+                    
+                    <h4>Request Body</h4>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>report_id</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>ID of the report to submit</td>
+                            </tr>
+                            <tr>
+                                <td>delivery_channels</td>
+                                <td><span class="type-badge">array</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Delivery methods: sftp, eba_api, email, webhook</td>
+                            </tr>
+                            <tr>
+                                <td>priority</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Delivery priority: low, normal, high, urgent</td>
+                            </tr>
+                            <tr>
+                                <td>delivery_deadline</td>
+                                <td><span class="type-badge">datetime</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Required delivery deadline</td>
+                            </tr>
+                            <tr>
+                                <td>notification_emails</td>
+                                <td><span class="type-badge">array</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Email addresses for delivery notifications</td>
+                            </tr>
+                            <tr>
+                                <td>digital_signature</td>
+                                <td><span class="type-badge">boolean</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Apply digital signature (default: true)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+curl -X POST http://localhost:8004/api/v1/delivery/submit \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "report_id": "finrep_bank_de_001_2024q1",
+    "delivery_channels": ["sftp", "eba_api"],
+    "priority": "high",
+    "delivery_deadline": "2024-04-30T23:59:59Z",
+    "notification_emails": ["compliance@bank.com", "cfo@bank.com"],
+    "digital_signature": true
+  }'
+                    </div>
+
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "submission_id": "sub_finrep_001_20240115",
+  "status": "initiated",
+  "delivery_tracking": {
+    "sftp": {
+      "status": "queued",
+      "estimated_delivery": "2024-01-15T11:15:00Z",
+      "target_server": "sftp.bafin.de",
+      "delivery_id": "sftp_del_001"
+    },
+    "eba_api": {
+      "status": "queued",
+      "estimated_delivery": "2024-01-15T11:10:00Z",
+      "target_endpoint": "https://api.eba.europa.eu/submit",
+      "delivery_id": "eba_del_001"
+    }
+  },
+  "digital_signature": {
+    "applied": true,
+    "certificate": "CN=Deutsche Sample Bank AG",
+    "algorithm": "SHA256withRSA",
+    "timestamp": "2024-01-15T11:00:00Z"
+  },
+  "notifications": {
+    "emails_sent": 2,
+    "webhook_configured": true
+  }
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Get Delivery Status -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/delivery/{submission_id}/status</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Track the delivery status of a submitted report across all configured channels.
+                    </div>
+                    
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "submission_id": "sub_finrep_001_20240115",
+  "overall_status": "partially_delivered",
+  "submission_time": "2024-01-15T11:00:00Z",
+  "delivery_channels": {
+    "sftp": {
+      "status": "delivered",
+      "delivery_time": "2024-01-15T11:12:00Z",
+      "confirmation_receipt": "SFTP_CONF_20240115_001",
+      "target_server": "sftp.bafin.de",
+      "file_path": "/incoming/FINREP_BANK_DE_001_2024Q1.xbrl",
+      "delivery_attempts": 1,
+      "last_error": null
+    },
+    "eba_api": {
+      "status": "in_progress",
+      "progress": 85,
+      "estimated_completion": "2024-01-15T11:08:00Z",
+      "target_endpoint": "https://api.eba.europa.eu/submit",
+      "delivery_attempts": 1,
+      "last_error": null
+    }
+  },
+  "audit_trail": [
+    {
+      "timestamp": "2024-01-15T11:00:00Z",
+      "event": "submission_initiated",
+      "details": "Report queued for delivery via 2 channels"
+    },
+    {
+      "timestamp": "2024-01-15T11:12:00Z", 
+      "event": "sftp_delivery_completed",
+      "details": "Successfully delivered to BaFin SFTP server"
+    }
+  ]
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configure Delivery Channel -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-url">/api/v1/delivery/channels</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Configure a new delivery channel for regulatory report submission.
+                    </div>
+                    
+                    <h4>Request Body</h4>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>channel_type</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Channel type: sftp, eba_api, email, webhook</td>
+                            </tr>
+                            <tr>
+                                <td>name</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Human-readable name for the channel</td>
+                            </tr>
+                            <tr>
+                                <td>authority</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Target regulatory authority</td>
+                            </tr>
+                            <tr>
+                                <td>jurisdiction</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Applicable jurisdiction</td>
+                            </tr>
+                            <tr>
+                                <td>configuration</td>
+                                <td><span class="type-badge">object</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Channel-specific configuration parameters</td>
+                            </tr>
+                            <tr>
+                                <td>active</td>
+                                <td><span class="type-badge">boolean</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Whether channel is active (default: true)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+curl -X POST http://localhost:8004/api/v1/delivery/channels \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_type": "sftp",
+    "name": "BaFin SFTP Server",
+    "authority": "BaFin",
+    "jurisdiction": "DE",
+    "configuration": {
+      "host": "sftp.bafin.de",
+      "port": 22,
+      "username": "institution_001",
+      "private_key_path": "/keys/bafin_private.key",
+      "remote_directory": "/incoming/",
+      "encryption": "AES256",
+      "compression": true
+    },
+    "active": true
+  }'
+                    </div>
+                </div>
+
+                <!-- Retry Failed Delivery -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-url">/api/v1/delivery/{submission_id}/retry</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Retry a failed delivery attempt with optional configuration changes.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduling Tab -->
+        <div id="scheduling" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">⏰</span>Automated Scheduling API</h2>
+                
+                <!-- Create Schedule -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-url">/api/v1/schedules</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Create an automated schedule for regulatory report generation and submission.
+                    </div>
+                    
+                    <h4>Request Body</h4>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>name</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Schedule name</td>
+                            </tr>
+                            <tr>
+                                <td>report_type</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Type of report to generate</td>
+                            </tr>
+                            <tr>
+                                <td>institution_id</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Institution identifier</td>
+                            </tr>
+                            <tr>
+                                <td>frequency</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="required-badge">required</span></td>
+                                <td>Schedule frequency: monthly, quarterly, annually</td>
+                            </tr>
+                            <tr>
+                                <td>deadline_offset</td>
+                                <td><span class="type-badge">integer</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Days before deadline to generate (default: 5)</td>
+                            </tr>
+                            <tr>
+                                <td>auto_submit</td>
+                                <td><span class="type-badge">boolean</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Automatically submit after generation</td>
+                            </tr>
+                            <tr>
+                                <td>delivery_channels</td>
+                                <td><span class="type-badge">array</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Delivery channels for auto-submission</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "schedule_id": "sched_finrep_quarterly_001",
+  "name": "FINREP Quarterly Reports - Deutsche Sample Bank",
+  "status": "active",
+  "next_execution": "2024-04-25T09:00:00Z",
+  "upcoming_deadlines": [
+    {
+      "reporting_period": "Q1 2024",
+      "deadline": "2024-04-30T23:59:59Z",
+      "generation_scheduled": "2024-04-25T09:00:00Z",
+      "submission_scheduled": "2024-04-26T10:00:00Z"
+    },
+    {
+      "reporting_period": "Q2 2024", 
+      "deadline": "2024-07-31T23:59:59Z",
+      "generation_scheduled": "2024-07-26T09:00:00Z",
+      "submission_scheduled": "2024-07-27T10:00:00Z"
+    }
+  ],
+  "configuration": {
+    "report_type": "FINREP",
+    "frequency": "quarterly",
+    "deadline_offset": 5,
+    "auto_submit": true,
+    "delivery_channels": ["sftp", "eba_api"]
+  }
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Get Schedules -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/schedules</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Retrieve all configured schedules with filtering options.
+                    </div>
+                </div>
+
+                <!-- Get Regulatory Calendar -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/schedules/calendar</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Get the regulatory calendar with upcoming deadlines and scheduled activities.
+                    </div>
+                    
+                    <h4>Query Parameters</h4>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>from_date</td>
+                                <td><span class="type-badge">date</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Calendar start date (default: today)</td>
+                            </tr>
+                            <tr>
+                                <td>to_date</td>
+                                <td><span class="type-badge">date</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Calendar end date (default: +1 year)</td>
+                            </tr>
+                            <tr>
+                                <td>jurisdiction</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Filter by jurisdiction</td>
+                            </tr>
+                            <tr>
+                                <td>report_type</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Filter by report type</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "calendar_period": {
+    "from_date": "2024-01-15",
+    "to_date": "2025-01-15"
+  },
+  "upcoming_deadlines": [
+    {
+      "deadline_id": "finrep_q1_2024",
+      "report_type": "FINREP",
+      "reporting_period": "Q1 2024",
+      "deadline": "2024-04-30T23:59:59Z",
+      "jurisdiction": "EU",
+      "authority": "EBA",
+      "days_remaining": 105,
+      "status": "scheduled",
+      "generation_scheduled": "2024-04-25T09:00:00Z"
+    },
+    {
+      "deadline_id": "corep_q1_2024",
+      "report_type": "COREP", 
+      "reporting_period": "Q1 2024",
+      "deadline": "2024-04-30T23:59:59Z",
+      "jurisdiction": "EU",
+      "authority": "EBA",
+      "days_remaining": 105,
+      "status": "scheduled",
+      "generation_scheduled": "2024-04-25T09:00:00Z"
+    }
+  ],
+  "business_day_calendar": {
+    "holidays": [
+      "2024-04-01",
+      "2024-05-01",
+      "2024-12-25"
+    ],
+    "weekend_adjustments": true
+  }
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Update Schedule -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-put">PUT</span>
+                        <span class="endpoint-url">/api/v1/schedules/{schedule_id}</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Update an existing schedule configuration.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLA Monitoring Tab -->
+        <div id="sla" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">📈</span>SLA Monitoring API</h2>
+                
+                <!-- Get SLA Metrics -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/sla/metrics</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Retrieve current SLA performance metrics and compliance status.
+                    </div>
+                    
+                    <h4>Query Parameters</h4>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>time_range</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Time range: 1h, 24h, 7d, 30d (default: 24h)</td>
+                            </tr>
+                            <tr>
+                                <td>metric_type</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Specific metric: generation_time, accuracy, availability</td>
+                            </tr>
+                            <tr>
+                                <td>report_type</td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><span class="optional-badge">optional</span></td>
+                                <td>Filter by report type</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "sla_summary": {
+    "overall_compliance": 99.8,
+    "time_range": "24h",
+    "last_updated": "2024-01-15T11:00:00Z"
+  },
+  "metrics": {
+    "report_generation_time": {
+      "target": "< 5 minutes",
+      "current_average": "3.2 minutes",
+      "compliance": 100.0,
+      "trend": "improving",
+      "breach_count": 0
+    },
+    "delivery_success_rate": {
+      "target": "> 99.5%",
+      "current_rate": 99.8,
+      "compliance": 100.0,
+      "trend": "stable",
+      "failed_deliveries": 1
+    },
+    "report_accuracy": {
+      "target": "> 99.95%",
+      "current_rate": 99.98,
+      "compliance": 100.0,
+      "trend": "stable",
+      "validation_failures": 0
+    },
+    "system_availability": {
+      "target": "> 99.9%",
+      "current_uptime": 99.95,
+      "compliance": 100.0,
+      "trend": "stable",
+      "downtime_minutes": 7.2
+    }
+  },
+  "performance_trends": [
+    {
+      "timestamp": "2024-01-15T10:00:00Z",
+      "generation_time": 3.1,
+      "accuracy": 99.98,
+      "availability": 100.0
+    },
+    {
+      "timestamp": "2024-01-15T11:00:00Z",
+      "generation_time": 3.2,
+      "accuracy": 99.98,
+      "availability": 99.95
+    }
+  ]
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Get SLA Breaches -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/sla/breaches</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Retrieve SLA breaches with details about root causes and remediation actions.
+                    </div>
+                    
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "breaches": [
+    {
+      "breach_id": "sla_breach_001",
+      "timestamp": "2024-01-14T15:30:00Z",
+      "metric": "report_generation_time",
+      "threshold": 300,
+      "actual_value": 420,
+      "severity": "minor",
+      "report_id": "finrep_bank_ie_001_2024q1",
+      "root_cause": "High data volume processing",
+      "remediation_actions": [
+        "Optimized database queries",
+        "Increased processing resources",
+        "Implemented data caching"
+      ],
+      "resolution_time": 45,
+      "status": "resolved"
+    }
+  ],
+  "breach_summary": {
+    "total_breaches_24h": 1,
+    "minor_breaches": 1,
+    "major_breaches": 0,
+    "critical_breaches": 0,
+    "average_resolution_time": 45
+  }
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configure SLA Thresholds -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-url">/api/v1/sla/thresholds</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Configure SLA thresholds and alerting rules for performance monitoring.
+                    </div>
+                </div>
+
+                <!-- Get SLA Reports -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/sla/reports</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Generate comprehensive SLA compliance reports for management and regulatory purposes.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Tab -->
+        <div id="performance" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">⚡</span>Performance Optimization API</h2>
+                
+                <!-- Get Performance Metrics -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/performance/metrics</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Retrieve detailed performance metrics for system optimization and capacity planning.
+                    </div>
+                    
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "performance_summary": {
+    "timestamp": "2024-01-15T11:00:00Z",
+    "system_load": {
+      "cpu_usage": 45.2,
+      "memory_usage": 67.8,
+      "disk_io": 23.1,
+      "network_io": 12.4
+    },
+    "processing_metrics": {
+      "reports_generated_per_hour": 24,
+      "average_generation_time": 192,
+      "queue_length": 3,
+      "active_workers": 8
+    }
+  },
+  "bottleneck_analysis": [
+    {
+      "component": "database_queries",
+      "impact": "medium",
+      "description": "Complex FINREP calculations causing query delays",
+      "optimization_suggestions": [
+        "Add database indexes for reporting tables",
+        "Implement query result caching",
+        "Optimize calculation algorithms"
+      ]
+    }
+  ],
+  "capacity_planning": {
+    "current_capacity": 85,
+    "projected_growth": 15,
+    "scaling_recommendations": [
+      "Add 2 additional worker nodes",
+      "Increase database connection pool",
+      "Implement horizontal scaling for report generation"
+    ]
+  }
+}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optimize Performance -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-post">POST</span>
+                        <span class="endpoint-url">/api/v1/performance/optimize</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Trigger automatic performance optimization based on current system metrics and bottleneck analysis.
+                    </div>
+                </div>
+
+                <!-- Health Check -->
+                <div class="endpoint-card">
+                    <div class="endpoint-header">
+                        <span class="method-badge method-get">GET</span>
+                        <span class="endpoint-url">/api/v1/health</span>
+                    </div>
+                    <div class="endpoint-description">
+                        Comprehensive health check of all Decision & Orchestration Agent components and dependencies.
+                    </div>
+                    
+                    <div class="response-example">
+                        <h4>Response Example</h4>
+                        <div class="code-block">
+                            <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T11:00:00Z",
+  "version": "4.0.0",
+  "uptime": "72h 15m 30s",
+  "components": {
+    "report_generator": {
+      "status": "healthy",
+      "active_jobs": 3,
+      "queue_length": 2,
+      "success_rate": "99.8%"
+    },
+    "delivery_manager": {
+      "status": "healthy",
+      "active_deliveries": 5,
+      "channels_online": 4,
+      "success_rate": "99.9%"
+    },
+    "scheduler": {
+      "status": "healthy",
+      "active_schedules": 12,
+      "next_execution": "2024-01-15T12:00:00Z",
+      "missed_schedules": 0
+    },
+    "sla_monitor": {
+      "status": "healthy",
+      "metrics_collected": 1440,
+      "alerts_active": 0,
+      "compliance_rate": "99.8%"
+    }
+  }
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="back-to-top" onclick="scrollToTop()" title="Back to Top">↑</button>
+
+    <script>
+        // Tab functionality
+        function showTab(tabName) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Copy to clipboard functionality
+        function copyToClipboard(button) {
+            const codeBlock = button.nextElementSibling || button.parentElement.querySelector('pre') || button.parentElement;
+            const text = codeBlock.textContent.replace('Copy', '').trim();
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#27ae60';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#e74c3c';
+                }, 2000);
+            });
+        }
+
+        // Back to top functionality
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show/hide back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Set last updated date
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
+
+        // Add interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.endpoint-card, .feature-card, .format-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                    this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+                });
+            });
+
+            // Add click handlers for SLA cards
+            const slaCards = document.querySelectorAll('.sla-card');
+            slaCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    this.style.animation = 'pulse 0.5s ease-in-out';
+                    setTimeout(() => {
+                        this.style.animation = '';
+                    }, 500);
+                });
+            });
+        });
+
+        // Add CSS animation for pulse effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

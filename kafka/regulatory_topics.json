@@ -1,0 +1,418 @@
+{
+  "topics": [
+    {
+      "name": "regulatory.updates",
+      "description": "Regulatory Intelligence Agent publishes regulatory obligation updates",
+      "partitions": 6,
+      "replication_factor": 1,
+      "config": {
+        "cleanup.policy": "compact,delete",
+        "retention.ms": 2592000000,
+        "segment.ms": 86400000,
+        "min.insync.replicas": 1,
+        "unclean.leader.election.enable": false
+      },
+      "schema": {
+        "key": {
+          "type": "string",
+          "description": "obligation_id or regulation_name for partitioning"
+        },
+        "value": {
+          "type": "object",
+          "properties": {
+            "event_type": {
+              "type": "string",
+              "enum": ["obligation_created", "obligation_updated", "obligation_deleted", "feed_health_change"],
+              "description": "Type of regulatory update event"
+            },
+            "obligation_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "UUID of the regulatory obligation"
+            },
+            "regulation_name": {
+              "type": "string",
+              "description": "Name of the regulation (Basel III, PSD2, DORA, etc.)"
+            },
+            "jurisdiction": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$",
+              "description": "ISO 3166-1 alpha-2 country code"
+            },
+            "regulation_type": {
+              "type": "string",
+              "description": "Category of regulation"
+            },
+            "effective_date": {
+              "type": "string",
+              "format": "date",
+              "description": "When the regulation becomes effective"
+            },
+            "content_hash": {
+              "type": "string",
+              "description": "SHA-256 hash of obligation content for change detection"
+            },
+            "version": {
+              "type": "string",
+              "description": "Version of the regulatory obligation"
+            },
+            "priority": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "description": "Processing priority (1=highest, 10=lowest)"
+            },
+            "source_info": {
+              "type": "object",
+              "properties": {
+                "source_name": {"type": "string"},
+                "source_url": {"type": "string"},
+                "retrieved_at": {"type": "string", "format": "date-time"}
+              }
+            },
+            "changes": {
+              "type": "object",
+              "description": "Details of what changed (for update events)"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Event timestamp in ISO 8601 format"
+            },
+            "correlation_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "For tracking related events"
+            }
+          },
+          "required": ["event_type", "regulation_name", "jurisdiction", "timestamp"]
+        }
+      }
+    },
+    {
+      "name": "regulatory.deadlines",
+      "description": "Regulatory deadline notifications and scheduling events",
+      "partitions": 3,
+      "replication_factor": 1,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": 7776000000,
+        "segment.ms": 86400000,
+        "min.insync.replicas": 2
+      },
+      "schema": {
+        "key": {
+          "type": "string",
+          "description": "deadline_id for partitioning"
+        },
+        "value": {
+          "type": "object",
+          "properties": {
+            "event_type": {
+              "type": "string",
+              "enum": ["deadline_approaching", "deadline_missed", "report_scheduled", "report_generated"],
+              "description": "Type of deadline event"
+            },
+            "deadline_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "regulation_name": {
+              "type": "string"
+            },
+            "jurisdiction": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "deadline_date": {
+              "type": "string",
+              "format": "date"
+            },
+            "deadline_type": {
+              "type": "string",
+              "enum": ["implementation", "reporting", "compliance"]
+            },
+            "days_until_deadline": {
+              "type": "integer"
+            },
+            "auto_trigger_reports": {
+              "type": "boolean"
+            },
+            "report_types": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          "required": ["event_type", "deadline_id", "regulation_name", "jurisdiction", "deadline_date", "timestamp"]
+        }
+      }
+    },
+    {
+      "name": "compliance.reports",
+      "description": "Compliance report generation and delivery status updates",
+      "partitions": 4,
+      "replication_factor": 1,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": 15552000000,
+        "segment.ms": 86400000,
+        "min.insync.replicas": 2
+      },
+      "schema": {
+        "key": {
+          "type": "string",
+          "description": "report_id for partitioning"
+        },
+        "value": {
+          "type": "object",
+          "properties": {
+            "event_type": {
+              "type": "string",
+              "enum": ["report_requested", "report_generated", "report_delivered", "report_failed", "report_validated"],
+              "description": "Type of report event"
+            },
+            "report_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "report_type": {
+              "type": "string",
+              "enum": ["FINREP", "COREP", "DORA", "CUSTOM"]
+            },
+            "report_format": {
+              "type": "string",
+              "enum": ["XBRL", "CSV", "JSON", "XML"]
+            },
+            "jurisdiction": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "reporting_period_start": {
+              "type": "string",
+              "format": "date"
+            },
+            "reporting_period_end": {
+              "type": "string",
+              "format": "date"
+            },
+            "file_path": {
+              "type": "string",
+              "description": "Path to generated report file"
+            },
+            "file_size": {
+              "type": "integer"
+            },
+            "checksum": {
+              "type": "string"
+            },
+            "delivery_method": {
+              "type": "string",
+              "enum": ["SFTP", "API", "EMAIL", "MANUAL"]
+            },
+            "delivery_status": {
+              "type": "string",
+              "enum": ["pending", "delivered", "failed", "retrying"]
+            },
+            "validation_status": {
+              "type": "string",
+              "enum": ["pending", "passed", "failed"]
+            },
+            "validation_errors": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "deadline": {
+              "type": "string",
+              "format": "date"
+            },
+            "timestamp": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "correlation_id": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "required": ["event_type", "report_id", "report_type", "jurisdiction", "timestamp"]
+        }
+      }
+    },
+    {
+      "name": "regulatory.audit",
+      "description": "Audit trail for all regulatory system activities",
+      "partitions": 8,
+      "replication_factor": 1,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": 31536000000,
+        "segment.ms": 86400000,
+        "min.insync.replicas": 1,
+        "compression.type": "lz4"
+      },
+      "schema": {
+        "key": {
+          "type": "string",
+          "description": "entity_type:entity_id for partitioning"
+        },
+        "value": {
+          "type": "object",
+          "properties": {
+            "audit_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "event_type": {
+              "type": "string",
+              "description": "Type of audit event"
+            },
+            "entity_type": {
+              "type": "string",
+              "enum": ["obligation", "rule", "report", "feed", "deadline"]
+            },
+            "entity_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "event_data": {
+              "type": "object",
+              "description": "Detailed event information"
+            },
+            "occurred_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "processed_by": {
+              "type": "string",
+              "description": "System component or user that triggered the event"
+            },
+            "session_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "correlation_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "jurisdiction": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "regulation_type": {
+              "type": "string"
+            },
+            "impact_level": {
+              "type": "string",
+              "enum": ["low", "medium", "high", "critical"]
+            },
+            "affected_systems": {
+              "type": "array",
+              "items": {"type": "string"}
+            },
+            "user_agent": {
+              "type": "string"
+            },
+            "ip_address": {
+              "type": "string"
+            }
+          },
+          "required": ["audit_id", "event_type", "entity_type", "entity_id", "event_data", "occurred_at", "processed_by"]
+        }
+      }
+    }
+  ],
+  "consumer_groups": [
+    {
+      "group_id": "regulatory-intelligence-group",
+      "description": "Regulatory Intelligence Agent consumer group",
+      "topics": ["regulatory.deadlines"],
+      "config": {
+        "enable.auto.commit": false,
+        "auto.offset.reset": "earliest",
+        "max.poll.records": 100,
+        "session.timeout.ms": 30000,
+        "heartbeat.interval.ms": 10000,
+        "max.poll.interval.ms": 300000,
+        "isolation.level": "read_committed"
+      }
+    },
+    {
+      "group_id": "intelligence-compliance-regulatory-group",
+      "description": "Intelligence & Compliance Agent regulatory updates consumer",
+      "topics": ["regulatory.updates"],
+      "config": {
+        "enable.auto.commit": false,
+        "auto.offset.reset": "earliest",
+        "max.poll.records": 50,
+        "session.timeout.ms": 30000,
+        "heartbeat.interval.ms": 10000,
+        "max.poll.interval.ms": 300000,
+        "isolation.level": "read_committed"
+      }
+    },
+    {
+      "group_id": "decision-orchestration-regulatory-group",
+      "description": "Decision & Orchestration Agent regulatory consumer",
+      "topics": ["regulatory.deadlines", "compliance.reports"],
+      "config": {
+        "enable.auto.commit": false,
+        "auto.offset.reset": "earliest",
+        "max.poll.records": 25,
+        "session.timeout.ms": 30000,
+        "heartbeat.interval.ms": 10000,
+        "max.poll.interval.ms": 300000,
+        "isolation.level": "read_committed"
+      }
+    },
+    {
+      "group_id": "regulatory-audit-group",
+      "description": "Audit logging consumer group",
+      "topics": ["regulatory.audit"],
+      "config": {
+        "enable.auto.commit": false,
+        "auto.offset.reset": "earliest",
+        "max.poll.records": 200,
+        "session.timeout.ms": 30000,
+        "heartbeat.interval.ms": 10000,
+        "max.poll.interval.ms": 300000,
+        "isolation.level": "read_committed"
+      }
+    }
+  ],
+  "dead_letter_queues": [
+    {
+      "name": "regulatory.updates.dlq",
+      "description": "Dead letter queue for failed regulatory update processing",
+      "partitions": 3,
+      "replication_factor": 1,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": 7776000000
+      }
+    },
+    {
+      "name": "regulatory.deadlines.dlq",
+      "description": "Dead letter queue for failed deadline processing",
+      "partitions": 2,
+      "replication_factor": 1,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": 7776000000
+      }
+    },
+    {
+      "name": "compliance.reports.dlq",
+      "description": "Dead letter queue for failed report processing",
+      "partitions": 2,
+      "replication_factor": 1,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": 7776000000
+      }
+    }
+  ]
+}

@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComplianceAI Regulatory Integration Guide</title>
+    <style>
+        /* Professional UI/UX Design - Rule 7 Compliance */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 12px 18px;
+            margin: 5px;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .nav-tab:hover {
+            background: #e3f2fd;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-tab.active {
+            background: #27ae60;
+            color: white;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #27ae60;
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            display: flex;
+            align-items: center;
+        }
+
+        .section h3 {
+            color: #34495e;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .icon {
+            margin-right: 12px;
+            font-size: 1.2em;
+        }
+
+        .integration-step {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #2ecc71;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            background: #27ae60;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .step-description {
+            margin: 15px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .copy-button:hover {
+            background: #229954;
+        }
+
+        .config-example {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .alert-box {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            color: #0d47a1;
+        }
+
+        .alert-warning {
+            background: #fff3e0;
+            border-color: #ff9800;
+            color: #e65100;
+        }
+
+        .alert-success {
+            background: #e8f5e8;
+            border-color: #4caf50;
+            color: #1b5e20;
+        }
+
+        .alert-danger {
+            background: #ffebee;
+            border-color: #f44336;
+            color: #c62828;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-card li {
+            padding: 5px 0;
+            color: #555;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .feature-card li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .checklist {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .checklist h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .checklist ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .checklist li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .checklist input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .architecture-diagram {
+            background: #fafafa;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .diagram-placeholder {
+            background: #ecf0f1;
+            border: 2px dashed #bdc3c7;
+            border-radius: 8px;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top:hover {
+            background: #229954;
+            transform: translateY(-3px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .nav-tab {
+                margin: 5px 0;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .step-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .step-number {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Regulatory Integration Guide</h1>
+            <p>Complete Integration Guide for ComplianceAI Regulatory Features</p>
+            <p><strong>Version:</strong> 4.0 | <strong>Target Audience:</strong> Technical Integrators & Developers | <strong>Last Updated:</strong> <span id="lastUpdated"></span></p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">📋 Overview</button>
+            <button class="nav-tab" onclick="showTab('quickstart')">🚀 Quick Start</button>
+            <button class="nav-tab" onclick="showTab('architecture')">🏗️ Architecture</button>
+            <button class="nav-tab" onclick="showTab('authentication')">🔐 Authentication</button>
+            <button class="nav-tab" onclick="showTab('workflows')">⚡ Workflows</button>
+            <button class="nav-tab" onclick="showTab('examples')">💡 Examples</button>
+            <button class="nav-tab" onclick="showTab('troubleshooting')">🔧 Troubleshooting</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="section">
+                <h2><span class="icon">📋</span>Integration Overview</h2>
+                
+                <div class="alert-box alert-info">
+                    <strong>🎯 Purpose:</strong> This guide provides comprehensive instructions for integrating with ComplianceAI's regulatory compliance platform, covering all 4 specialized agents and their APIs.
+                </div>
+
+                <h3>🏛️ System Architecture</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🔍 Regulatory Intelligence Agent</h4>
+                        <ul>
+                            <li>Real-time regulatory feed monitoring</li>
+                            <li>Document parsing and analysis</li>
+                            <li>Obligation extraction</li>
+                            <li>Multi-jurisdiction support</li>
+                        </ul>
+                        <div class="alert-box alert-success">
+                            <strong>Port:</strong> 8002 | <strong>Base URL:</strong> http://localhost:8002
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>🧠 Intelligence & Compliance Agent</h4>
+                        <ul>
+                            <li>JSON-Logic rule compilation</li>
+                            <li>Jurisdiction precedence handling</li>
+                            <li>Regulatory overlap resolution</li>
+                            <li>AI-powered text processing</li>
+                        </ul>
+                        <div class="alert-box alert-success">
+                            <strong>Port:</strong> 8003 | <strong>Base URL:</strong> http://localhost:8003
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>⚡ Decision & Orchestration Agent</h4>
+                        <ul>
+                            <li>FINREP/COREP/DORA report generation</li>
+                            <li>Multi-channel delivery management</li>
+                            <li>SLA monitoring and alerting</li>
+                            <li>Performance optimization</li>
+                        </ul>
+                        <div class="alert-box alert-success">
+                            <strong>Port:</strong> 8004 | <strong>Base URL:</strong> http://localhost:8004
+                        </div>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>📥 Intake & Processing Agent</h4>
+                        <ul>
+                            <li>Customer data ingestion</li>
+                            <li>KYC/AML compliance checks</li>
+                            <li>Transaction processing</li>
+                            <li>Data quality validation</li>
+                        </ul>
+                        <div class="alert-box alert-success">
+                            <strong>Port:</strong> 8005 | <strong>Base URL:</strong> http://localhost:8005
+                        </div>
+                    </div>
+                </div>
+
+                <h3>🎯 Integration Patterns</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Direct API Integration</div>
+                    </div>
+                    <div class="step-description">
+                        Integrate directly with individual agent APIs for specific functionality. Best for microservices architectures and targeted use cases.
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Orchestrated Workflow Integration</div>
+                    </div>
+                    <div class="step-description">
+                        Use the Decision & Orchestration Agent as the primary interface for complete regulatory workflows from obligation processing to report delivery.
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Event-Driven Integration</div>
+                    </div>
+                    <div class="step-description">
+                        Leverage Kafka message bus and webhooks for real-time, event-driven integration with your existing systems.
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Web Interface Integration</div>
+                    </div>
+                    <div class="step-description">
+                        Embed or integrate with the professional web dashboard for user-facing regulatory compliance management.
+                    </div>
+                </div>
+
+                <h3>📊 Integration Benefits</h3>
+                <div class="checklist">
+                    <h4>✅ What You'll Achieve</h4>
+                    <ul>
+                        <li><input type="checkbox" checked disabled> Automated regulatory compliance monitoring</li>
+                        <li><input type="checkbox" checked disabled> Real-time regulatory update processing</li>
+                        <li><input type="checkbox" checked disabled> Automated report generation (FINREP, COREP, DORA)</li>
+                        <li><input type="checkbox" checked disabled> Multi-jurisdiction compliance management</li>
+                        <li><input type="checkbox" checked disabled> SLA monitoring and performance optimization</li>
+                        <li><input type="checkbox" checked disabled> Comprehensive audit trails and documentation</li>
+                        <li><input type="checkbox" checked disabled> Cost reduction (<$0.50 per KYC check)</li>
+                        <li><input type="checkbox" checked disabled> 99.9% uptime and reliability</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Start Tab -->
+        <div id="quickstart" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🚀</span>Quick Start Integration</h2>
+                
+                <div class="alert-box alert-warning">
+                    <strong>⚠️ Prerequisites:</strong> Ensure ComplianceAI is deployed and running. See deployment guide for setup instructions.
+                </div>
+
+                <h3>🔧 Environment Setup</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Configure Environment Variables</div>
+                    </div>
+                    <div class="step-description">
+                        Set up your environment with the necessary configuration for ComplianceAI integration.
+                    </div>
+                    <div class="config-example">
+# ComplianceAI Integration Configuration
+COMPLIANCE_AI_BASE_URL=http://localhost:8001
+REGULATORY_INTELLIGENCE_URL=http://localhost:8002
+INTELLIGENCE_COMPLIANCE_URL=http://localhost:8003
+DECISION_ORCHESTRATION_URL=http://localhost:8004
+INTAKE_PROCESSING_URL=http://localhost:8005
+
+# Authentication (when REQUIRE_AUTH=true)
+COMPLIANCE_AI_API_KEY=your_api_key_here
+COMPLIANCE_AI_CLIENT_ID=your_client_id
+COMPLIANCE_AI_CLIENT_SECRET=your_client_secret
+
+# Optional: Webhook Configuration
+WEBHOOK_SECRET=your_webhook_secret
+WEBHOOK_ENDPOINT=https://your-app.com/webhooks/compliance
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Test Connectivity</div>
+                    </div>
+                    <div class="step-description">
+                        Verify that all agents are accessible and responding correctly.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+#!/bin/bash
+# Test all agent endpoints
+
+echo "Testing Regulatory Intelligence Agent..."
+curl -f http://localhost:8002/api/v1/health || echo "❌ Regulatory Intelligence Agent not responding"
+
+echo "Testing Intelligence & Compliance Agent..."
+curl -f http://localhost:8003/api/v1/health || echo "❌ Intelligence & Compliance Agent not responding"
+
+echo "Testing Decision & Orchestration Agent..."
+curl -f http://localhost:8004/api/v1/health || echo "❌ Decision & Orchestration Agent not responding"
+
+echo "Testing Intake & Processing Agent..."
+curl -f http://localhost:8005/api/v1/health || echo "❌ Intake & Processing Agent not responding"
+
+echo "✅ All agents are responding correctly!"
+                    </div>
+                </div>
+
+                <h3>⚡ First Integration - Generate a Report</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Generate Your First FINREP Report</div>
+                    </div>
+                    <div class="step-description">
+                        Create a simple FINREP report to test the complete workflow.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+curl -X POST http://localhost:8004/api/v1/reports/generate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "report_type": "FINREP",
+    "institution_id": "TEST_BANK_001",
+    "reporting_date": "2024-03-31",
+    "format": "XBRL",
+    "jurisdiction": "EU",
+    "validation_level": "standard"
+  }'
+                    </div>
+                    <div class="alert-box alert-info">
+                        <strong>📝 Expected Response:</strong> You'll receive a report_id and status. Use the report_id to track generation progress and download the completed report.
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">4</div>
+                        <div class="step-title">Monitor Report Status</div>
+                    </div>
+                    <div class="step-description">
+                        Track the report generation progress and retrieve the completed report.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+# Check report status
+curl http://localhost:8004/api/v1/reports/REPORT_ID/status \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Download completed report
+curl http://localhost:8004/api/v1/reports/REPORT_ID/download \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -o finrep_report.xbrl
+                    </div>
+                </div>
+
+                <h3>🔗 Integration Checklist</h3>
+                <div class="checklist">
+                    <h4>✅ Quick Start Checklist</h4>
+                    <ul>
+                        <li><input type="checkbox"> Environment variables configured</li>
+                        <li><input type="checkbox"> All agent endpoints tested</li>
+                        <li><input type="checkbox"> Authentication configured (if REQUIRE_AUTH=true)</li>
+                        <li><input type="checkbox"> First report generated successfully</li>
+                        <li><input type="checkbox"> Report download tested</li>
+                        <li><input type="checkbox"> Error handling implemented</li>
+                        <li><input type="checkbox"> Logging and monitoring configured</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Tab -->
+        <div id="architecture" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🏗️</span>Integration Architecture</h2>
+                
+                <h3>🔄 Data Flow Architecture</h3>
+                <div class="architecture-diagram">
+                    <div class="diagram-placeholder">
+                        [Integration Flow Diagram]<br>
+                        Your System ↔ ComplianceAI Agents ↔ Regulatory Authorities<br>
+                        Real-time bidirectional data flow with Kafka message bus
+                    </div>
+                </div>
+
+                <h3>🏛️ Integration Patterns</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Synchronous API Integration</div>
+                    </div>
+                    <div class="step-description">
+                        Direct REST API calls for immediate responses. Best for user-facing operations and real-time queries.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+// JavaScript/Node.js Example
+const axios = require('axios');
+
+class ComplianceAIClient {
+  constructor(baseUrl, apiKey) {
+    this.baseUrl = baseUrl;
+    this.apiKey = apiKey;
+    this.client = axios.create({
+      baseURL: baseUrl,
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      }
+    });
+  }
+
+  async generateReport(reportConfig) {
+    try {
+      const response = await this.client.post('/api/v1/reports/generate', reportConfig);
+      return response.data;
+    } catch (error) {
+      console.error('Report generation failed:', error.response?.data);
+      throw error;
+    }
+  }
+
+  async getReportStatus(reportId) {
+    const response = await this.client.get(`/api/v1/reports/${reportId}/status`);
+    return response.data;
+  }
+}
+
+// Usage
+const client = new ComplianceAIClient('http://localhost:8004', 'your-api-key');
+const report = await client.generateReport({
+  report_type: 'FINREP',
+  institution_id: 'BANK_001',
+  reporting_date: '2024-03-31'
+});
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Asynchronous Webhook Integration</div>
+                    </div>
+                    <div class="step-description">
+                        Receive real-time notifications about regulatory updates, report completion, and system events.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+// Express.js Webhook Handler
+const express = require('express');
+const crypto = require('crypto');
+
+const app = express();
+app.use(express.json());
+
+// Webhook signature verification
+function verifyWebhookSignature(payload, signature, secret) {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload)
+    .digest('hex');
+  return crypto.timingSafeEqual(
+    Buffer.from(signature),
+    Buffer.from(expectedSignature)
+  );
+}
+
+app.post('/webhooks/compliance', (req, res) => {
+  const signature = req.headers['x-signature'];
+  const payload = JSON.stringify(req.body);
+  
+  if (!verifyWebhookSignature(payload, signature, process.env.WEBHOOK_SECRET)) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  const { event, data } = req.body;
+  
+  switch (event) {
+    case 'report.completed':
+      handleReportCompleted(data);
+      break;
+    case 'obligation.extracted':
+      handleNewObligation(data);
+      break;
+    case 'sla.breach':
+      handleSLABreach(data);
+      break;
+    default:
+      console.log('Unknown event:', event);
+  }
+  
+  res.status(200).send('OK');
+});
+
+function handleReportCompleted(data) {
+  console.log(`Report ${data.report_id} completed for ${data.institution_id}`);
+  // Trigger downstream processes
+}
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Kafka Message Bus Integration</div>
+                    </div>
+                    <div class="step-description">
+                        Connect directly to the Kafka message bus for high-throughput, real-time regulatory data processing.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+// Python Kafka Consumer Example
+from kafka import KafkaConsumer
+import json
+
+class RegulatoryUpdateConsumer:
+    def __init__(self, bootstrap_servers, topics):
+        self.consumer = KafkaConsumer(
+            *topics,
+            bootstrap_servers=bootstrap_servers,
+            value_deserializer=lambda x: json.loads(x.decode('utf-8')),
+            group_id='your-consumer-group'
+        )
+    
+    def process_messages(self):
+        for message in self.consumer:
+            topic = message.topic
+            data = message.value
+            
+            if topic == 'regulatory.updates':
+                self.handle_regulatory_update(data)
+            elif topic == 'rules.compiled':
+                self.handle_compiled_rule(data)
+            elif topic == 'reports.generated':
+                self.handle_report_generated(data)
+    
+    def handle_regulatory_update(self, data):
+        print(f"New regulatory update: {data['obligation_id']}")
+        # Process the regulatory update in your system
+        
+    def handle_compiled_rule(self, data):
+        print(f"New compiled rule: {data['rule_id']}")
+        # Update your compliance engine
+        
+    def handle_report_generated(self, data):
+        print(f"Report generated: {data['report_id']}")
+        # Trigger report delivery or notification
+
+# Usage
+consumer = RegulatoryUpdateConsumer(
+    ['localhost:9092'],
+    ['regulatory.updates', 'rules.compiled', 'reports.generated']
+)
+consumer.process_messages()
+                    </div>
+                </div>
+
+                <h3>🔧 Integration Components</h3>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h4>🔌 API Gateway</h4>
+                        <ul>
+                            <li>Centralized API access point</li>
+                            <li>Rate limiting and throttling</li>
+                            <li>Authentication and authorization</li>
+                            <li>Request/response transformation</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>📨 Message Queue</h4>
+                        <ul>
+                            <li>Kafka message bus integration</li>
+                            <li>Asynchronous processing</li>
+                            <li>Event-driven architecture</li>
+                            <li>Dead letter queue handling</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>🔗 Webhook System</h4>
+                        <ul>
+                            <li>Real-time event notifications</li>
+                            <li>HMAC signature verification</li>
+                            <li>Retry logic and error handling</li>
+                            <li>Event filtering and routing</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-card">
+                        <h4>📊 Monitoring & Logging</h4>
+                        <ul>
+                            <li>Integration health monitoring</li>
+                            <li>Performance metrics tracking</li>
+                            <li>Error logging and alerting</li>
+                            <li>SLA compliance monitoring</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Authentication Tab -->
+        <div id="authentication" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🔐</span>Authentication & Security</h2>
+                
+                <div class="alert-box alert-warning">
+                    <strong>🔒 REQUIRE_AUTH Integration:</strong> ComplianceAI supports conditional authentication via the REQUIRE_AUTH environment variable. When set to true, all API endpoints require valid authentication.
+                </div>
+
+                <h3>🔑 Authentication Methods</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">API Key Authentication</div>
+                    </div>
+                    <div class="step-description">
+                        Simple and secure API key-based authentication for server-to-server integration.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+# Generate API Key (Admin operation)
+curl -X POST http://localhost:8001/api/v1/auth/api-keys \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer ADMIN_TOKEN" \
+  -d '{
+    "name": "Integration Client",
+    "permissions": ["reports:generate", "reports:read", "obligations:read"],
+    "expires_at": "2025-12-31T23:59:59Z"
+  }'
+
+# Use API Key in requests
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+     -H "Content-Type: application/json" \
+     http://localhost:8004/api/v1/reports
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">OAuth 2.0 Authentication</div>
+                    </div>
+                    <div class="step-description">
+                        Industry-standard OAuth 2.0 for secure, delegated access with fine-grained permissions.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+// OAuth 2.0 Client Credentials Flow
+const axios = require('axios');
+
+class OAuth2Client {
+  constructor(clientId, clientSecret, tokenUrl) {
+    this.clientId = clientId;
+    this.clientSecret = clientSecret;
+    this.tokenUrl = tokenUrl;
+    this.accessToken = null;
+    this.tokenExpiry = null;
+  }
+
+  async getAccessToken() {
+    if (this.accessToken && this.tokenExpiry > Date.now()) {
+      return this.accessToken;
+    }
+
+    const response = await axios.post(this.tokenUrl, {
+      grant_type: 'client_credentials',
+      client_id: this.clientId,
+      client_secret: this.clientSecret,
+      scope: 'regulatory:read reports:generate'
+    });
+
+    this.accessToken = response.data.access_token;
+    this.tokenExpiry = Date.now() + (response.data.expires_in * 1000);
+    
+    return this.accessToken;
+  }
+
+  async makeAuthenticatedRequest(url, options = {}) {
+    const token = await this.getAccessToken();
+    return axios({
+      ...options,
+      url,
+      headers: {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`
+      }
+    });
+  }
+}
+
+// Usage
+const oauthClient = new OAuth2Client(
+  'your-client-id',
+  'your-client-secret',
+  'http://localhost:8001/oauth/token'
+);
+
+const response = await oauthClient.makeAuthenticatedRequest(
+  'http://localhost:8004/api/v1/reports',
+  { method: 'GET' }
+);
+                    </div>
+                </div>
+
+                <h3>🛡️ Security Best Practices</h3>
+                <div class="checklist">
+                    <h4>🔒 Security Checklist</h4>
+                    <ul>
+                        <li><input type="checkbox"> Use HTTPS in production environments</li>
+                        <li><input type="checkbox"> Store API keys and secrets securely (environment variables, key vaults)</li>
+                        <li><input type="checkbox"> Implement proper token refresh logic for OAuth 2.0</li>
+                        <li><input type="checkbox"> Validate webhook signatures using HMAC-SHA256</li>
+                        <li><input type="checkbox"> Implement rate limiting on your integration endpoints</li>
+                        <li><input type="checkbox"> Log authentication events and monitor for anomalies</li>
+                        <li><input type="checkbox"> Use least-privilege principle for API permissions</li>
+                        <li><input type="checkbox"> Implement proper error handling without exposing sensitive data</li>
+                    </ul>
+                </div>
+
+                <h3>🔐 Webhook Security</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Webhook Signature Verification</div>
+                    </div>
+                    <div class="step-description">
+                        Verify webhook authenticity using HMAC-SHA256 signatures to prevent unauthorized requests.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+import hashlib
+import hmac
+import time
+
+def verify_webhook_signature(payload, signature, secret, tolerance=300):
+    """
+    Verify webhook signature with timestamp tolerance
+    
+    Args:
+        payload: Raw webhook payload
+        signature: X-Signature header value
+        secret: Webhook secret
+        tolerance: Time tolerance in seconds (default: 5 minutes)
+    """
+    # Extract timestamp and signature from header
+    # Format: t=timestamp,v1=signature
+    elements = signature.split(',')
+    timestamp = None
+    signature_hash = None
+    
+    for element in elements:
+        if element.startswith('t='):
+            timestamp = int(element[2:])
+        elif element.startswith('v1='):
+            signature_hash = element[3:]
+    
+    if not timestamp or not signature_hash:
+        return False
+    
+    # Check timestamp tolerance
+    if abs(time.time() - timestamp) > tolerance:
+        return False
+    
+    # Verify signature
+    signed_payload = f"{timestamp}.{payload}"
+    expected_signature = hmac.new(
+        secret.encode('utf-8'),
+        signed_payload.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    
+    return hmac.compare_digest(signature_hash, expected_signature)
+
+# Usage in Flask
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route('/webhooks/compliance', methods=['POST'])
+def handle_webhook():
+    payload = request.get_data()
+    signature = request.headers.get('X-Signature')
+    
+    if not verify_webhook_signature(payload, signature, WEBHOOK_SECRET):
+        return 'Invalid signature', 401
+    
+    # Process webhook
+    data = request.get_json()
+    process_compliance_event(data)
+    
+    return 'OK', 200
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflows Tab -->
+        <div id="workflows" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">⚡</span>Integration Workflows</h2>
+                
+                <h3>🔄 Complete Regulatory Workflow</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Regulatory Update Processing</div>
+                    </div>
+                    <div class="step-description">
+                        Monitor and process new regulatory obligations from various authorities.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+// Complete workflow for processing regulatory updates
+class RegulatoryWorkflow {
+  constructor(complianceClient) {
+    this.client = complianceClient;
+  }
+
+  async processRegulatoryUpdate(obligationData) {
+    try {
+      // Step 1: Submit obligation for rule compilation
+      const compilationResult = await this.client.post(
+        'http://localhost:8003/api/v1/rules/compile',
+        {
+          obligation_id: obligationData.obligation_id,
+          obligation_text: obligationData.text,
+          jurisdiction: obligationData.jurisdiction,
+          authority: obligationData.authority,
+          ai_enhanced: true
+        }
+      );
+
+      console.log('Rule compiled:', compilationResult.rule_id);
+
+      // Step 2: Check for jurisdiction conflicts
+      const conflictCheck = await this.client.post(
+        'http://localhost:8003/api/v1/jurisdictions/resolve-conflicts',
+        {
+          conflicting_rules: [compilationResult.rule_id],
+          entity_jurisdictions: ['EU', obligationData.jurisdiction],
+          resolution_strategy: 'most_restrictive'
+        }
+      );
+
+      // Step 3: Update compliance rules in your system
+      await this.updateComplianceRules(conflictCheck.resolution_result);
+
+      // Step 4: Trigger affected report regeneration
+      await this.triggerReportRegeneration(obligationData.affected_reports);
+
+      return {
+        status: 'success',
+        rule_id: compilationResult.rule_id,
+        conflicts_resolved: conflictCheck.conflicts_resolved
+      };
+
+    } catch (error) {
+      console.error('Regulatory workflow failed:', error);
+      throw error;
+    }
+  }
+
+  async updateComplianceRules(resolutionResult) {
+    // Update your internal compliance engine
+    console.log('Updating compliance rules:', resolutionResult.applied_rule);
+  }
+
+  async triggerReportRegeneration(affectedReports) {
+    for (const reportType of affectedReports) {
+      await this.client.post('http://localhost:8004/api/v1/reports/generate', {
+        report_type: reportType,
+        trigger_reason: 'regulatory_update'
+      });
+    }
+  }
+}
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Automated Report Generation & Delivery</div>
+                    </div>
+                    <div class="step-description">
+                        Generate and deliver regulatory reports with full automation and monitoring.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+class ReportDeliveryWorkflow {
+  async generateAndDeliverReport(reportConfig) {
+    try {
+      // Step 1: Generate report
+      const reportResult = await this.client.post(
+        'http://localhost:8004/api/v1/reports/generate',
+        reportConfig
+      );
+
+      const reportId = reportResult.report_id;
+      console.log(`Report generation started: ${reportId}`);
+
+      // Step 2: Monitor generation progress
+      await this.waitForReportCompletion(reportId);
+
+      // Step 3: Validate report
+      const validationResult = await this.client.post(
+        `http://localhost:8004/api/v1/reports/${reportId}/validate`
+      );
+
+      if (!validationResult.validation_passed) {
+        throw new Error('Report validation failed');
+      }
+
+      // Step 4: Submit to regulatory authorities
+      const submissionResult = await this.client.post(
+        'http://localhost:8004/api/v1/delivery/submit',
+        {
+          report_id: reportId,
+          delivery_channels: ['sftp', 'eba_api'],
+          priority: 'high',
+          notification_emails: ['compliance@company.com']
+        }
+      );
+
+      // Step 5: Monitor delivery status
+      await this.monitorDeliveryStatus(submissionResult.submission_id);
+
+      return {
+        status: 'delivered',
+        report_id: reportId,
+        submission_id: submissionResult.submission_id
+      };
+
+    } catch (error) {
+      console.error('Report delivery workflow failed:', error);
+      await this.handleDeliveryFailure(error);
+      throw error;
+    }
+  }
+
+  async waitForReportCompletion(reportId, maxWaitTime = 600000) {
+    const startTime = Date.now();
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      const status = await this.client.get(
+        `http://localhost:8004/api/v1/reports/${reportId}/status`
+      );
+
+      if (status.status === 'completed') {
+        return status;
+      } else if (status.status === 'failed') {
+        throw new Error(`Report generation failed: ${status.error}`);
+      }
+
+      // Wait 30 seconds before checking again
+      await new Promise(resolve => setTimeout(resolve, 30000));
+    }
+
+    throw new Error('Report generation timeout');
+  }
+
+  async monitorDeliveryStatus(submissionId) {
+    // Monitor delivery across all channels
+    const maxAttempts = 20;
+    let attempts = 0;
+
+    while (attempts < maxAttempts) {
+      const status = await this.client.get(
+        `http://localhost:8004/api/v1/delivery/${submissionId}/status`
+      );
+
+      if (status.overall_status === 'delivered') {
+        console.log('All deliveries completed successfully');
+        return status;
+      } else if (status.overall_status === 'failed') {
+        throw new Error('Delivery failed across all channels');
+      }
+
+      attempts++;
+      await new Promise(resolve => setTimeout(resolve, 60000)); // Wait 1 minute
+    }
+
+    throw new Error('Delivery monitoring timeout');
+  }
+}
+                    </div>
+                </div>
+
+                <h3>📊 SLA Monitoring Integration</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Real-time SLA Monitoring</div>
+                    </div>
+                    <div class="step-description">
+                        Integrate with ComplianceAI's SLA monitoring system for proactive performance management.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+class SLAMonitoringIntegration {
+  constructor(complianceClient, alertingSystem) {
+    this.client = complianceClient;
+    this.alerting = alertingSystem;
+    this.slaThresholds = {
+      report_generation_time: 300, // 5 minutes
+      delivery_success_rate: 0.995, // 99.5%
+      system_availability: 0.999    // 99.9%
+    };
+  }
+
+  async startSLAMonitoring() {
+    // Monitor SLA metrics every 5 minutes
+    setInterval(async () => {
+      await this.checkSLACompliance();
+    }, 300000);
+  }
+
+  async checkSLACompliance() {
+    try {
+      const metrics = await this.client.get(
+        'http://localhost:8004/api/v1/sla/metrics?time_range=1h'
+      );
+
+      // Check each SLA metric
+      for (const [metric, threshold] of Object.entries(this.slaThresholds)) {
+        const currentValue = metrics.metrics[metric]?.current_value;
+        
+        if (this.isSLABreach(metric, currentValue, threshold)) {
+          await this.handleSLABreach(metric, currentValue, threshold);
+        }
+      }
+
+      // Check for active breaches
+      const breaches = await this.client.get(
+        'http://localhost:8004/api/v1/sla/breaches?status=active'
+      );
+
+      if (breaches.breaches.length > 0) {
+        await this.escalateActiveBreaches(breaches.breaches);
+      }
+
+    } catch (error) {
+      console.error('SLA monitoring failed:', error);
+      await this.alerting.sendAlert('SLA monitoring system failure', error);
+    }
+  }
+
+  isSLABreach(metric, currentValue, threshold) {
+    switch (metric) {
+      case 'report_generation_time':
+        return currentValue > threshold;
+      case 'delivery_success_rate':
+      case 'system_availability':
+        return currentValue < threshold;
+      default:
+        return false;
+    }
+  }
+
+  async handleSLABreach(metric, currentValue, threshold) {
+    const breach = {
+      metric,
+      current_value: currentValue,
+      threshold,
+      severity: this.calculateSeverity(metric, currentValue, threshold),
+      timestamp: new Date().toISOString()
+    };
+
+    console.log(`SLA breach detected: ${metric}`, breach);
+    
+    // Send alert to your monitoring system
+    await this.alerting.sendAlert(`SLA Breach: ${metric}`, breach);
+    
+    // Trigger automated remediation if available
+    await this.triggerRemediation(breach);
+  }
+
+  calculateSeverity(metric, currentValue, threshold) {
+    const deviation = Math.abs(currentValue - threshold) / threshold;
+    
+    if (deviation > 0.2) return 'critical';
+    if (deviation > 0.1) return 'major';
+    if (deviation > 0.05) return 'minor';
+    return 'warning';
+  }
+
+  async triggerRemediation(breach) {
+    // Implement automated remediation based on breach type
+    switch (breach.metric) {
+      case 'report_generation_time':
+        await this.scaleReportingResources();
+        break;
+      case 'delivery_success_rate':
+        await this.retryFailedDeliveries();
+        break;
+      case 'system_availability':
+        await this.restartUnhealthyServices();
+        break;
+    }
+  }
+}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examples Tab -->
+        <div id="examples" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">💡</span>Integration Examples</h2>
+                
+                <h3>🏦 Banking Institution Integration</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Complete Banking Compliance Integration</div>
+                    </div>
+                    <div class="step-description">
+                        Full integration example for a European bank requiring FINREP, COREP, and AML reporting.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+class BankingComplianceIntegration {
+  constructor() {
+    this.complianceClient = new ComplianceAIClient({
+      baseUrl: 'http://localhost:8001',
+      apiKey: process.env.COMPLIANCE_AI_API_KEY
+    });
+    
+    this.institutionId = 'DEUTSCHE_BANK_AG_001';
+    this.jurisdictions = ['EU', 'DE'];
+    this.reportTypes = ['FINREP', 'COREP', 'AML_SAR'];
+  }
+
+  async initializeCompliance() {
+    // Step 1: Configure regulatory feeds
+    await this.setupRegulatoryFeeds();
+    
+    // Step 2: Set up automated reporting schedules
+    await this.configureReportingSchedules();
+    
+    // Step 3: Configure delivery channels
+    await this.setupDeliveryChannels();
+    
+    // Step 4: Set up SLA monitoring
+    await this.configureSLAMonitoring();
+    
+    // Step 5: Start real-time monitoring
+    await this.startRealTimeMonitoring();
+  }
+
+  async setupRegulatoryFeeds() {
+    const feeds = [
+      {
+        name: 'EBA Banking Updates',
+        authority: 'EBA',
+        jurisdiction: 'EU',
+        url: 'https://www.eba.europa.eu/rss',
+        update_frequency: '1h'
+      },
+      {
+        name: 'BaFin German Regulations',
+        authority: 'BaFin',
+        jurisdiction: 'DE',
+        url: 'https://www.bafin.de/rss/circulars',
+        update_frequency: '2h'
+      }
+    ];
+
+    for (const feed of feeds) {
+      await this.complianceClient.post(
+        'http://localhost:8002/api/v1/feeds',
+        feed
+      );
+    }
+  }
+
+  async configureReportingSchedules() {
+    const schedules = [
+      {
+        name: 'FINREP Quarterly Reports',
+        report_type: 'FINREP',
+        institution_id: this.institutionId,
+        frequency: 'quarterly',
+        deadline_offset: 7, // Generate 7 days before deadline
+        auto_submit: true,
+        delivery_channels: ['sftp', 'eba_api']
+      },
+      {
+        name: 'COREP Quarterly Reports',
+        report_type: 'COREP',
+        institution_id: this.institutionId,
+        frequency: 'quarterly',
+        deadline_offset: 7,
+        auto_submit: true,
+        delivery_channels: ['sftp', 'eba_api']
+      }
+    ];
+
+    for (const schedule of schedules) {
+      await this.complianceClient.post(
+        'http://localhost:8004/api/v1/schedules',
+        schedule
+      );
+    }
+  }
+
+  async setupDeliveryChannels() {
+    // SFTP channel for BaFin
+    await this.complianceClient.post(
+      'http://localhost:8004/api/v1/delivery/channels',
+      {
+        channel_type: 'sftp',
+        name: 'BaFin SFTP Server',
+        authority: 'BaFin',
+        jurisdiction: 'DE',
+        configuration: {
+          host: 'sftp.bafin.de',
+          port: 22,
+          username: this.institutionId,
+          private_key_path: '/keys/bafin_private.key',
+          remote_directory: '/incoming/',
+          encryption: 'AES256'
+        }
+      }
+    );
+
+    // EBA API channel
+    await this.complianceClient.post(
+      'http://localhost:8004/api/v1/delivery/channels',
+      {
+        channel_type: 'eba_api',
+        name: 'EBA Direct Submission',
+        authority: 'EBA',
+        jurisdiction: 'EU',
+        configuration: {
+          endpoint: 'https://api.eba.europa.eu/submit',
+          client_id: process.env.EBA_CLIENT_ID,
+          client_secret: process.env.EBA_CLIENT_SECRET,
+          certificate_path: '/certs/eba_client.p12'
+        }
+      }
+    );
+  }
+
+  async processCustomerTransaction(transaction) {
+    // Real-time AML/KYC compliance check
+    const complianceCheck = await this.complianceClient.post(
+      'http://localhost:8005/api/v1/compliance/check',
+      {
+        customer_id: transaction.customer_id,
+        transaction_amount: transaction.amount,
+        transaction_type: transaction.type,
+        counterparty: transaction.counterparty,
+        jurisdiction: transaction.jurisdiction
+      }
+    );
+
+    if (complianceCheck.risk_level === 'HIGH') {
+      // Trigger enhanced due diligence
+      await this.triggerEnhancedDueDiligence(transaction, complianceCheck);
+    }
+
+    return complianceCheck;
+  }
+
+  async triggerEnhancedDueDiligence(transaction, complianceCheck) {
+    // Generate SAR if required
+    if (complianceCheck.sar_required) {
+      await this.complianceClient.post(
+        'http://localhost:8004/api/v1/reports/generate',
+        {
+          report_type: 'AML_SAR',
+          institution_id: this.institutionId,
+          transaction_id: transaction.id,
+          customer_id: transaction.customer_id,
+          reason: complianceCheck.sar_reason,
+          priority: 'urgent'
+        }
+      );
+    }
+  }
+}
+
+// Usage
+const bankCompliance = new BankingComplianceIntegration();
+await bankCompliance.initializeCompliance();
+
+// Process transactions in real-time
+const transaction = {
+  customer_id: 'CUST_12345',
+  amount: 50000,
+  type: 'wire_transfer',
+  counterparty: 'HIGH_RISK_ENTITY',
+  jurisdiction: 'DE'
+};
+
+const complianceResult = await bankCompliance.processCustomerTransaction(transaction);
+console.log('Compliance check result:', complianceResult);
+                    </div>
+                </div>
+
+                <h3>🏢 FinTech Integration</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Payment Institution Compliance</div>
+                    </div>
+                    <div class="step-description">
+                        Integration example for a FinTech payment institution requiring PSD2 compliance and transaction monitoring.
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+class FinTechComplianceIntegration {
+  constructor() {
+    this.complianceClient = new ComplianceAIClient({
+      baseUrl: 'http://localhost:8001',
+      apiKey: process.env.COMPLIANCE_AI_API_KEY
+    });
+    
+    this.institutionId = 'FINTECH_PAYMENTS_IE_001';
+    this.jurisdictions = ['EU', 'IE'];
+  }
+
+  async setupPSD2Compliance() {
+    // Configure PSD2-specific regulatory monitoring
+    await this.complianceClient.post(
+      'http://localhost:8002/api/v1/feeds',
+      {
+        name: 'EBA PSD2 Updates',
+        authority: 'EBA',
+        jurisdiction: 'EU',
+        url: 'https://www.eba.europa.eu/regulation-and-policy/payment-services-and-electronic-money/rss',
+        update_frequency: '6h',
+        filter_keywords: ['PSD2', 'Strong Customer Authentication', 'Open Banking']
+      }
+    );
+
+    // Set up transaction monitoring rules
+    await this.setupTransactionMonitoring();
+  }
+
+  async setupTransactionMonitoring() {
+    // Configure real-time transaction monitoring
+    const monitoringRules = [
+      {
+        rule_name: 'High Value Transaction Alert',
+        condition: {
+          'and': [
+            {'>=': [{'var': 'amount'}, 10000]},
+            {'==': [{'var': 'payment_method'}, 'instant_transfer']}
+          ]
+        },
+        action: 'enhanced_monitoring',
+        priority: 'HIGH'
+      },
+      {
+        rule_name: 'Cross-Border Payment Check',
+        condition: {
+          '!=': [{'var': 'sender_country'}, {'var': 'recipient_country'}]
+        },
+        action: 'sanctions_screening',
+        priority: 'MEDIUM'
+      }
+    ];
+
+    for (const rule of monitoringRules) {
+      await this.complianceClient.post(
+        'http://localhost:8003/api/v1/rules/compile',
+        {
+          obligation_text: `Monitor transactions matching: ${rule.rule_name}`,
+          json_logic: rule.condition,
+          jurisdiction: 'EU',
+          authority: 'EBA',
+          rule_type: 'transaction_monitoring'
+        }
+      );
+    }
+  }
+
+  async processPayment(payment) {
+    // Real-time compliance check for payment
+    const complianceCheck = await this.complianceClient.post(
+      'http://localhost:8005/api/v1/payments/compliance-check',
+      {
+        payment_id: payment.id,
+        amount: payment.amount,
+        currency: payment.currency,
+        sender: payment.sender,
+        recipient: payment.recipient,
+        payment_method: payment.method,
+        jurisdiction: payment.jurisdiction
+      }
+    );
+
+    // Handle compliance results
+    if (complianceCheck.requires_sca) {
+      return await this.triggerStrongCustomerAuthentication(payment);
+    }
+
+    if (complianceCheck.sanctions_hit) {
+      return await this.handleSanctionsHit(payment, complianceCheck);
+    }
+
+    if (complianceCheck.aml_alert) {
+      await this.logAMLAlert(payment, complianceCheck);
+    }
+
+    return {
+      status: 'approved',
+      compliance_score: complianceCheck.compliance_score,
+      monitoring_flags: complianceCheck.flags
+    };
+  }
+
+  async triggerStrongCustomerAuthentication(payment) {
+    // Implement SCA flow
+    return {
+      status: 'sca_required',
+      sca_methods: ['sms', 'app_notification', 'biometric'],
+      challenge_id: `sca_${payment.id}_${Date.now()}`
+    };
+  }
+
+  async handleSanctionsHit(payment, complianceCheck) {
+    // Block payment and report
+    await this.complianceClient.post(
+      'http://localhost:8004/api/v1/reports/generate',
+      {
+        report_type: 'SANCTIONS_ALERT',
+        institution_id: this.institutionId,
+        payment_id: payment.id,
+        sanctions_match: complianceCheck.sanctions_match,
+        priority: 'critical'
+      }
+    );
+
+    return {
+      status: 'blocked',
+      reason: 'sanctions_screening_hit',
+      reference: complianceCheck.sanctions_match.reference
+    };
+  }
+}
+
+// Usage
+const finTechCompliance = new FinTechComplianceIntegration();
+await finTechCompliance.setupPSD2Compliance();
+
+// Process payment with compliance check
+const payment = {
+  id: 'PAY_12345',
+  amount: 15000,
+  currency: 'EUR',
+  sender: { country: 'IE', customer_id: 'CUST_001' },
+  recipient: { country: 'DE', iban: 'DE89370400440532013000' },
+  method: 'instant_transfer',
+  jurisdiction: 'EU'
+};
+
+const result = await finTechCompliance.processPayment(payment);
+console.log('Payment compliance result:', result);
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting Tab -->
+        <div id="troubleshooting" class="tab-content">
+            <div class="section">
+                <h2><span class="icon">🔧</span>Troubleshooting & Best Practices</h2>
+                
+                <h3>🚨 Common Integration Issues</h3>
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <div class="step-title">Authentication Failures</div>
+                    </div>
+                    <div class="step-description">
+                        Resolve common authentication and authorization issues.
+                    </div>
+                    <div class="alert-box alert-danger">
+                        <strong>❌ Error:</strong> 401 Unauthorized - Invalid API key or token
+                    </div>
+                    <div class="alert-box alert-success">
+                        <strong>✅ Solution:</strong>
+                        <ul>
+                            <li>Verify API key is correctly set in Authorization header</li>
+                            <li>Check if REQUIRE_AUTH is enabled in environment</li>
+                            <li>Ensure API key has required permissions for the endpoint</li>
+                            <li>For OAuth 2.0, verify token hasn't expired</li>
+                        </ul>
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+// Debug authentication issues
+async function debugAuthentication() {
+  try {
+    // Test basic connectivity
+    const healthCheck = await fetch('http://localhost:8004/api/v1/health');
+    console.log('Health check:', healthCheck.status);
+    
+    // Test authentication
+    const authTest = await fetch('http://localhost:8004/api/v1/reports', {
+      headers: {
+        'Authorization': `Bearer ${process.env.API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (authTest.status === 401) {
+      console.error('Authentication failed - check API key');
+    } else if (authTest.status === 403) {
+      console.error('Authorization failed - insufficient permissions');
+    } else {
+      console.log('Authentication successful');
+    }
+  } catch (error) {
+    console.error('Connection failed:', error.message);
+  }
+}
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <div class="step-title">Rate Limiting Issues</div>
+                    </div>
+                    <div class="step-description">
+                        Handle rate limiting and implement proper retry logic.
+                    </div>
+                    <div class="alert-box alert-danger">
+                        <strong>❌ Error:</strong> 429 Too Many Requests - Rate limit exceeded
+                    </div>
+                    <div class="alert-box alert-success">
+                        <strong>✅ Solution:</strong> Implement exponential backoff retry logic with jitter
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+class RateLimitHandler {
+  constructor(maxRetries = 3, baseDelay = 1000) {
+    this.maxRetries = maxRetries;
+    this.baseDelay = baseDelay;
+  }
+
+  async makeRequestWithRetry(requestFn) {
+    let attempt = 0;
+    
+    while (attempt <= this.maxRetries) {
+      try {
+        const response = await requestFn();
+        
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After');
+          const delay = retryAfter ? 
+            parseInt(retryAfter) * 1000 : 
+            this.calculateBackoffDelay(attempt);
+          
+          console.log(`Rate limited. Retrying after ${delay}ms`);
+          await this.sleep(delay);
+          attempt++;
+          continue;
+        }
+        
+        return response;
+      } catch (error) {
+        if (attempt === this.maxRetries) {
+          throw error;
+        }
+        
+        const delay = this.calculateBackoffDelay(attempt);
+        console.log(`Request failed. Retrying after ${delay}ms`);
+        await this.sleep(delay);
+        attempt++;
+      }
+    }
+    
+    throw new Error('Max retries exceeded');
+  }
+
+  calculateBackoffDelay(attempt) {
+    // Exponential backoff with jitter
+    const exponentialDelay = this.baseDelay * Math.pow(2, attempt);
+    const jitter = Math.random() * 0.1 * exponentialDelay;
+    return exponentialDelay + jitter;
+  }
+
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+
+// Usage
+const rateLimitHandler = new RateLimitHandler();
+
+const response = await rateLimitHandler.makeRequestWithRetry(() =>
+  fetch('http://localhost:8004/api/v1/reports/generate', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(reportConfig)
+  })
+);
+                    </div>
+                </div>
+
+                <div class="integration-step">
+                    <div class="step-header">
+                        <div class="step-number">3</div>
+                        <div class="step-title">Report Generation Timeouts</div>
+                    </div>
+                    <div class="step-description">
+                        Handle long-running report generation processes properly.
+                    </div>
+                    <div class="alert-box alert-danger">
+                        <strong>❌ Error:</strong> Request timeout during report generation
+                    </div>
+                    <div class="alert-box alert-success">
+                        <strong>✅ Solution:</strong> Use asynchronous polling pattern instead of synchronous waiting
+                    </div>
+                    <div class="code-block">
+                        <button class="copy-button" onclick="copyToClipboard(this)">Copy</button>
+class ReportGenerationHandler {
+  async generateReportAsync(reportConfig, options = {}) {
+    const {
+      pollInterval = 30000, // 30 seconds
+      maxWaitTime = 1800000, // 30 minutes
+      onProgress = null
+    } = options;
+
+    try {
+      // Start report generation
+      const response = await fetch('http://localhost:8004/api/v1/reports/generate', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reportConfig)
+      });
+
+      const result = await response.json();
+      const reportId = result.report_id;
+      
+      console.log(`Report generation started: ${reportId}`);
+
+      // Poll for completion
+      return await this.pollReportStatus(reportId, {
+        pollInterval,
+        maxWaitTime,
+        onProgress
+      });
+
+    } catch (error) {
+      console.error('Report generation failed:', error);
+      throw error;
+    }
+  }
+
+  async pollReportStatus(reportId, options) {
+    const { pollInterval, maxWaitTime, onProgress } = options;
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < maxWaitTime) {
+      try {
+        const statusResponse = await fetch(
+          `http://localhost:8004/api/v1/reports/${reportId}/status`,
+          {
+            headers: {
+              'Authorization': `Bearer ${process.env.API_KEY}`
+            }
+          }
+        );
+
+        const status = await statusResponse.json();
+
+        // Call progress callback if provided
+        if (onProgress) {
+          onProgress(status);
+        }
+
+        switch (status.status) {
+          case 'completed':
+            console.log(`Report ${reportId} completed successfully`);
+            return await this.downloadReport(reportId);
+            
+          case 'failed':
+            throw new Error(`Report generation failed: ${status.error}`);
+            
+          case 'processing':
+            console.log(`Report ${reportId} progress: ${status.progress}%`);
+            break;
+            
+          default:
+            console.log(`Report ${reportId} status: ${status.status}`);
+        }
+
+        // Wait before next poll
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+
+      } catch (error) {
+        console.error('Status check failed:', error);
+        // Continue polling unless it's a critical error
+        if (error.message.includes('Report generation failed')) {
+          throw error;
+        }
+      }
+    }
+
+    throw new Error(`Report generation timeout after ${maxWaitTime}ms`);
+  }
+
+  async downloadReport(reportId) {
+    const response = await fetch(
+      `http://localhost:8004/api/v1/reports/${reportId}/download`,
+      {
+        headers: {
+          'Authorization': `Bearer ${process.env.API_KEY}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Download failed: ${response.statusText}`);
+    }
+
+    return {
+      reportId,
+      data: await response.blob(),
+      filename: response.headers.get('Content-Disposition')?.match(/filename="(.+)"/)?.[1]
+    };
+  }
+}
+
+// Usage with progress tracking
+const reportHandler = new ReportGenerationHandler();
+
+const report = await reportHandler.generateReportAsync({
+  report_type: 'FINREP',
+  institution_id: 'BANK_001',
+  reporting_date: '2024-03-31'
+}, {
+  onProgress: (status) => {
+    console.log(`Progress: ${status.progress}% - ${status.current_stage}`);
+  }
+});
+
+console.log(`Report downloaded: ${report.filename}`);
+                    </div>
+                </div>
+
+                <h3>📊 Monitoring & Logging</h3>
+                <div class="checklist">
+                    <h4>🔍 Integration Monitoring Checklist</h4>
+                    <ul>
+                        <li><input type="checkbox"> Log all API requests and responses</li>
+                        <li><input type="checkbox"> Monitor response times and success rates</li>
+                        <li><input type="checkbox"> Set up alerts for authentication failures</li>
+                        <li><input type="checkbox"> Track rate limiting and quota usage</li>
+                        <li><input type="checkbox"> Monitor webhook delivery success</li>
+                        <li><input type="checkbox"> Implement health checks for all endpoints</li>
+                        <li><input type="checkbox"> Set up SLA monitoring and alerting</li>
+                        <li><input type="checkbox"> Create dashboards for key metrics</li>
+                    </ul>
+                </div>
+
+                <h3>🎯 Performance Optimization</h3>
+                <div class="alert-box alert-info">
+                    <strong>💡 Best Practices:</strong>
+                    <ul>
+                        <li><strong>Caching:</strong> Cache frequently accessed data like regulatory rules and institution configurations</li>
+                        <li><strong>Batch Processing:</strong> Group multiple operations together when possible</li>
+                        <li><strong>Async Processing:</strong> Use asynchronous patterns for long-running operations</li>
+                        <li><strong>Connection Pooling:</strong> Reuse HTTP connections to reduce overhead</li>
+                        <li><strong>Compression:</strong> Enable gzip compression for large payloads</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="back-to-top" onclick="scrollToTop()" title="Back to Top">↑</button>
+
+    <script>
+        // Tab functionality
+        function showTab(tabName) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Copy to clipboard functionality
+        function copyToClipboard(button) {
+            const codeBlock = button.nextElementSibling || button.parentElement.querySelector('pre') || button.parentElement;
+            const text = codeBlock.textContent.replace('Copy', '').trim();
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#27ae60';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = '#27ae60';
+                }, 2000);
+            });
+        }
+
+        // Back to top functionality
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show/hide back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.querySelector('.back-to-top');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'block';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Set last updated date
+        document.getElementById('lastUpdated').textContent = new Date().toLocaleDateString();
+
+        // Add interactive features
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.integration-step, .feature-card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                    this.style.boxShadow = '0 10px 25px rgba(0, 0, 0, 0.15)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+                });
+            });
+
+            // Add click handlers for step numbers
+            const stepNumbers = document.querySelectorAll('.step-number');
+            stepNumbers.forEach(step => {
+                step.addEventListener('click', function() {
+                    this.style.animation = 'pulse 0.5s ease-in-out';
+                    setTimeout(() => {
+                        this.style.animation = '';
+                    }, 500);
+                });
+            });
+
+            // Interactive checklist
+            const checkboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const listItem = this.parentElement;
+                    if (this.checked) {
+                        listItem.style.opacity = '0.7';
+                        listItem.style.textDecoration = 'line-through';
+                    } else {
+                        listItem.style.opacity = '1';
+                        listItem.style.textDecoration = 'none';
+                    }
+                });
+            });
+        });
+
+        // Add CSS animation for pulse effect
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
