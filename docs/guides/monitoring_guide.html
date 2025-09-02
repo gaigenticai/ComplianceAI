@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoring Guide - ComplianceAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../../static/css/design-system.css" rel="stylesheet">
+    <style>
+        .code-block { background: #f8f9fa; border-left: 4px solid var(--primary-600); padding: 1rem; margin: 1rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .highlight { background: #fff3cd; padding: 2px 4px; border-radius: 3px; }
+        .metric-card { border-left: 4px solid var(--success-500); background: linear-gradient(135deg, #f8fff8 0%, #ffffff 100%); }
+        .alert-card { border-left: 4px solid var(--warning-500); background: linear-gradient(135deg, #fffef8 0%, #ffffff 100%); }
+        .nav-link { color: var(--text-secondary); }
+        .nav-link.active { color: var(--primary-600); font-weight: bold; }
+        .severity-critical { color: #dc3545; font-weight: bold; }
+        .severity-warning { color: #fd7e14; font-weight: bold; }
+        .severity-info { color: #0dcaf0; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../../../">
+                <i class="fas fa-shield-alt me-2"></i>ComplianceAI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="../../../">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../../phase6">Phase 6</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../../../phase6/guides">User Guides</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="jurisdiction_configuration_guide.html">Jurisdictions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="deployment_guide.html">Deployment</a></li>
+                    <li class="nav-item"><a class="nav-link" href="monitoring_guide.html">Monitoring</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="fas fa-chart-line text-primary me-2"></i>Monitoring & Alerting Guide</h2>
+                        <p class="text-muted mb-0">Comprehensive monitoring setup using Prometheus, Grafana, and Alertmanager</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success">Web-Based Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../../../">Home</a></li>
+                <li class="breadcrumb-item"><a href="../../../phase6">Phase 6</a></li>
+                <li class="breadcrumb-item"><a href="../../../phase6/guides">User Guides</a></li>
+                <li class="breadcrumb-item active">Monitoring Guide</li>
+            </ol>
+        </nav>
+
+        <!-- Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-info-circle text-primary me-2"></i>Overview</h4>
+            </div>
+            <div class="card-body">
+                <p>This guide provides comprehensive monitoring and alerting configurations for ComplianceAI using industry-standard tools.</p>
+
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card metric-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-tachometer-alt fa-2x text-success mb-3"></i>
+                                <h6>Prometheus</h6>
+                                <small class="text-muted">Metrics collection and storage</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card metric-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-bar fa-2x text-primary mb-3"></i>
+                                <h6>Grafana</h6>
+                                <small class="text-muted">Visualization and dashboards</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card alert-card">
+                            <div class="card-body text-center">
+                                <i class="fas fa-bell fa-2x text-warning mb-3"></i>
+                                <h6>Alertmanager</h6>
+                                <small class="text-muted">Alert routing and notifications</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Pro Tip:</strong> The monitoring setup provides real-time visibility into system health, performance, and business metrics with automated alerting for proactive issue resolution.
+                </div>
+            </div>
+        </div>
+
+        <!-- Directory Structure -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-folder-tree text-primary me-2"></i>Directory Structure</h4>
+            </div>
+            <div class="card-body">
+                <div class="code-block">
+monitoring/<br>
+├── prometheus.yml          # Prometheus configuration<br>
+├── alert_rules.yml         # Alert rules definitions<br>
+├── alertmanager.yml        # Alertmanager configuration<br>
+├── grafana/<br>
+│   └── dashboards/<br>
+│       └── complianceai-overview.json  # Grafana dashboard<br>
+└── README.md               # This file
+                </div>
+            </div>
+        </div>
+
+        <!-- Prometheus Setup -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-tachometer-alt text-primary me-2"></i>Prometheus Setup</h4>
+            </div>
+            <div class="card-body">
+                <h5>Installation</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Using Docker:</strong>
+                        <div class="code-block">
+docker run -d -p 9090:9090 \<br>
+  -v $(pwd)/prometheus.yml:/etc/prometheus/prometheus.yml \<br>
+  prom/prometheus
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Using Package Manager:</strong>
+                        <div class="code-block">
+sudo apt-get install prometheus
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Starting Prometheus</h5>
+                <div class="code-block">
+./prometheus --config.file=prometheus.yml
+                        </div>
+
+                <h5>Access Points</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Web UI:</strong>
+                        <div class="code-block">
+http://localhost:9090
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Metrics Endpoint:</strong>
+                        <div class="code-block">
+http://localhost:9090/metrics
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Configuration Features</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Scrape jobs for all services</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Service discovery</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Alert rules integration</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Remote write support</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>High availability setup</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Performance optimization</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5>Key Metrics Collected</h5>
+
+                <div class="accordion" id="metricsAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#applicationMetrics">
+                                Application Metrics
+                            </button>
+                        </h2>
+                        <div id="applicationMetrics" class="accordion-collapse collapse show" data-bs-parent="#metricsAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>HTTP Metrics:</strong> Request/response counts, error rates, latency</li>
+                                    <li><strong>Business Logic:</strong> Report generation, validation success rates</li>
+                                    <li><strong>Service Health:</strong> Uptime, response times, error counts</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#infrastructureMetrics">
+                                Infrastructure Metrics
+                            </button>
+                        </h2>
+                        <div id="infrastructureMetrics" class="accordion-collapse collapse" data-bs-parent="#metricsAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>System Resources:</strong> CPU, memory, disk usage</li>
+                                    <li><strong>Network:</strong> I/O, errors, connections</li>
+                                    <li><strong>Containers:</strong> Resource usage, health status</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#databaseMetrics">
+                                Database Metrics
+                            </button>
+                        </h2>
+                        <div id="databaseMetrics" class="accordion-collapse collapse" data-bs-parent="#metricsAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>Connections:</strong> Active, idle, waiting connections</li>
+                                    <li><strong>Performance:</strong> Query latency, slow queries</li>
+                                    <li><strong>Storage:</strong> Database size, growth trends</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#queueMetrics">
+                                Message Queue Metrics
+                            </button>
+                        </h2>
+                        <div id="queueMetrics" class="accordion-collapse collapse" data-bs-parent="#metricsAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>Kafka:</strong> Broker status, partition health</li>
+                                    <li><strong>Consumer Lag:</strong> Message processing delays</li>
+                                    <li><strong>Throughput:</strong> Messages per second</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Rules -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-bell text-primary me-2"></i>Alert Rules & Configuration</h4>
+            </div>
+            <div class="card-body">
+                <h5>Alert Categories</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-server text-info me-2"></i>Infrastructure Alerts</h6>
+                        <ul class="small">
+                            <li>Instance down/unavailable</li>
+                            <li>High CPU/memory usage</li>
+                            <li>Low disk space</li>
+                            <li>Network connectivity issues</li>
+                        </ul>
+
+                        <h6 class="mt-3"><i class="fas fa-database text-success me-2"></i>Database Alerts</h6>
+                        <ul class="small">
+                            <li>Connection pool exhaustion</li>
+                            <li>Slow query performance</li>
+                            <li>Replication lag</li>
+                            <li>Storage capacity warnings</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-cogs text-warning me-2"></i>Application Alerts</h6>
+                        <ul class="small">
+                            <li>Service unavailable</li>
+                            <li>High error rates</li>
+                            <li>Slow response times</li>
+                            <li>Memory leaks detected</li>
+                        </ul>
+
+                        <h6 class="mt-3"><i class="fas fa-gavel text-danger me-2"></i>Business Logic Alerts</h6>
+                        <ul class="small">
+                            <li>Report generation failures</li>
+                            <li>Regulatory deadline breaches</li>
+                            <li>Validation errors</li>
+                            <li>SLA violations</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5>Alert Severity Levels</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card border-danger">
+                            <div class="card-body text-center">
+                                <span class="severity-critical">CRITICAL</span>
+                                <br><small>Immediate action required<br>Pages on-call personnel</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-warning">
+                            <div class="card-body text-center">
+                                <span class="severity-warning">WARNING</span>
+                                <br><small>Action within timeframe<br>Team notification</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card border-info">
+                            <div class="card-body text-center">
+                                <span class="severity-info">INFO</span>
+                                <br><small>Informational<br>No immediate action</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Customizing Alert Rules</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Edit alert_rules.yml:</strong>
+                        <div class="code-block">
+- alert: CustomAlert<br>
+  expr: your_metric > threshold<br>
+  for: 5m<br>
+  labels:<br>
+    severity: warning<br>
+  annotations:<br>
+    summary: "Custom alert description"
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Reload Prometheus:</strong>
+                        <div class="code-block">
+curl -X POST http://localhost:9090/-/reload
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertmanager Setup -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-mail-bulk text-primary me-2"></i>Alertmanager Configuration</h4>
+            </div>
+            <div class="card-body">
+                <h5>Installation</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Using Docker:</strong>
+                        <div class="code-block">
+docker run -d -p 9093:9093 \<br>
+  -v $(pwd)/alertmanager.yml:/etc/alertmanager/config.yml \<br>
+  prom/alertmanager
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Using Package Manager:</strong>
+                        <div class="code-block">
+sudo apt-get install prometheus-alertmanager
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Configuration Setup</h5>
+                <p>Update the following placeholders in <code>alertmanager.yml</code>:</p>
+                <div class="code-block">
+# Email configuration<br>
+smtp_auth_password: '&lt;your-smtp-password&gt;'<br>
+<br>
+# Slack webhooks<br>
+api_url: '&lt;your-slack-webhook-url&gt;'<br>
+<br>
+# PagerDuty integration keys<br>
+routing_key: '&lt;your-pagerduty-integration-key&gt;'
+                </div>
+
+                <h5>Testing Configuration</h5>
+                <div class="code-block">
+amtool check-config alertmanager.yml
+                </div>
+
+                <h5>Notification Channels</h5>
+
+                <div class="accordion" id="notificationAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#emailNotifications">
+                                Email Notifications
+                            </button>
+                        </h2>
+                        <div id="emailNotifications" class="accordion-collapse collapse show" data-bs-parent="#notificationAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li><strong>Infrastructure alerts:</strong> infrastructure@company.com</li>
+                                    <li><strong>Application alerts:</strong> application-team@company.com</li>
+                                    <li><strong>Compliance alerts:</strong> compliance@company.com</li>
+                                    <li><strong>Security alerts:</strong> security@company.com</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#slackNotifications">
+                                Slack Notifications
+                            </button>
+                        </h2>
+                        <div id="slackNotifications" class="accordion-collapse collapse" data-bs-parent="#notificationAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Channel-based routing for different alert types</li>
+                                    <li>Real-time notifications with formatted messages</li>
+                                    <li>Escalation mentions for critical alerts</li>
+                                    <li>Integration with Slack workflows</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#pagerdutyIntegration">
+                                PagerDuty Integration
+                            </button>
+                        </h2>
+                        <div id="pagerdutyIntegration" class="accordion-collapse collapse" data-bs-parent="#notificationAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Critical alerts trigger immediate paging</li>
+                                    <li>Automatic escalation based on alert severity</li>
+                                    <li>Integration with on-call schedules</li>
+                                    <li>Incident tracking and resolution workflows</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Alert Grouping and Routing</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Alerts are grouped by:</strong>
+                        <ul>
+                            <li>Alert name and severity</li>
+                            <li>Service and instance</li>
+                            <li>Category (infrastructure, application, business)</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Routes are configured for:</strong>
+                        <ul>
+                            <li><span class="severity-critical">Critical alerts:</span> Immediate paging via PagerDuty</li>
+                            <li><span class="severity-warning">Infrastructure alerts:</span> Infrastructure team</li>
+                            <li><span class="severity-warning">Application alerts:</span> Application team</li>
+                            <li><span class="severity-critical">Business alerts:</span> Compliance team (high priority)</li>
+                            <li><span class="severity-critical">Security alerts:</span> Security team (immediate escalation)</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grafana Dashboards -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-bar text-primary me-2"></i>Grafana Dashboards</h4>
+            </div>
+            <div class="card-body">
+                <h5>Installation</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Using Docker:</strong>
+                        <div class="code-block">
+docker run -d -p 3000:3000 grafana/grafana
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Using Package Manager:</strong>
+                        <div class="code-block">
+sudo apt-get install grafana
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Data Source Configuration</h5>
+                <ul>
+                    <li><strong>URL:</strong> http://prometheus:9090</li>
+                    <li><strong>Access:</strong> Server (default)</li>
+                    <li><strong>Scrape interval:</strong> 15s</li>
+                </ul>
+
+                <h5>Import Dashboard</h5>
+                <div class="code-block">
+# Via API<br>
+curl -X POST -H "Content-Type: application/json" \<br>
+  -d @complianceai-overview.json \<br>
+  http://admin:admin@localhost:3000/api/dashboards/db
+                </div>
+
+                <h5>Dashboard Panels</h5>
+
+                <div class="accordion" id="dashboardAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#systemHealth">
+                                System Health
+                            </button>
+                        </h2>
+                        <div id="systemHealth" class="accordion-collapse collapse show" data-bs-parent="#dashboardAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Service status indicators with color coding</li>
+                                    <li>Active alerts overview and trends</li>
+                                    <li>System resource usage (CPU, memory, disk)</li>
+                                    <li>Network connectivity and throughput</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#performanceMetrics">
+                                Performance Metrics
+                            </button>
+                        </h2>
+                        <div id="performanceMetrics" class="accordion-collapse collapse" data-bs-parent="#dashboardAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>HTTP request rates and response times</li>
+                                    <li>Database connection pool utilization</li>
+                                    <li>Message queue throughput and lag</li>
+                                    <li>Application-specific performance indicators</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#businessMetrics">
+                                Business Metrics
+                            </button>
+                        </h2>
+                        <div id="businessMetrics" class="accordion-collapse collapse" data-bs-parent="#dashboardAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Report generation success rates and times</li>
+                                    <li>Regulatory deadline compliance status</li>
+                                    <li>Error rates by service and component</li>
+                                    <li>Data quality scores and trends</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Customizing Dashboards</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Edit JSON file:</strong>
+                        <p>Update <code>complianceai-overview.json</code> with new panels or metrics</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Reload dashboard:</strong>
+                        <div class="code-block">
+curl -X POST http://localhost:3000/api/admin/provisioning/dashboards/reload
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-lightbulb text-primary me-2"></i>Monitoring Best Practices</h4>
+            </div>
+            <div class="card-body">
+                <h5>Metrics Collection</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Use appropriate metric types:</h6>
+                        <ul class="small">
+                            <li><strong>Counters:</strong> For cumulative values (requests served)</li>
+                            <li><strong>Gauges:</strong> For point-in-time values (current memory usage)</li>
+                            <li><strong>Histograms:</strong> For latency and response time distributions</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Follow naming conventions:</h6>
+                        <ul class="small">
+                            <li><code>complianceai_&lt;component&gt;_&lt;metric&gt;_&lt;type&gt;</code></li>
+                            <li>Use snake_case for metric names</li>
+                            <li>Include relevant labels (service, instance, status)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5>Alert Design</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Avoid alert fatigue:</h6>
+                        <ul class="small">
+                            <li>Use appropriate thresholds</li>
+                            <li>Implement alert inhibition</li>
+                            <li>Group related alerts</li>
+                            <li>Use different severity levels</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Include actionable information:</h6>
+                        <ul class="small">
+                            <li>Clear alert descriptions</li>
+                            <li>Runbook URLs</li>
+                            <li>Contact information</li>
+                            <li>Escalation procedures</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5>Dashboard Organization</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Logical grouping:</h6>
+                        <ul class="small">
+                            <li>System health overview</li>
+                            <li>Service-specific metrics</li>
+                            <li>Business KPIs</li>
+                            <li>Infrastructure monitoring</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Consistent time ranges:</h6>
+                        <ul class="small">
+                            <li>Default: Last 1 hour</li>
+                            <li>Options: 5m, 15m, 1h, 6h, 24h, 7d</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-tools text-primary me-2"></i>Troubleshooting</h4>
+            </div>
+            <div class="card-body">
+                <h5>Prometheus Issues</h5>
+
+                <div class="accordion" id="prometheusIssues">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#highMemory">
+                                High memory usage
+                            </button>
+                        </h2>
+                        <div id="highMemory" class="accordion-collapse collapse show" data-bs-parent="#prometheusIssues">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check Prometheus memory usage<br>
+ps aux | grep prometheus<br>
+<br>
+# Reduce retention time<br>
+--storage.tsdb.retention.time=200h<br>
+<br>
+# Increase memory limits<br>
+--storage.tsdb.max-block-duration=2h
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#missingMetrics">
+                                Missing metrics
+                            </button>
+                        </h2>
+                        <div id="missingMetrics" class="accordion-collapse collapse" data-bs-parent="#prometheusIssues">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check service endpoints<br>
+curl http://service:port/metrics<br>
+<br>
+# Verify scrape configuration<br>
+curl http://localhost:9090/config<br>
+<br>
+# Check Prometheus logs<br>
+docker logs prometheus
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Alertmanager Issues</h5>
+
+                <div class="accordion" id="alertmanagerIssues">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#alertsNotFiring">
+                                Alerts not firing
+                            </button>
+                        </h2>
+                        <div id="alertsNotFiring" class="accordion-collapse collapse show" data-bs-parent="#alertmanagerIssues">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check alert rules<br>
+curl http://localhost:9090/api/v1/rules<br>
+<br>
+# Validate alert expressions<br>
+curl http://localhost:9090/api/v1/query?query=your_alert_expression<br>
+<br>
+# Check Alertmanager logs<br>
+docker logs alertmanager
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#notificationsNotSent">
+                                Notifications not sent
+                            </button>
+                        </h2>
+                        <div id="notificationsNotSent" class="accordion-collapse collapse" data-bs-parent="#alertmanagerIssues">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Test notification channels<br>
+curl -X POST http://localhost:9093/api/v1/alerts -d '[{"labels": {"alertname": "TestAlert"}}]'<br>
+<br>
+# Check SMTP configuration<br>
+telnet smtp.company.com 587<br>
+<br>
+# Verify webhook URLs<br>
+curl -X POST -H 'Content-type: application/json' --data '{"text":"Test"}' YOUR_SLACK_WEBHOOK
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Grafana Issues</h5>
+
+                <div class="accordion" id="grafanaIssues">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#dashboardNotLoading">
+                                Dashboard not loading
+                            </button>
+                        </h2>
+                        <div id="dashboardNotLoading" class="accordion-collapse collapse show" data-bs-parent="#grafanaIssues">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check Grafana logs<br>
+docker logs grafana<br>
+<br>
+# Verify data source configuration<br>
+curl http://admin:admin@localhost:3000/api/datasources<br>
+<br>
+# Test Prometheus connectivity<br>
+curl http://localhost:3000/api/datasources/proxy/1/api/v1/query?query=up
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsNoData">
+                                Panels showing no data
+                            </button>
+                        </h2>
+                        <div id="panelsNoData" class="accordion-collapse collapse" data-bs-parent="#grafanaIssues">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check metric names<br>
+curl http://localhost:9090/api/v1/label/__name__/values<br>
+<br>
+# Verify query syntax<br>
+curl "http://localhost:9090/api/v1/query?query=your_metric"<br>
+<br>
+# Check time range settings<br>
+# Ensure query time range matches data retention
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integration Examples -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-code text-primary me-2"></i>Integration Examples</h4>
+            </div>
+            <div class="card-body">
+                <h5>Application Metrics</h5>
+                <div class="code-block">
+from prometheus_client import Counter, Histogram, Gauge<br>
+<br>
+# Define metrics<br>
+REQUEST_COUNT = Counter('complianceai_http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])<br>
+REQUEST_LATENCY = Histogram('complianceai_http_request_duration_seconds', 'HTTP request latency', ['method', 'endpoint'])<br>
+ACTIVE_CONNECTIONS = Gauge('complianceai_active_connections', 'Number of active connections')<br>
+<br>
+# Use metrics<br>
+REQUEST_COUNT.labels(method='GET', endpoint='/api/reports', status='200').inc()<br>
+with REQUEST_LATENCY.labels(method='POST', endpoint='/api/submit').time():<br>
+    # Your code here<br>
+    pass<br>
+ACTIVE_CONNECTIONS.set(42)
+                </div>
+
+                <h5>Custom Business Metrics</h5>
+                <div class="code-block">
+from prometheus_client import Counter, Gauge<br>
+<br>
+# Business logic metrics<br>
+REPORT_GENERATION_SUCCESS = Counter('complianceai_report_generation_success_total', 'Successful report generations')<br>
+REPORT_GENERATION_FAILURE = Counter('complianceai_report_generation_failure_total', 'Failed report generations')<br>
+REGULATORY_DEADLINE_HOURS = Gauge('complianceai_regulatory_deadline_hours_remaining', 'Hours remaining until deadline', ['report_type'])<br>
+<br>
+# Update metrics<br>
+REPORT_GENERATION_SUCCESS.inc()<br>
+REGULATORY_DEADLINE_HOURS.labels(report_type='FINREP').set(48)
+                </div>
+            </div>
+        </div>
+
+        <!-- Scaling and Security -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-expand-arrows-alt text-primary me-2"></i>Scaling & Security</h4>
+            </div>
+            <div class="card-body">
+                <h5>Horizontal Scaling</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Prometheus Federation:</strong>
+                        <div class="code-block">
+# Add to prometheus.yml<br>
+scrape_configs:<br>
+  - job_name: 'federate'<br>
+    scrape_interval: 15s<br>
+    honor_labels: true<br>
+    metrics_path: '/federate'<br>
+    params:<br>
+      'match[]':<br>
+        - '{job="complianceai"}'<br>
+    static_configs:<br>
+      - targets:<br>
+        - 'source-prometheus-1:9090'<br>
+        - 'source-prometheus-2:9090'
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Alertmanager Clustering:</strong>
+                        <div class="code-block">
+# Run multiple Alertmanager instances<br>
+--cluster.listen-address=0.0.0.0:9094<br>
+--cluster.peer=alertmanager-1:9094<br>
+--cluster.peer=alertmanager-2:9094
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Security Considerations</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Network Security</h6>
+                        <ul class="small">
+                            <li>Restrict Prometheus and Grafana access to internal networks</li>
+                            <li>Use TLS for all external communications</li>
+                            <li>Implement authentication and authorization</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Data Protection</h6>
+                        <ul class="small">
+                            <li>Encrypt sensitive metrics data</li>
+                            <li>Implement access controls for dashboards</li>
+                            <li>Regular backup of monitoring configuration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support and Resources -->
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-life-ring text-primary me-2"></i>Support & Resources</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Documentation</h6>
+                        <ul>
+                            <li><a href="https://prometheus.io/docs/" target="_blank">Prometheus Documentation</a></li>
+                            <li><a href="https://grafana.com/docs/" target="_blank">Grafana Documentation</a></li>
+                            <li><a href="https://prometheus.io/docs/alerting/latest/alertmanager/" target="_blank">Alertmanager Documentation</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Community Resources</h6>
+                        <ul>
+                            <li>Prometheus user community</li>
+                            <li>Grafana user community</li>
+                            <li>Alertmanager user community</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6>Version History</h6>
+                <ul class="small">
+                    <li><strong>v1.0:</strong> Initial monitoring and alerting setup</li>
+                    <li><strong>v1.1:</strong> Enhanced business metrics and alerting rules</li>
+                    <li><strong>v1.2:</strong> Added Grafana dashboards and improved alerting</li>
+                    <li><strong>v1.3:</strong> Implemented security hardening and compliance features</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

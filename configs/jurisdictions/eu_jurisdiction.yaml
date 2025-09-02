@@ -1,0 +1,402 @@
+# European Union Jurisdiction Configuration
+# Configuration for EU regulatory compliance (EBA, ECB, ESMA)
+
+jurisdiction:
+  # Basic jurisdiction information
+  id: "EU"
+  name: "European Union"
+  code: "EU"
+  region: "EUROPE"
+  timezone: "Europe/Brussels"
+
+  # Regulatory authorities
+  authorities:
+    - id: "eba"
+      name: "European Banking Authority"
+      website: "https://www.eba.europa.eu"
+      contact_email: "info@eba.europa.eu"
+      api_endpoint: "https://api.eba.europa.eu"
+
+    - id: "ecb"
+      name: "European Central Bank"
+      website: "https://www.ecb.europa.eu"
+      contact_email: "info@ecb.europa.eu"
+      api_endpoint: "https://api.ecb.europa.eu"
+
+    - id: "esma"
+      name: "European Securities and Markets Authority"
+      website: "https://www.esma.europa.eu"
+      contact_email: "info@esma.europa.eu"
+      api_endpoint: "https://api.esma.europa.eu"
+
+    - id: "eioba"
+      name: "European Insurance and Occupational Pensions Authority"
+      website: "https://www.eiopa.europa.eu"
+      contact_email: "info@eiopa.europa.eu"
+      api_endpoint: "https://api.eiopa.europa.eu"
+
+  # Supported report types
+  reports:
+    - id: "FINREP"
+      name: "Financial Reporting"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "3.1"
+      taxonomy: "FINREP_3.1"
+      mandatory: true
+      consolidation_levels: ["solo", "sub-group", "consolidated"]
+
+    - id: "COREP"
+      name: "Prudential Reporting"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "3.1"
+      taxonomy: "COREP_3.1"
+      mandatory: true
+      consolidation_levels: ["solo", "sub-group", "consolidated"]
+
+    - id: "DORA"
+      name: "Digital Operational Resilience Act"
+      frequency: "annual"
+      format: "JSON"
+      template_version: "1.0"
+      mandatory: true
+      effective_date: "2025-01-17"
+
+    - id: "PSD2"
+      name: "Payment Services Directive 2"
+      frequency: "annual"
+      format: "XML"
+      template_version: "1.0"
+      mandatory: true
+
+    - id: "AML_CFT"
+      name: "Anti-Money Laundering and Countering Financing of Terrorism"
+      frequency: "annual"
+      format: "CSV"
+      template_version: "1.0"
+      mandatory: true
+
+  # Data requirements
+  data_requirements:
+    currency: "EUR"
+    reporting_standard: "IFRS"
+    consolidation_method: "solo"
+    language: "en"
+    decimal_separator: "."
+    date_format: "YYYY-MM-DD"
+    amount_scale: 2
+
+  # Validation rules
+  validation:
+    business_rules:
+      - id: "eba_balance_sheet"
+        name: "EBA Balance Sheet Validation"
+        expression: "total_assets == total_liabilities + total_equity"
+        severity: "critical"
+        enabled: true
+        reference: "EBA/GL/2014/35"
+
+      - id: "capital_adequacy"
+        name: "CRR Capital Adequacy"
+        expression: "cet1_ratio >= 4.5 AND total_capital_ratio >= 8.0"
+        severity: "critical"
+        enabled: true
+        reference: "CRR Article 92"
+
+      - id: "liquidity_coverage"
+        name: "LCR Compliance"
+        expression: "lcr_ratio >= 100.0"
+        severity: "critical"
+        enabled: true
+        reference: "CRR Article 412"
+
+      - id: "leverage_ratio"
+        name: "Leverage Ratio Compliance"
+        expression: "leverage_ratio >= 3.0"
+        severity: "error"
+        enabled: true
+        reference: "CRR Article 429"
+
+      - id: "large_exposures"
+        name: "Large Exposures Limit"
+        expression: "max_exposure_to_client <= tier1_capital * 0.25"
+        severity: "error"
+        enabled: true
+        reference: "CRR Article 395"
+
+    schema_validation:
+      enabled: true
+      strict_mode: true
+      taxonomy_validation: true
+
+  # Submission requirements
+  submission:
+    channels:
+      - type: "EBA_API"
+        primary: true
+        endpoint: "https://api.eba.europa.eu/reporting/submit"
+        authentication: "oauth2_client_credentials"
+        format: "XBRL_JSON"
+        compression: "gzip"
+        encryption: "tls_1_3"
+
+      - type: "SFTP"
+        primary: false
+        host: "sftp.eba.europa.eu"
+        port: 22
+        path: "/reports/{institution_id}/{reporting_period}/"
+        authentication: "ssh_key"
+        key_type: "rsa"
+        key_size: 4096
+        format: "XBRL"
+        compression: "zip"
+        encryption: "sftp"
+
+    deadlines:
+      - report_type: "FINREP"
+        frequency: "quarterly"
+        offset_days: 45  # 45 days after quarter end
+        grace_period_days: 15
+        reference: "EBA/GL/2014/35"
+
+      - report_type: "COREP"
+        frequency: "quarterly"
+        offset_days: 30  # 30 days after quarter end
+        grace_period_days: 10
+        reference: "CRR Article 99"
+
+      - report_type: "DORA"
+        frequency: "annual"
+        offset_days: 120  # 120 days after year end
+        grace_period_days: 30
+        reference: "DORA Regulation"
+
+    resubmission_policy:
+      allowed: true
+      max_attempts: 3
+      cool_down_period_hours: 24
+
+  # Compliance calendar
+  calendar:
+    holidays:
+      # EU-wide holidays
+      - name: "New Year's Day"
+        date: "01-01"
+        type: "fixed"
+
+      - name: "Good Friday"
+        date: "easter-2"
+        type: "easter"
+
+      - name: "Easter Monday"
+        date: "easter+1"
+        type: "easter"
+
+      - name: "Labour Day"
+        date: "05-01"
+        type: "fixed"
+
+      - name: "Christmas Day"
+        date: "12-25"
+        type: "fixed"
+
+      - name: "Boxing Day"
+        date: "12-26"
+        type: "fixed"
+
+      # Country-specific holidays (extendable per member state)
+      - name: "Germany Unity Day"
+        date: "10-03"
+        type: "fixed"
+        countries: ["DE"]
+
+      - name: "Bastille Day"
+        date: "07-14"
+        type: "fixed"
+        countries: ["FR"]
+
+    business_days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    weekend_days: ["saturday", "sunday"]
+
+    # Special banking holidays
+    special_days:
+      - name: "ECB Settlement Day"
+        date: "2017-10-25"
+        type: "one-time"
+
+  # Data retention policies (GDPR compliant)
+  retention:
+    reports: "10_years"  # EBA requirement
+    audit_logs: "10_years"
+    transaction_data: "5_years"
+    personal_data: "3_years"  # GDPR Article 5
+
+  # Notification settings
+  notifications:
+    deadline_warnings:
+      - days_before: 45
+        channels: ["email", "dashboard"]
+        priority: "normal"
+      - days_before: 15
+        channels: ["email", "dashboard", "slack"]
+        priority: "high"
+      - days_before: 3
+        channels: ["email", "dashboard", "slack", "sms"]
+        priority: "urgent"
+
+    compliance_alerts:
+      enabled: true
+      channels: ["email", "dashboard", "slack"]
+      escalation:
+        - level: 1
+          delay_hours: 4
+          recipients: ["compliance_team"]
+          channels: ["email", "slack"]
+        - level: 2
+          delay_hours: 24
+          recipients: ["compliance_manager", "risk_team"]
+          channels: ["email", "slack", "phone"]
+        - level: 3
+          delay_hours: 48
+          recipients: ["executive_team", "board_members"]
+          channels: ["email", "slack", "phone", "sms"]
+
+    regulatory_updates:
+      enabled: true
+      sources: ["eba_official_journal", "ecb_announcements", "esma_updates"]
+      keywords: ["FINREP", "COREP", "CRR", "CRD", "DORA", "PSD2"]
+
+  # Integration settings
+  integrations:
+    banking_systems:
+      - type: "SAP"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "sap_eu_mapping.json"
+
+      - type: "Oracle_Flexcube"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "oracle_eu_mapping.json"
+
+      - type: "Temenos"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "temenos_eu_mapping.json"
+
+    external_apis:
+      - name: "EBA Reporting API"
+        url: "https://api.eba.europa.eu/reporting"
+        authentication: "oauth2"
+        rate_limit: 1000
+        timeout: 60
+
+      - name: "ECB Statistical Data Warehouse"
+        url: "https://sdw.ecb.europa.eu"
+        authentication: "api_key"
+        rate_limit: 500
+        timeout: 30
+
+      - name: "ESMA Central Register"
+        url: "https://registers.esma.europa.eu"
+        authentication: "none"
+        rate_limit: 200
+        timeout: 30
+
+  # Security settings (PSD2 and GDPR compliant)
+  security:
+    encryption:
+      algorithm: "AES-256-GCM"
+      key_rotation_days: 90
+      key_management: "HSM"
+
+    digital_signatures:
+      algorithm: "RSA-PSS"
+      key_size: 4096
+      certificate_authority: "qualified_trust_service_provider"
+      certificate_validity_days: 365
+      timestamping: true
+
+    audit_trail:
+      enabled: true
+      retention_days: 2555  # 7 years
+      immutable: true
+      blockchain_verification: false
+
+    access_control:
+      rbac_enabled: true
+      mfa_required: true
+      session_timeout_minutes: 30
+
+  # Performance settings
+  performance:
+    report_generation_timeout: 7200  # 2 hours for complex EU reports
+    max_concurrent_reports: 3
+    cache_ttl_seconds: 3600
+    batch_size: 5000
+    parallel_processing: true
+
+  # Monitoring and alerting
+  monitoring:
+    metrics:
+      - name: "report_generation_time"
+        threshold: 3600  # 1 hour
+        alert: true
+        severity: "warning"
+
+      - name: "submission_success_rate"
+        threshold: 99.9
+        alert: true
+        severity: "critical"
+
+      - name: "validation_error_rate"
+        threshold: 0.1
+        alert: true
+        severity: "warning"
+
+    health_checks:
+      - name: "eba_api"
+        url: "https://api.eba.europa.eu/health"
+        interval_seconds: 300
+        timeout_seconds: 10
+        expected_status: 200
+
+      - name: "ecb_api"
+        url: "https://api.ecb.europa.eu/health"
+        interval_seconds: 300
+        timeout_seconds: 10
+        expected_status: 200
+
+    log_levels:
+      application: "INFO"
+      security: "INFO"
+      performance: "DEBUG"
+
+  # Custom extensions for EU-specific requirements
+  extensions:
+    custom_validations:
+      - name: "eu_country_by_country_reporting"
+        enabled: true
+        script: "eu_cbcr_validation.py"
+
+      - name: "eu_sustainable_finance_disclosure"
+        enabled: false
+        script: "eu_sfdr_validation.py"
+
+    custom_calculations:
+      - name: "eu_risk_weighted_assets"
+        enabled: true
+        script: "eu_rwa_calculation.py"
+
+      - name: "eu_nsfr_calculation"
+        enabled: true
+        script: "eu_nsfr_calculation.py"
+
+    custom_workflows:
+      - name: "eu_pillar_3_disclosure"
+        enabled: true
+        workflow: "eu_pillar3_workflow.json"

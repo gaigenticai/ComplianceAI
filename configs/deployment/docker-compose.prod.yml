@@ -1,0 +1,667 @@
+version: '3.8'
+
+# Production Docker Compose Configuration for ComplianceAI
+# This configuration is optimized for production deployments with:
+# - High availability and scalability
+# - Security hardening
+# - Monitoring and logging
+# - Backup and recovery
+# - Load balancing
+
+services:
+  # Load Balancer / Reverse Proxy
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: complianceai-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - web-interface
+      - regulatory-intelligence
+      - intelligence-compliance
+      - decision-orchestration
+      - intake-processing
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run
+
+  # Web Interface Service
+  web-interface:
+    image: complianceai/web-interface:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-web
+    environment:
+      - ENVIRONMENT=production
+      - REQUIRE_AUTH=true
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_ENABLED=true
+    volumes:
+      - ./config/production.yaml:/app/config/production.yaml:ro
+      - web_static:/app/static
+      - web_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # Regulatory Intelligence Agent
+  regulatory-intelligence:
+    image: complianceai/regulatory-intelligence:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-regintel
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MONGODB_URL=mongodb://mongodb:27017/complianceai_prod
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_ENABLED=true
+      - DOCUMENT_PROCESSING_TIMEOUT=300
+      - MAX_CONCURRENT_DOCUMENTS=10
+    volumes:
+      - ./config/production.yaml:/app/config/production.yaml:ro
+      - regulatory_docs:/app/documents
+      - regintel_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8001/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # Intelligence & Compliance Agent
+  intelligence-compliance:
+    image: complianceai/intelligence-compliance:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-intelcomp
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - MONGODB_URL=mongodb://mongodb:27017/complianceai_prod
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_ENABLED=true
+      - RULE_ENGINE_TIMEOUT=180
+      - MAX_CONCURRENT_RULES=20
+      - JURISDICTION_CACHE_TTL=3600
+    volumes:
+      - ./config/production.yaml:/app/config/production.yaml:ro
+      - ./config/jurisdictions:/app/config/jurisdictions:ro
+      - intelcomp_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8002/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # Decision & Orchestration Agent
+  decision-orchestration:
+    image: complianceai/decision-orchestration:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-decision
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_ENABLED=true
+      - REPORT_GENERATION_TIMEOUT=3600
+      - MAX_CONCURRENT_REPORTS=5
+      - SUBMISSION_RETRY_ATTEMPTS=3
+      - DEADLINE_CHECK_INTERVAL=300
+    volumes:
+      - ./config/production.yaml:/app/config/production.yaml:ro
+      - ./config/jurisdictions:/app/config/jurisdictions:ro
+      - reports:/app/reports
+      - decision_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8003/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # Intake & Processing Agent
+  intake-processing:
+    image: complianceai/intake-processing:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-intake
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_ENABLED=true
+      - DATA_VALIDATION_TIMEOUT=120
+      - MAX_BATCH_SIZE=1000
+      - PROCESSING_QUEUE_SIZE=10000
+    volumes:
+      - ./config/production.yaml:/app/config/production.yaml:ro
+      - intake_data:/app/data
+      - intake_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8004/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: complianceai-postgres
+    environment:
+      - POSTGRES_DB=complianceai_prod
+      - POSTGRES_USER=complianceai
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - postgres_logs:/var/log/postgresql
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U complianceai -d complianceai_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=512MB
+      -c effective_cache_size=1536MB
+      -c maintenance_work_mem=128MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c default_statistics_target=100
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=200
+      -c work_mem=4MB
+      -c min_wal_size=1GB
+      -c max_wal_size=4GB
+      -c max_worker_processes=4
+      -c max_parallel_workers_per_gather=2
+      -c max_parallel_workers=4
+      -c max_parallel_maintenance_workers=2
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: complianceai-redis
+    command: >
+      redis-server
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 300
+      --timeout 300
+      --appendonly yes
+      --appendfsync everysec
+      --save 60 1000
+    volumes:
+      - redis_data:/data
+      - redis_logs:/var/log/redis
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  # MongoDB Document Store
+  mongodb:
+    image: mongo:7-jammy
+    container_name: complianceai-mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=complianceai
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=complianceai_prod
+    volumes:
+      - mongodb_data:/data/db
+      - ./database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongodb_logs:/var/log/mongodb
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    command: >
+      mongod
+      --bind_ip_all
+      --auth
+      --dbpath /data/db
+      --logpath /var/log/mongodb/mongod.log
+      --wiredTigerMaxCacheOverflowSizeGB 0.5
+      --wiredTigerCacheSizeGB 1
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Apache Kafka
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: complianceai-kafka
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_INTERNAL://localhost:29092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_NUM_PARTITIONS=3
+      - KAFKA_DEFAULT_REPLICATION_FACTOR=1
+      - KAFKA_MIN_INSYNC_REPLICAS=1
+      - KAFKA_MESSAGE_MAX_BYTES=10485760
+      - KAFKA_REPLICA_FETCH_MAX_BYTES=10485760
+      - KAFKA_FETCH_MAX_BYTES=10485760
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+      - kafka_logs:/var/log/kafka
+    depends_on:
+      - zookeeper
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Zookeeper
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: complianceai-zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "localhost", "2181"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: complianceai-prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+      - prometheus_logs:/var/log/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: complianceai-grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_logs:/var/log/grafana
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Backup Service
+  backup:
+    image: complianceai/backup:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-backup
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=complianceai_prod
+      - POSTGRES_USER=complianceai
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - MONGODB_HOST=mongodb
+      - MONGODB_DB=complianceai_prod
+      - MONGODB_USER=complianceai
+      - MONGODB_PASSWORD=${MONGO_PASSWORD}
+      - BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
+      - RETENTION_DAYS=30
+    volumes:
+      - backup_data:/backup
+      - ./config/backup:/app/config:ro
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+# Networks
+networks:
+  complianceai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Volumes
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  kafka_data:
+    driver: local
+  zookeeper_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  backup_data:
+    driver: local
+  web_static:
+    driver: local
+  web_logs:
+    driver: local
+  regulatory_docs:
+    driver: local
+  regintel_logs:
+    driver: local
+  intelcomp_logs:
+    driver: local
+  reports:
+    driver: local
+  decision_logs:
+    driver: local
+  intake_data:
+    driver: local
+  intake_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+  postgres_logs:
+    driver: local
+  redis_logs:
+    driver: local
+  mongodb_logs:
+    driver: local
+  kafka_logs:
+    driver: local
+  prometheus_logs:
+    driver: local
+  grafana_logs:
+    driver: local

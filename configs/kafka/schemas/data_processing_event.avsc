@@ -1,0 +1,376 @@
+{
+  "type": "record",
+  "name": "DataProcessingEvent",
+  "namespace": "com.complianceai.data",
+  "version": "1.0.0",
+  "doc": "Schema for data processing events in the ComplianceAI system",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for the data processing event"
+    },
+    {
+      "name": "processing_type",
+      "type": {
+        "type": "enum",
+        "name": "ProcessingType",
+        "symbols": [
+          "data_ingestion",
+          "data_validation",
+          "data_transformation",
+          "data_aggregation",
+          "data_quality_check",
+          "data_archiving",
+          "data_export"
+        ]
+      },
+      "doc": "Type of data processing operation"
+    },
+    {
+      "name": "source_system",
+      "type": "string",
+      "doc": "Source system or data provider"
+    },
+    {
+      "name": "data_type",
+      "type": {
+        "type": "enum",
+        "name": "DataType",
+        "symbols": [
+          "financial_statement",
+          "transaction_data",
+          "customer_data",
+          "regulatory_report",
+          "reference_data",
+          "audit_log",
+          "system_metric"
+        ]
+      },
+      "doc": "Type of data being processed"
+    },
+    {
+      "name": "batch_id",
+      "type": "string",
+      "doc": "Batch identifier for grouping related processing events"
+    },
+    {
+      "name": "record_count",
+      "type": "long",
+      "doc": "Number of records processed in this event"
+    },
+    {
+      "name": "processing_status",
+      "type": {
+        "type": "enum",
+        "name": "ProcessingStatus",
+        "symbols": ["started", "in_progress", "completed", "failed", "cancelled"]
+      },
+      "doc": "Current status of the processing operation"
+    },
+    {
+      "name": "progress_percentage",
+      "type": ["null", "double"],
+      "default": null,
+      "doc": "Progress percentage (0.0 to 100.0)"
+    },
+    {
+      "name": "processing_metrics",
+      "type": {
+        "type": "record",
+        "name": "ProcessingMetrics",
+        "fields": [
+          {
+            "name": "start_time",
+            "type": {
+              "type": "long",
+              "logicalType": "timestamp-millis"
+            },
+            "doc": "Processing start timestamp"
+          },
+          {
+            "name": "end_time",
+            "type": ["null", {
+              "type": "long",
+              "logicalType": "timestamp-millis"
+            }],
+            "default": null,
+            "doc": "Processing end timestamp"
+          },
+          {
+            "name": "duration_ms",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Processing duration in milliseconds"
+          },
+          {
+            "name": "records_per_second",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Processing throughput in records per second"
+          },
+          {
+            "name": "memory_usage_mb",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Memory usage during processing in MB"
+          },
+          {
+            "name": "cpu_usage_percent",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "CPU usage during processing as percentage"
+          }
+        ]
+      },
+      "doc": "Detailed processing performance metrics"
+    },
+    {
+      "name": "data_quality_metrics",
+      "type": {
+        "type": "record",
+        "name": "DataQualityMetrics",
+        "fields": [
+          {
+            "name": "total_records",
+            "type": "long",
+            "doc": "Total number of records processed"
+          },
+          {
+            "name": "valid_records",
+            "type": "long",
+            "doc": "Number of valid records"
+          },
+          {
+            "name": "invalid_records",
+            "type": "long",
+            "doc": "Number of invalid records"
+          },
+          {
+            "name": "duplicate_records",
+            "type": "long",
+            "doc": "Number of duplicate records detected"
+          },
+          {
+            "name": "completeness_score",
+            "type": "double",
+            "doc": "Data completeness score (0.0 to 1.0)"
+          },
+          {
+            "name": "accuracy_score",
+            "type": "double",
+            "doc": "Data accuracy score (0.0 to 1.0)"
+          },
+          {
+            "name": "consistency_score",
+            "type": "double",
+            "doc": "Data consistency score (0.0 to 1.0)"
+          }
+        ]
+      },
+      "doc": "Data quality assessment results"
+    },
+    {
+      "name": "validation_results",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "ValidationResult",
+          "fields": [
+            {
+              "name": "rule_id",
+              "type": "string",
+              "doc": "Validation rule identifier"
+            },
+            {
+              "name": "rule_name",
+              "type": "string",
+              "doc": "Validation rule name"
+            },
+            {
+              "name": "passed",
+              "type": "boolean",
+              "doc": "Whether the validation rule passed"
+            },
+            {
+              "name": "error_count",
+              "type": "long",
+              "doc": "Number of validation errors"
+            },
+            {
+              "name": "error_message",
+              "type": ["null", "string"],
+              "default": null,
+              "doc": "Validation error message"
+            },
+            {
+              "name": "affected_records",
+              "type": "long",
+              "doc": "Number of records affected by this validation issue"
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Results of validation checks performed"
+    },
+    {
+      "name": "transformation_details",
+      "type": ["null", {
+        "type": "record",
+        "name": "TransformationDetails",
+        "fields": [
+          {
+            "name": "transformation_rules",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "TransformationRule",
+                "fields": [
+                  {
+                    "name": "rule_id",
+                    "type": "string",
+                    "doc": "Transformation rule identifier"
+                  },
+                  {
+                    "name": "source_field",
+                    "type": "string",
+                    "doc": "Source field name"
+                  },
+                  {
+                    "name": "target_field",
+                    "type": "string",
+                    "doc": "Target field name"
+                  },
+                  {
+                    "name": "transformation_type",
+                    "type": {
+                      "type": "enum",
+                      "name": "TransformationType",
+                      "symbols": ["mapping", "calculation", "formatting", "validation", "enrichment"]
+                    },
+                    "doc": "Type of transformation applied"
+                  },
+                  {
+                    "name": "success",
+                    "type": "boolean",
+                    "doc": "Whether the transformation succeeded"
+                  }
+                ]
+              }
+            },
+            "doc": "List of transformation rules applied"
+          },
+          {
+            "name": "output_format",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Output format of transformed data"
+          },
+          {
+            "name": "output_schema",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Schema identifier for output data"
+          }
+        ]
+      }],
+      "default": null,
+      "doc": "Details of data transformations performed"
+    },
+    {
+      "name": "error_details",
+      "type": ["null", {
+        "type": "record",
+        "name": "ErrorDetails",
+        "fields": [
+          {
+            "name": "error_code",
+            "type": "string",
+            "doc": "Error code identifier"
+          },
+          {
+            "name": "error_message",
+            "type": "string",
+            "doc": "Human-readable error message"
+          },
+          {
+            "name": "error_type",
+            "type": {
+              "type": "enum",
+              "name": "ErrorType",
+              "symbols": ["system_error", "data_error", "validation_error", "network_error", "timeout_error"]
+            },
+            "doc": "Category of error"
+          },
+          {
+            "name": "stack_trace",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Stack trace if applicable"
+          },
+          {
+            "name": "retry_count",
+            "type": "int",
+            "default": 0,
+            "doc": "Number of retry attempts made"
+          },
+          {
+            "name": "max_retries",
+            "type": "int",
+            "default": 3,
+            "doc": "Maximum number of retry attempts allowed"
+          }
+        ]
+      }],
+      "default": null,
+      "doc": "Error details if processing failed"
+    },
+    {
+      "name": "jurisdiction",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Regulatory jurisdiction if applicable"
+    },
+    {
+      "name": "institution_id",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Financial institution identifier if applicable"
+    },
+    {
+      "name": "correlation_id",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Correlation ID for tracking related events"
+    },
+    {
+      "name": "tags",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional tags for filtering and categorization"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional metadata key-value pairs"
+    },
+    {
+      "name": "created_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the event was created"
+    }
+  ]
+}

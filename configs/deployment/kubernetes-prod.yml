@@ -1,0 +1,1021 @@
+---
+# Kubernetes Production Deployment for ComplianceAI
+# This manifest deploys ComplianceAI to a Kubernetes cluster with:
+# - High availability and scalability
+# - Security policies
+# - Monitoring and logging
+# - Ingress and load balancing
+# - Persistent storage
+# - ConfigMaps and Secrets
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: complianceai-prod
+  labels:
+    name: complianceai-prod
+    environment: production
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: complianceai-config
+  namespace: complianceai-prod
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  METRICS_ENABLED: "true"
+  HEALTH_CHECK_ENABLED: "true"
+  KAFKA_NUM_PARTITIONS: "3"
+  KAFKA_DEFAULT_REPLICATION_FACTOR: "3"
+  REQUIRE_AUTH: "true"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: complianceai-secrets
+  namespace: complianceai-prod
+type: Opaque
+data:
+  # Base64 encoded secrets - replace with actual values
+  db-password: <base64-encoded-password>
+  mongo-password: <base64-encoded-password>
+  jwt-secret-key: <base64-encoded-jwt-secret>
+  encryption-key: <base64-encoded-encryption-key>
+  grafana-password: <base64-encoded-grafana-password>
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+  namespace: complianceai-prod
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes auto;
+    error_log /var/log/nginx/error.log notice;
+    pid /var/run/nginx.pid;
+
+    events {
+        worker_connections 1024;
+        use epoll;
+        multi_accept on;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /var/log/nginx/access.log main;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+        client_max_body_size 100M;
+
+        # Gzip compression
+        gzip on;
+        gzip_vary on;
+        gzip_min_length 1024;
+        gzip_proxied expired no-cache no-store private must-revalidate auth;
+        gzip_types
+            text/plain
+            text/css
+            text/xml
+            text/javascript
+            application/x-javascript
+            application/javascript
+            application/xml+rss
+            application/json;
+
+        # Rate limiting
+        limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+        limit_req_zone $binary_remote_addr zone=auth:10m rate=5r/s;
+
+        upstream complianceai_backend {
+            least_conn;
+            server web-interface-1:8000;
+            server web-interface-2:8000;
+            server web-interface-3:8000;
+            keepalive 32;
+        }
+
+        server {
+            listen 80;
+            server_name _;
+            return 301 https://$host$request_uri;
+        }
+
+        server {
+            listen 443 ssl http2;
+            server_name complianceai.example.com;
+
+            ssl_certificate /etc/nginx/ssl/tls.crt;
+            ssl_certificate_key /etc/nginx/ssl/tls.key;
+            ssl_protocols TLSv1.2 TLSv1.3;
+            ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
+            ssl_prefer_server_ciphers off;
+            ssl_session_cache shared:SSL:10m;
+            ssl_session_timeout 10m;
+
+            # Security headers
+            add_header X-Frame-Options DENY;
+            add_header X-Content-Type-Options nosniff;
+            add_header X-XSS-Protection "1; mode=block";
+            add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+            add_header Referrer-Policy "strict-origin-when-cross-origin";
+
+            # Health check
+            location /health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+
+            # API endpoints with rate limiting
+            location /api/ {
+                limit_req zone=api burst=20 nodelay;
+                proxy_pass http://complianceai_backend;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_connect_timeout 30s;
+                proxy_send_timeout 30s;
+                proxy_read_timeout 30s;
+            }
+
+            # Static files
+            location /static/ {
+                alias /usr/share/nginx/html/static/;
+                expires 1y;
+                add_header Cache-Control "public, immutable";
+            }
+
+            # Main application
+            location / {
+                proxy_pass http://complianceai_backend;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_connect_timeout 30s;
+                proxy_send_timeout 30s;
+                proxy_read_timeout 30s;
+            }
+        }
+    }
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: complianceai-web
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: web-interface
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: complianceai
+    component: web-interface
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: complianceai-postgres
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: database
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: postgresql
+  selector:
+    app: complianceai
+    component: postgres
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: complianceai-redis
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: cache
+spec:
+  type: ClusterIP
+  ports:
+  - port: 6379
+    targetPort: 6379
+    protocol: TCP
+    name: redis
+  selector:
+    app: complianceai
+    component: redis
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: complianceai-kafka
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: messaging
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9092
+    targetPort: 9092
+    protocol: TCP
+    name: kafka
+  selector:
+    app: complianceai
+    component: kafka
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: complianceai-web
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: web-interface
+    version: prod
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: complianceai
+      component: web-interface
+  template:
+    metadata:
+      labels:
+        app: complianceai
+        component: web-interface
+        version: prod
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+      containers:
+      - name: web-interface
+        image: complianceai/web-interface:prod-v1.0.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: complianceai-config
+              key: ENVIRONMENT
+        - name: DATABASE_URL
+          value: "postgresql://complianceai:$(DB_PASSWORD)@complianceai-postgres:5432/complianceai_prod"
+        - name: REDIS_URL
+          value: "redis://complianceai-redis:6379/0"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "complianceai-kafka:9092"
+        - name: REQUIRE_AUTH
+          valueFrom:
+            configMapKeyRef:
+              name: complianceai-config
+              key: REQUIRE_AUTH
+        envFrom:
+        - secretRef:
+            name: complianceai-secrets
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 101
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+          readOnly: true
+        - name: static-volume
+          mountPath: /app/static
+        - name: logs-volume
+          mountPath: /app/logs
+      volumes:
+      - name: config-volume
+        configMap:
+          name: complianceai-config
+      - name: static-volume
+        emptyDir: {}
+      - name: logs-volume
+        emptyDir: {}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - complianceai
+                - key: component
+                  operator: In
+                  values:
+                  - web-interface
+              topologyKey: kubernetes.io/hostname
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: complianceai-postgres
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: database
+    version: prod
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: complianceai
+      component: postgres
+  template:
+    metadata:
+      labels:
+        app: complianceai
+        component: postgres
+        version: prod
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5432
+          name: postgresql
+        env:
+        - name: POSTGRES_DB
+          value: complianceai_prod
+        - name: POSTGRES_USER
+          value: complianceai
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: complianceai-secrets
+              key: db-password
+        - name: POSTGRES_INITDB_ARGS
+          value: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+        command:
+        - postgres
+        - -c
+        - max_connections=200
+        - -c
+        - shared_buffers=512MB
+        - -c
+        - effective_cache_size=1536MB
+        - -c
+        - maintenance_work_mem=128MB
+        - -c
+        - checkpoint_completion_target=0.9
+        - -c
+        - wal_buffers=16MB
+        - -c
+        - default_statistics_target=100
+        resources:
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - complianceai
+            - -d
+            - complianceai_prod
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - complianceai
+            - -d
+            - complianceai_prod
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 70
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-init
+          mountPath: /docker-entrypoint-initdb.d
+          readOnly: true
+        - name: postgres-logs
+          mountPath: /var/log/postgresql
+      volumes:
+      - name: postgres-data
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+      - name: postgres-init
+        configMap:
+          name: postgres-init-config
+      - name: postgres-logs
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: database
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: complianceai-redis
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: cache
+    version: prod
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: complianceai
+      component: redis
+  template:
+    metadata:
+      labels:
+        app: complianceai
+        component: redis
+        version: prod
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 6379
+          name: redis
+        command:
+        - redis-server
+        - --maxmemory
+        - 512mb
+        - --maxmemory-policy
+        - allkeys-lru
+        - --tcp-keepalive
+        - "300"
+        - --timeout
+        - "300"
+        - --appendonly
+        - yes
+        - --appendfsync
+        - everysec
+        - --save
+        - "60 1000"
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 999
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        - name: redis-logs
+          mountPath: /var/log/redis
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-pvc
+      - name: redis-logs
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: complianceai-kafka
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: messaging
+    version: prod
+spec:
+  serviceName: complianceai-kafka
+  replicas: 3
+  selector:
+    matchLabels:
+      app: complianceai
+      component: kafka
+  template:
+    metadata:
+      labels:
+        app: complianceai
+        component: kafka
+        version: prod
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:7.4.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9092
+          name: kafka
+        env:
+        - name: KAFKA_BROKER_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: "complianceai-zookeeper-0.complianceai-zookeeper:2181,complianceai-zookeeper-1.complianceai-zookeeper:2181,complianceai-zookeeper-2.complianceai-zookeeper:2181"
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://$(KAFKA_BROKER_ID).complianceai-kafka:9092,PLAINTEXT_INTERNAL://localhost:29092"
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+          value: "2"
+        - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+          value: "0"
+        - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+          value: "true"
+        - name: KAFKA_NUM_PARTITIONS
+          valueFrom:
+            configMapKeyRef:
+              name: complianceai-config
+              key: KAFKA_NUM_PARTITIONS
+        - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+          valueFrom:
+            configMapKeyRef:
+              name: complianceai-config
+              key: KAFKA_DEFAULT_REPLICATION_FACTOR
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        livenessProbe:
+          exec:
+            command:
+            - kafka-broker-api-versions
+            - --bootstrap-server
+            - localhost:9092
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - kafka-broker-api-versions
+            - --bootstrap-server
+            - localhost:9092
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: kafka-data
+          mountPath: /var/lib/kafka/data
+        - name: kafka-logs
+          mountPath: /var/log/kafka
+      volumes:
+      - name: kafka-data
+        persistentVolumeClaim:
+          claimName: kafka-pvc
+      - name: kafka-logs
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-pvc
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: messaging
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: complianceai-zookeeper
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: zookeeper
+    version: prod
+spec:
+  serviceName: complianceai-zookeeper
+  replicas: 3
+  selector:
+    matchLabels:
+      app: complianceai
+      component: zookeeper
+  template:
+    metadata:
+      labels:
+        app: complianceai
+        component: zookeeper
+        version: prod
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: zookeeper
+        image: confluentinc/cp-zookeeper:7.4.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 2181
+          name: client
+        env:
+        - name: ZOOKEEPER_CLIENT_PORT
+          value: "2181"
+        - name: ZOOKEEPER_TICK_TIME
+          value: "2000"
+        - name: ZOOKEEPER_INIT_LIMIT
+          value: "5"
+        - name: ZOOKEEPER_SYNC_LIMIT
+          value: "2"
+        - name: ZOOKEEPER_SERVERS
+          value: "complianceai-zookeeper-0.complianceai-zookeeper:2888:3888,complianceai-zookeeper-1.complianceai-zookeeper:2888:3888,complianceai-zookeeper-2.complianceai-zookeeper:2888:3888"
+        resources:
+          limits:
+            cpu: 500m
+            memory: 1Gi
+          requests:
+            cpu: 250m
+            memory: 512Mi
+        livenessProbe:
+          exec:
+            command:
+            - nc
+            - -vz
+            - localhost
+            - "2181"
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - nc
+            - -vz
+            - localhost
+            - "2181"
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: zookeeper-data
+          mountPath: /var/lib/zookeeper/data
+        - name: zookeeper-logs
+          mountPath: /var/lib/zookeeper/log
+      volumes:
+      - name: zookeeper-data
+        persistentVolumeClaim:
+          claimName: zookeeper-pvc
+      - name: zookeeper-logs
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: complianceai-zookeeper
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: zookeeper
+spec:
+  type: ClusterIP
+  ports:
+  - port: 2181
+    targetPort: 2181
+    protocol: TCP
+    name: client
+  - port: 2888
+    targetPort: 2888
+    protocol: TCP
+    name: server
+  - port: 3888
+    targetPort: 3888
+    protocol: TCP
+    name: leader-election
+  selector:
+    app: complianceai
+    component: zookeeper
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zookeeper-pvc
+  namespace: complianceai-prod
+  labels:
+    app: complianceai
+    component: zookeeper
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: complianceai-ingress
+  namespace: complianceai-prod
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/rate-limit: "10"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - complianceai.example.com
+    secretName: complianceai-tls
+  rules:
+  - host: complianceai.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: complianceai-web
+            port:
+              number: 8000
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: complianceai-web-pdb
+  namespace: complianceai-prod
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: complianceai
+      component: web-interface
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: complianceai-kafka-pdb
+  namespace: complianceai-prod
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: complianceai
+      component: kafka
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: complianceai-service-account
+  namespace: complianceai-prod
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: complianceai-role
+  namespace: complianceai-prod
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "statefulsets"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: complianceai-role-binding
+  namespace: complianceai-prod
+subjects:
+- kind: ServiceAccount
+  name: complianceai-service-account
+  namespace: complianceai-prod
+roleRef:
+  kind: Role
+  name: complianceai-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-config
+  namespace: complianceai-prod
+data:
+  init.sql: |
+    -- PostgreSQL initialization script
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+    CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
+
+    -- Create database roles
+    CREATE ROLE complianceai_readonly;
+    CREATE ROLE complianceai_readwrite;
+
+    -- Grant permissions
+    GRANT CONNECT ON DATABASE complianceai_prod TO complianceai_readonly;
+    GRANT CONNECT ON DATABASE complianceai_prod TO complianceai_readwrite;
+    GRANT USAGE ON SCHEMA public TO complianceai_readonly;
+    GRANT USAGE ON SCHEMA public TO complianceai_readwrite;

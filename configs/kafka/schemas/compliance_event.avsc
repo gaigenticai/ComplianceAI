@@ -1,0 +1,282 @@
+{
+  "type": "record",
+  "name": "ComplianceEvent",
+  "namespace": "com.complianceai.compliance",
+  "version": "1.0.0",
+  "doc": "Schema for compliance-related events and activities",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for the compliance event"
+    },
+    {
+      "name": "event_type",
+      "type": {
+        "type": "enum",
+        "name": "EventType",
+        "symbols": [
+          "report_generated",
+          "report_submitted",
+          "report_validated",
+          "validation_failed",
+          "submission_failed",
+          "deadline_approaching",
+          "deadline_missed",
+          "rule_violation",
+          "compliance_alert",
+          "audit_event"
+        ]
+      },
+      "doc": "Type of compliance event"
+    },
+    {
+      "name": "entity_type",
+      "type": {
+        "type": "enum",
+        "name": "EntityType",
+        "symbols": [
+          "report",
+          "requirement",
+          "institution",
+          "jurisdiction",
+          "rule",
+          "submission",
+          "validation",
+          "user",
+          "system"
+        ]
+      },
+      "doc": "Type of entity involved in the event"
+    },
+    {
+      "name": "entity_id",
+      "type": "string",
+      "doc": "Identifier of the entity involved"
+    },
+    {
+      "name": "jurisdiction",
+      "type": "string",
+      "doc": "Regulatory jurisdiction"
+    },
+    {
+      "name": "institution_id",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Financial institution identifier"
+    },
+    {
+      "name": "severity",
+      "type": {
+        "type": "enum",
+        "name": "Severity",
+        "symbols": ["info", "warning", "error", "critical"]
+      },
+      "default": "info",
+      "doc": "Severity level of the event"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "doc": "Human-readable title of the event"
+    },
+    {
+      "name": "description",
+      "type": "string",
+      "doc": "Detailed description of the event"
+    },
+    {
+      "name": "event_data",
+      "type": {
+        "type": "record",
+        "name": "EventData",
+        "fields": [
+          {
+            "name": "report_id",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Report identifier if applicable"
+          },
+          {
+            "name": "report_type",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Type of report if applicable"
+          },
+          {
+            "name": "validation_errors",
+            "type": {
+              "type": "array",
+              "items": {
+                "type": "record",
+                "name": "ValidationError",
+                "fields": [
+                  {
+                    "name": "field",
+                    "type": "string",
+                    "doc": "Field that failed validation"
+                  },
+                  {
+                    "name": "error_message",
+                    "type": "string",
+                    "doc": "Validation error message"
+                  },
+                  {
+                    "name": "error_code",
+                    "type": ["null", "string"],
+                    "default": null,
+                    "doc": "Validation error code"
+                  }
+                ]
+              }
+            },
+            "default": [],
+            "doc": "List of validation errors if applicable"
+          },
+          {
+            "name": "submission_details",
+            "type": ["null", {
+              "type": "record",
+              "name": "SubmissionDetails",
+              "fields": [
+                {
+                  "name": "submission_method",
+                  "type": "string",
+                  "doc": "Method used for submission"
+                },
+                {
+                  "name": "destination",
+                  "type": "string",
+                  "doc": "Submission destination"
+                },
+                {
+                  "name": "status",
+                  "type": "string",
+                  "doc": "Submission status"
+                },
+                {
+                  "name": "confirmation_reference",
+                  "type": ["null", "string"],
+                  "default": null,
+                  "doc": "Reference from regulatory authority"
+                }
+              ]
+            }],
+            "default": null,
+            "doc": "Submission details if applicable"
+          },
+          {
+            "name": "deadline_info",
+            "type": ["null", {
+              "type": "record",
+              "name": "DeadlineInfo",
+              "fields": [
+                {
+                  "name": "deadline_date",
+                  "type": {
+                    "type": "long",
+                    "logicalType": "timestamp-millis"
+                  },
+                  "doc": "Regulatory deadline date"
+                },
+                {
+                  "name": "days_remaining",
+                  "type": "int",
+                  "doc": "Days remaining until deadline"
+                },
+                {
+                  "name": "obligation_code",
+                  "type": "string",
+                  "doc": "Regulatory obligation code"
+                }
+              ]
+            }],
+            "default": null,
+            "doc": "Deadline information if applicable"
+          },
+          {
+            "name": "rule_violation",
+            "type": ["null", {
+              "type": "record",
+              "name": "RuleViolation",
+              "fields": [
+                {
+                  "name": "rule_id",
+                  "type": "string",
+                  "doc": "ID of the violated rule"
+                },
+                {
+                  "name": "rule_name",
+                  "type": "string",
+                  "doc": "Name of the violated rule"
+                },
+                {
+                  "name": "violation_details",
+                  "type": "string",
+                  "doc": "Details of the violation"
+                },
+                {
+                  "name": "remediation_actions",
+                  "type": {
+                    "type": "array",
+                    "items": "string"
+                  },
+                  "doc": "Suggested remediation actions"
+                }
+              ]
+            }],
+            "default": null,
+            "doc": "Rule violation details if applicable"
+          }
+        ]
+      },
+      "doc": "Structured event data"
+    },
+    {
+      "name": "user_id",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "User who triggered or is affected by the event"
+    },
+    {
+      "name": "correlation_id",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Correlation ID for tracking related events"
+    },
+    {
+      "name": "tags",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional tags for filtering and search"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional metadata key-value pairs"
+    },
+    {
+      "name": "event_timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the event occurred"
+    },
+    {
+      "name": "processed_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the event was processed"
+    }
+  ]
+}

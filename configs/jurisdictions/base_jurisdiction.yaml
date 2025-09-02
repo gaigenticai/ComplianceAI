@@ -1,0 +1,191 @@
+# Base Jurisdiction Configuration Template
+# This file contains the base configuration structure for regulatory jurisdictions
+# Copy this file and customize it for specific jurisdictions
+
+jurisdiction:
+  # Basic jurisdiction information
+  id: "BASE"
+  name: "Base Jurisdiction Template"
+  code: "XX"
+  region: "GLOBAL"
+  timezone: "UTC"
+
+  # Regulatory authorities
+  authorities:
+    - id: "primary_regulator"
+      name: "Primary Regulatory Authority"
+      website: "https://regulator.example.com"
+      contact_email: "contact@regulator.example.com"
+      api_endpoint: "https://api.regulator.example.com"
+
+  # Supported report types
+  reports:
+    - id: "FINREP"
+      name: "Financial Reporting"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "2.0"
+      mandatory: true
+
+    - id: "COREP"
+      name: "Prudential Reporting"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "2.0"
+      mandatory: true
+
+  # Data requirements
+  data_requirements:
+    currency: "EUR"
+    reporting_standard: "IFRS"
+    consolidation_method: "solo"
+    language: "en"
+
+  # Validation rules
+  validation:
+    business_rules:
+      - id: "balance_sheet_balance"
+        name: "Balance Sheet Balance Check"
+        expression: "total_assets == total_liabilities + total_equity"
+        severity: "critical"
+        enabled: true
+
+    - id: "positive_equity"
+      name: "Positive Equity Check"
+      expression: "total_equity > 0"
+      severity: "error"
+      enabled: true
+
+  # Submission requirements
+  submission:
+    channels:
+      - type: "API"
+        primary: true
+        endpoint: "https://api.regulator.example.com/submit"
+        authentication: "oauth2"
+        format: "JSON"
+
+      - type: "SFTP"
+        primary: false
+        host: "sftp.regulator.example.com"
+        port: 22
+        path: "/reports/"
+        authentication: "key"
+        format: "XML"
+
+    deadlines:
+      - report_type: "FINREP"
+        frequency: "quarterly"
+        offset_days: 45  # Days after quarter end
+        grace_period_days: 15
+
+      - report_type: "COREP"
+        frequency: "quarterly"
+        offset_days: 30
+        grace_period_days: 10
+
+  # Compliance calendar
+  calendar:
+    holidays:
+      - name: "New Year's Day"
+        date: "01-01"
+        type: "fixed"
+
+      - name: "Christmas Day"
+        date: "12-25"
+        type: "fixed"
+
+    business_days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+
+  # Data retention policies
+  retention:
+    reports: "7_years"
+    audit_logs: "10_years"
+    transaction_data: "5_years"
+
+  # Notification settings
+  notifications:
+    deadline_warnings:
+      - days_before: 30
+        channels: ["email", "dashboard"]
+      - days_before: 7
+        channels: ["email", "dashboard", "slack"]
+
+    compliance_alerts:
+      enabled: true
+      channels: ["email", "dashboard"]
+      escalation:
+        - level: 1
+          delay_hours: 24
+          recipients: ["compliance_team"]
+        - level: 2
+          delay_hours: 48
+          recipients: ["compliance_manager"]
+        - level: 3
+          delay_hours: 72
+          recipients: ["executive_team"]
+
+  # Integration settings
+  integrations:
+    banking_systems:
+      - type: "SAP"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+
+      - type: "Oracle"
+        enabled: false
+        connection_timeout: 30
+        retry_attempts: 3
+
+    external_apis:
+      - name: "Regulatory Data API"
+        url: "https://api.regulator.example.com/data"
+        authentication: "api_key"
+        rate_limit: 1000
+
+  # Security settings
+  security:
+    encryption:
+      algorithm: "AES-256-GCM"
+      key_rotation_days: 90
+
+    digital_signatures:
+      algorithm: "RSA-PSS"
+      key_size: 4096
+      certificate_validity_days: 365
+
+    audit_trail:
+      enabled: true
+      retention_days: 2555  # 7 years
+      immutable: true
+
+  # Performance settings
+  performance:
+    report_generation_timeout: 3600  # 1 hour
+    max_concurrent_reports: 5
+    cache_ttl_seconds: 3600
+    batch_size: 1000
+
+  # Monitoring and alerting
+  monitoring:
+    metrics:
+      - name: "report_generation_time"
+        threshold: 1800  # 30 minutes
+        alert: true
+
+      - name: "submission_success_rate"
+        threshold: 99.5
+        alert: true
+
+    health_checks:
+      - name: "regulator_api"
+        url: "https://api.regulator.example.com/health"
+        interval_seconds: 300
+        timeout_seconds: 10
+
+  # Custom extensions
+  extensions:
+    custom_validations: []
+    custom_calculations: []
+    custom_workflows: []

@@ -1,0 +1,430 @@
+{
+  "type": "record",
+  "name": "SystemMetrics",
+  "namespace": "com.complianceai.metrics",
+  "version": "1.0.0",
+  "doc": "Schema for system performance and health metrics",
+  "fields": [
+    {
+      "name": "metric_id",
+      "type": "string",
+      "doc": "Unique identifier for the metrics collection"
+    },
+    {
+      "name": "collection_timestamp",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when metrics were collected"
+    },
+    {
+      "name": "service_name",
+      "type": "string",
+      "doc": "Name of the service reporting metrics"
+    },
+    {
+      "name": "service_instance",
+      "type": "string",
+      "doc": "Instance identifier of the service"
+    },
+    {
+      "name": "metric_type",
+      "type": {
+        "type": "enum",
+        "name": "MetricType",
+        "symbols": ["system", "application", "business", "custom"]
+      },
+      "doc": "Category of metrics being reported"
+    },
+    {
+      "name": "system_metrics",
+      "type": ["null", {
+        "type": "record",
+        "name": "SystemMetricsData",
+        "fields": [
+          {
+            "name": "cpu_usage_percent",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "CPU usage as percentage"
+          },
+          {
+            "name": "memory_usage_bytes",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Memory usage in bytes"
+          },
+          {
+            "name": "memory_usage_percent",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Memory usage as percentage"
+          },
+          {
+            "name": "disk_usage_bytes",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Disk usage in bytes"
+          },
+          {
+            "name": "disk_usage_percent",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Disk usage as percentage"
+          },
+          {
+            "name": "network_rx_bytes",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Network receive bytes"
+          },
+          {
+            "name": "network_tx_bytes",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Network transmit bytes"
+          },
+          {
+            "name": "load_average_1m",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "System load average (1 minute)"
+          },
+          {
+            "name": "load_average_5m",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "System load average (5 minutes)"
+          },
+          {
+            "name": "load_average_15m",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "System load average (15 minutes)"
+          }
+        ]
+      }],
+      "default": null,
+      "doc": "System-level performance metrics"
+    },
+    {
+      "name": "application_metrics",
+      "type": ["null", {
+        "type": "record",
+        "name": "ApplicationMetricsData",
+        "fields": [
+          {
+            "name": "active_connections",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of active connections"
+          },
+          {
+            "name": "requests_per_second",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Request rate per second"
+          },
+          {
+            "name": "response_time_p50",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "50th percentile response time in milliseconds"
+          },
+          {
+            "name": "response_time_p95",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "95th percentile response time in milliseconds"
+          },
+          {
+            "name": "response_time_p99",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "99th percentile response time in milliseconds"
+          },
+          {
+            "name": "error_rate_percent",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Error rate as percentage"
+          },
+          {
+            "name": "heap_used_bytes",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "JVM heap used in bytes"
+          },
+          {
+            "name": "heap_max_bytes",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "JVM heap maximum in bytes"
+          },
+          {
+            "name": "gc_count",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of garbage collection events"
+          },
+          {
+            "name": "gc_time_ms",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Total garbage collection time in milliseconds"
+          },
+          {
+            "name": "thread_count",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of active threads"
+          }
+        ]
+      }],
+      "default": null,
+      "doc": "Application-level performance metrics"
+    },
+    {
+      "name": "business_metrics",
+      "type": ["null", {
+        "type": "record",
+        "name": "BusinessMetricsData",
+        "fields": [
+          {
+            "name": "reports_generated_today",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of reports generated today"
+          },
+          {
+            "name": "reports_submitted_today",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of reports submitted today"
+          },
+          {
+            "name": "validation_errors_today",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of validation errors today"
+          },
+          {
+            "name": "processing_queue_size",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Current processing queue size"
+          },
+          {
+            "name": "active_processing_jobs",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of active processing jobs"
+          },
+          {
+            "name": "average_processing_time_ms",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Average processing time in milliseconds"
+          },
+          {
+            "name": "data_quality_score",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Overall data quality score (0.0 to 1.0)"
+          },
+          {
+            "name": "compliance_violations",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of compliance violations detected"
+          },
+          {
+            "name": "upcoming_deadlines_count",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Number of upcoming regulatory deadlines"
+          },
+          {
+            "name": "system_uptime_seconds",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "System uptime in seconds"
+          }
+        ]
+      }],
+      "default": null,
+      "doc": "Business-level performance metrics"
+    },
+    {
+      "name": "custom_metrics",
+      "type": {
+        "type": "map",
+        "values": {
+          "type": "record",
+          "name": "CustomMetric",
+          "fields": [
+            {
+              "name": "value",
+              "type": ["null", "double", "long", "string"],
+              "default": null,
+              "doc": "Metric value"
+            },
+            {
+              "name": "unit",
+              "type": ["null", "string"],
+              "default": null,
+              "doc": "Unit of measurement"
+            },
+            {
+              "name": "description",
+              "type": ["null", "string"],
+              "default": null,
+              "doc": "Metric description"
+            }
+          ]
+        }
+      },
+      "default": {},
+      "doc": "Custom application-specific metrics"
+    },
+    {
+      "name": "alerts",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "MetricAlert",
+          "fields": [
+            {
+              "name": "alert_name",
+              "type": "string",
+              "doc": "Name of the alert"
+            },
+            {
+              "name": "alert_description",
+              "type": "string",
+              "doc": "Description of the alert condition"
+            },
+            {
+              "name": "severity",
+              "type": {
+                "type": "enum",
+                "name": "AlertSeverity",
+                "symbols": ["info", "warning", "error", "critical"]
+              },
+              "doc": "Severity level of the alert"
+            },
+            {
+              "name": "threshold_value",
+              "type": "double",
+              "doc": "Threshold value that triggered the alert"
+            },
+            {
+              "name": "actual_value",
+              "type": "double",
+              "doc": "Actual measured value"
+            },
+            {
+              "name": "threshold_operator",
+              "type": {
+                "type": "enum",
+                "name": "ThresholdOperator",
+                "symbols": ["gt", "gte", "lt", "lte", "eq", "ne"]
+              },
+              "doc": "Comparison operator for threshold"
+            }
+          ]
+        }
+      },
+      "default": [],
+      "doc": "Active alerts based on metric thresholds"
+    },
+    {
+      "name": "health_status",
+      "type": {
+        "type": "enum",
+        "name": "HealthStatus",
+        "symbols": ["healthy", "degraded", "unhealthy", "critical"]
+      },
+      "default": "healthy",
+      "doc": "Overall health status of the service"
+    },
+    {
+      "name": "environment",
+      "type": {
+        "type": "enum",
+        "name": "Environment",
+        "symbols": ["development", "staging", "production"]
+      },
+      "doc": "Deployment environment"
+    },
+    {
+      "name": "version",
+      "type": "string",
+      "doc": "Service version"
+    },
+    {
+      "name": "host_info",
+      "type": {
+        "type": "record",
+        "name": "HostInfo",
+        "fields": [
+          {
+            "name": "hostname",
+            "type": "string",
+            "doc": "Host hostname"
+          },
+          {
+            "name": "ip_address",
+            "type": "string",
+            "doc": "Host IP address"
+          },
+          {
+            "name": "os_type",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Operating system type"
+          },
+          {
+            "name": "os_version",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Operating system version"
+          },
+          {
+            "name": "cpu_cores",
+            "type": ["null", "int"],
+            "default": null,
+            "doc": "Number of CPU cores"
+          },
+          {
+            "name": "memory_total_bytes",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Total system memory in bytes"
+          }
+        ]
+      },
+      "doc": "Information about the host system"
+    },
+    {
+      "name": "tags",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional tags for filtering and categorization"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional metadata key-value pairs"
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "test_suite": "Phase 6 Automated Tests",
+  "timestamp": 1756800438.522882,
+  "summary": {
+    "total_tests": 10,
+    "passed_tests": 0,
+    "failed_tests": 10,
+    "success_rate": 0.0,
+    "total_duration": 0.014603137969970703
+  },
+  "test_results": [
+    {
+      "name": "Data Migration UI",
+      "passed": false,
+      "message": "Network error: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /phase6 (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10651a820>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.004122257232666016,
+      "details": null
+    },
+    {
+      "name": "Schema Management UI",
+      "passed": false,
+      "message": "Schema management test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /api/v1/phase6/configurations (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10651a550>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.0010161399841308594,
+      "details": null
+    },
+    {
+      "name": "Monitoring Dashboard",
+      "passed": false,
+      "message": "Monitoring dashboard test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /api/v1/phase6/monitoring/metrics (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10657e430>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.0010023117065429688,
+      "details": null
+    },
+    {
+      "name": "User Guides Accessibility",
+      "passed": false,
+      "message": "User guides accessibility test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /phase6/guides (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10657ee50>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.0009882450103759766,
+      "details": null
+    },
+    {
+      "name": "Production Readiness",
+      "passed": false,
+      "message": "Production readiness test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /api/v1/phase6/health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x106590850>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.0008211135864257812,
+      "details": null
+    },
+    {
+      "name": "Configuration Management",
+      "passed": false,
+      "message": "Configuration management test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /api/v1/phase6/configurations (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x106599250>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.0009870529174804688,
+      "details": null
+    },
+    {
+      "name": "Deployment Validation",
+      "passed": false,
+      "message": "Deployment validation test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /api/v1/phase6/validation/run (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10657efa0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.0010979175567626953,
+      "details": null
+    },
+    {
+      "name": "Migration Tools Integration",
+      "passed": false,
+      "message": "Migration tools integration test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /api/v1/phase6/migrations/run (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10657e5e0>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.001420736312866211,
+      "details": null
+    },
+    {
+      "name": "Monitoring Integration",
+      "passed": false,
+      "message": "Monitoring integration test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /api/v1/phase6/monitoring/metrics (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x10651ab50>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.0012927055358886719,
+      "details": null
+    },
+    {
+      "name": "Documentation Completeness",
+      "passed": false,
+      "message": "Documentation completeness test failed: HTTPConnectionPool(host='localhost', port=8001): Max retries exceeded with url: /phase6/guides (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x106599400>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+      "duration": 0.001641988754272461,
+      "details": null
+    }
+  ]
+}

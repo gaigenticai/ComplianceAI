@@ -1,0 +1,423 @@
+# United States Jurisdiction Configuration
+# Configuration for US regulatory compliance (Federal Reserve, OCC, FDIC, CFPB)
+
+jurisdiction:
+  # Basic jurisdiction information
+  id: "US"
+  name: "United States"
+  code: "US"
+  region: "NORTH_AMERICA"
+  timezone: "America/New_York"
+
+  # Regulatory authorities
+  authorities:
+    - id: "federal_reserve"
+      name: "Federal Reserve System"
+      website: "https://www.federalreserve.gov"
+      contact_email: "publicinfo@frb.gov"
+      api_endpoint: "https://api.federalreserve.gov"
+
+    - id: "occ"
+      name: "Office of the Comptroller of the Currency"
+      website: "https://www.occ.gov"
+      contact_email: "occ@occ.treas.gov"
+      api_endpoint: "https://api.occ.gov"
+
+    - id: "fdic"
+      name: "Federal Deposit Insurance Corporation"
+      website: "https://www.fdic.gov"
+      contact_email: "publicinfo@fdic.gov"
+      api_endpoint: "https://api.fdic.gov"
+
+    - id: "cfpb"
+      name: "Consumer Financial Protection Bureau"
+      website: "https://www.consumerfinance.gov"
+      contact_email: "info@consumerfinance.gov"
+      api_endpoint: "https://api.consumerfinance.gov"
+
+  # Supported report types
+  reports:
+    - id: "FFIEC_031"
+      name: "FFIEC 031 - Consolidated Reports of Condition and Income"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "2.0"
+      mandatory: true
+      consolidation_levels: ["consolidated"]
+
+    - id: "FFIEC_041"
+      name: "FFIEC 041 - Consolidated Reports of Equity"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "2.0"
+      mandatory: true
+
+    - id: "Y_9C"
+      name: "Schedule Y-9C - Consolidated Financial Statements"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "2.0"
+      mandatory: true
+
+    - id: "FR_Y_14"
+      name: "FR Y-14 - Regulatory Capital and Liquidity"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "2.0"
+      mandatory: true
+
+    - id: "CCAR"
+      name: "Comprehensive Capital Analysis and Review"
+      frequency: "annual"
+      format: "XBRL"
+      template_version: "2.0"
+      mandatory: true
+
+  # Data requirements
+  data_requirements:
+    currency: "USD"
+    reporting_standard: "US_GAAP"
+    consolidation_method: "consolidated"
+    language: "en"
+    decimal_separator: "."
+    date_format: "MM/DD/YYYY"
+    amount_scale: 0  # US reports typically don't show cents
+
+  # Validation rules
+  validation:
+    business_rules:
+      - id: "us_balance_sheet"
+        name: "US Balance Sheet Validation"
+        expression: "total_assets == total_liabilities + total_equity"
+        severity: "critical"
+        enabled: true
+        reference: "GAAP Principle"
+
+      - id: "capital_adequacy_us"
+        name: "US Capital Adequacy Standards"
+        expression: "tier1_capital_ratio >= 6.0 AND total_capital_ratio >= 8.0"
+        severity: "critical"
+        enabled: true
+        reference: "Federal Reserve Regulation Y"
+
+      - id: "liquidity_coverage_us"
+        name: "US LCR Requirements"
+        expression: "lcr_ratio >= 100.0"
+        severity: "critical"
+        enabled: true
+        reference: "Federal Reserve Regulation WW"
+
+      - id: "stress_testing"
+        name: "Dodd-Frank Stress Testing"
+        expression: "stress_test_completed == true"
+        severity: "critical"
+        enabled: true
+        reference: "Dodd-Frank Act Section 165"
+
+      - id: "volcker_rule"
+        name: "Volcker Rule Compliance"
+        expression: "proprietary_trading_limit <= total_equity * 0.03"
+        severity: "error"
+        enabled: true
+        reference: "Dodd-Frank Act Section 619"
+
+    schema_validation:
+      enabled: true
+      strict_mode: true
+      taxonomy_validation: true
+
+  # Submission requirements
+  submission:
+    channels:
+      - type: "FFIEC_API"
+        primary: true
+        endpoint: "https://api.ffiec.gov/reporting/submit"
+        authentication: "oauth2_client_credentials"
+        format: "XBRL_JSON"
+        compression: "gzip"
+        encryption: "tls_1_3"
+
+      - type: "FEDERAL_RESERVE_API"
+        primary: true
+        endpoint: "https://api.federalreserve.gov/submit"
+        authentication: "oauth2_client_credentials"
+        format: "XBRL_JSON"
+        compression: "gzip"
+        encryption: "tls_1_3"
+
+      - type: "SFTP"
+        primary: false
+        host: "sftp.ffiec.gov"
+        port: 22
+        path: "/reports/{rssdid}/{reporting_period}/"
+        authentication: "ssh_key"
+        key_type: "rsa"
+        key_size: 4096
+        format: "XBRL"
+        compression: "zip"
+        encryption: "sftp"
+
+    deadlines:
+      - report_type: "FFIEC_031"
+        frequency: "quarterly"
+        offset_days: 30
+        grace_period_days: 10
+        reference: "FFIEC Instructions"
+
+      - report_type: "Y_9C"
+        frequency: "quarterly"
+        offset_days: 40
+        grace_period_days: 15
+        reference: "Federal Reserve Regulation Y"
+
+      - report_type: "CCAR"
+        frequency: "annual"
+        offset_days: 90
+        grace_period_days: 30
+        reference: "Federal Reserve CCAR Guidelines"
+
+    resubmission_policy:
+      allowed: true
+      max_attempts: 5
+      cool_down_period_hours: 24
+
+  # Compliance calendar
+  calendar:
+    holidays:
+      # US federal holidays
+      - name: "New Year's Day"
+        date: "01-01"
+        type: "fixed"
+
+      - name: "Martin Luther King Jr. Day"
+        date: "third_monday_january"
+        type: "dynamic"
+
+      - name: "Presidents' Day"
+        date: "third_monday_february"
+        type: "dynamic"
+
+      - name: "Memorial Day"
+        date: "last_monday_may"
+        type: "dynamic"
+
+      - name: "Independence Day"
+        date: "07-04"
+        type: "fixed"
+
+      - name: "Labor Day"
+        date: "first_monday_september"
+        type: "dynamic"
+
+      - name: "Columbus Day"
+        date: "second_monday_october"
+        type: "dynamic"
+
+      - name: "Veterans Day"
+        date: "11-11"
+        type: "fixed"
+
+      - name: "Thanksgiving Day"
+        date: "fourth_thursday_november"
+        type: "dynamic"
+
+      - name: "Christmas Day"
+        date: "12-25"
+        type: "fixed"
+
+    business_days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    weekend_days: ["saturday", "sunday"]
+
+    # Special US banking events
+    special_days:
+      - name: "Federal Reserve FOMC Meetings"
+        dates: ["2024-01-30", "2024-03-19", "2024-04-30", "2024-06-11", "2024-07-30", "2024-09-17", "2024-11-05", "2024-12-17"]
+        type: "scheduled"
+
+  # Data retention policies (US regulatory requirements)
+  retention:
+    reports: "5_years"  # Federal Reserve requirement
+    audit_logs: "5_years"
+    transaction_data: "5_years"
+    personal_data: "5_years"  # Regulation S-P
+
+  # Notification settings
+  notifications:
+    deadline_warnings:
+      - days_before: 30
+        channels: ["email", "dashboard"]
+        priority: "normal"
+      - days_before: 10
+        channels: ["email", "dashboard", "slack"]
+        priority: "high"
+      - days_before: 3
+        channels: ["email", "dashboard", "slack", "sms"]
+        priority: "urgent"
+
+    compliance_alerts:
+      enabled: true
+      channels: ["email", "dashboard", "slack"]
+      escalation:
+        - level: 1
+          delay_hours: 4
+          recipients: ["compliance_team"]
+          channels: ["email", "slack"]
+        - level: 2
+          delay_hours: 24
+          recipients: ["compliance_manager", "risk_team"]
+          channels: ["email", "slack", "phone"]
+        - level: 3
+          delay_hours: 48
+          recipients: ["executive_team", "board_members"]
+          channels: ["email", "slack", "phone", "sms"]
+
+    regulatory_updates:
+      enabled: true
+      sources: ["federal_reserve_bulletins", "occ_news", "fdic_updates", "cfpb_rules"]
+      keywords: ["FFIEC", "CCAR", "Dodd-Frank", "Regulation", "Guidance"]
+
+  # Integration settings
+  integrations:
+    banking_systems:
+      - type: "FIS"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "fis_us_mapping.json"
+
+      - type: "Jack_Henry"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "jackhenry_us_mapping.json"
+
+      - type: "Finastra"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "finastra_us_mapping.json"
+
+    external_apis:
+      - name: "FFIEC Central Data Repository"
+        url: "https://cdr.ffiec.gov"
+        authentication: "oauth2"
+        rate_limit: 1000
+        timeout: 60
+
+      - name: "Federal Reserve Data API"
+        url: "https://api.federalreserve.gov"
+        authentication: "api_key"
+        rate_limit: 500
+        timeout: 30
+
+      - name: "FDIC BankFind API"
+        url: "https://www.fdic.gov/bankfind"
+        authentication: "none"
+        rate_limit: 600
+        timeout: 30
+
+  # Security settings (GLBA and NIST compliant)
+  security:
+    encryption:
+      algorithm: "AES-256-GCM"
+      key_rotation_days: 90
+      key_management: "HSM"
+
+    digital_signatures:
+      algorithm: "RSA-PSS"
+      key_size: 4096
+      certificate_authority: "qualified_trust_service_provider"
+      certificate_validity_days: 365
+      timestamping: true
+
+    audit_trail:
+      enabled: true
+      retention_days: 1825  # 5 years
+      immutable: true
+      blockchain_verification: false
+
+    access_control:
+      rbac_enabled: true
+      mfa_required: true
+      session_timeout_minutes: 30
+
+  # Performance settings
+  performance:
+    report_generation_timeout: 7200  # 2 hours for US reports
+    max_concurrent_reports: 3
+    cache_ttl_seconds: 3600
+    batch_size: 10000  # Larger batches for US scale
+    parallel_processing: true
+
+  # Monitoring and alerting
+  monitoring:
+    metrics:
+      - name: "report_generation_time"
+        threshold: 3600  # 1 hour
+        alert: true
+        severity: "warning"
+
+      - name: "submission_success_rate"
+        threshold: 99.9
+        alert: true
+        severity: "critical"
+
+      - name: "validation_error_rate"
+        threshold: 0.1
+        alert: true
+        severity: "warning"
+
+    health_checks:
+      - name: "ffiec_api"
+        url: "https://api.ffiec.gov/health"
+        interval_seconds: 300
+        timeout_seconds: 10
+        expected_status: 200
+
+      - name: "federal_reserve_api"
+        url: "https://api.federalreserve.gov/health"
+        interval_seconds: 300
+        timeout_seconds: 10
+        expected_status: 200
+
+    log_levels:
+      application: "INFO"
+      security: "INFO"
+      performance: "DEBUG"
+
+  # Custom extensions for US-specific requirements
+  extensions:
+    custom_validations:
+      - name: "us_dodd_frank_stress_test"
+        enabled: true
+        script: "us_stress_test_validation.py"
+
+      - name: "us_volcker_rule_compliance"
+        enabled: true
+        script: "us_volcker_validation.py"
+
+      - name: "us_home_mortgage_disclosure"
+        enabled: true
+        script: "us_hmda_validation.py"
+
+    custom_calculations:
+      - name: "us_tier1_capital_calculation"
+        enabled: true
+        script: "us_tier1_calculation.py"
+
+      - name: "us_leverage_ratio_calculation"
+        enabled: true
+        script: "us_leverage_calculation.py"
+
+      - name: "us_supplemental_leverage_ratio"
+        enabled: true
+        script: "us_slr_calculation.py"
+
+    custom_workflows:
+      - name: "us_ccar_reporting_workflow"
+        enabled: true
+        workflow: "us_ccar_workflow.json"
+
+      - name: "us_dfast_reporting_workflow"
+        enabled: true
+        workflow: "us_dfast_workflow.json"

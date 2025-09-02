@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deployment Guide - ComplianceAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../../static/css/design-system.css" rel="stylesheet">
+    <style>
+        .code-block { background: #f8f9fa; border-left: 4px solid var(--primary-600); padding: 1rem; margin: 1rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .highlight { background: #fff3cd; padding: 2px 4px; border-radius: 3px; }
+        .config-table { font-size: 0.9em; }
+        .nav-link { color: var(--text-secondary); }
+        .nav-link.active { color: var(--primary-600); font-weight: bold; }
+        .step-card { border-left: 4px solid var(--primary-600); margin-bottom: 1rem; }
+        .step-number { background: var(--primary-600); color: white; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../../../">
+                <i class="fas fa-shield-alt me-2"></i>ComplianceAI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="../../../">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../../phase6">Phase 6</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../../../phase6/guides">User Guides</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="jurisdiction_configuration_guide.html">Jurisdictions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="deployment_guide.html">Deployment</a></li>
+                    <li class="nav-item"><a class="nav-link" href="monitoring_guide.html">Monitoring</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="fas fa-server text-primary me-2"></i>Production Deployment Guide</h2>
+                        <p class="text-muted mb-0">Comprehensive deployment configurations for different environments and platforms</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success">Web-Based Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../../../">Home</a></li>
+                <li class="breadcrumb-item"><a href="../../../phase6">Phase 6</a></li>
+                <li class="breadcrumb-item"><a href="../../../phase6/guides">User Guides</a></li>
+                <li class="breadcrumb-item active">Deployment Guide</li>
+            </ol>
+        </nav>
+
+        <!-- Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-info-circle text-primary me-2"></i>Overview</h4>
+            </div>
+            <div class="card-body">
+                <p>This guide provides comprehensive deployment configurations for ComplianceAI across different environments and platforms.</p>
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> All deployment configurations include production-grade security, monitoring, and scalability features.
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Available Configurations</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fab fa-docker text-primary me-2"></i><strong>docker-compose.prod.yml</strong></li>
+                            <li class="small text-muted ms-4">Production-ready Docker Compose setup</li>
+                            <li><i class="fas fa-dharmachakra text-success me-2"></i><strong>kubernetes-prod.yml</strong></li>
+                            <li class="small text-muted ms-4">Kubernetes production manifests</li>
+                            <li><i class="fas fa-file-alt text-warning me-2"></i><strong>production.env</strong></li>
+                            <li class="small text-muted ms-4">Production environment variables</li>
+                            <li><i class="fas fa-flask text-info me-2"></i><strong>staging.env</strong></li>
+                            <li class="small text-muted ms-4">Staging environment variables</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Deployment Platforms</h6>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fab fa-docker fa-2x text-primary mb-2"></i>
+                                        <h6>Docker Compose</h6>
+                                        <small class="text-muted">Single-host deployment</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card h-100">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-dharmachakra fa-2x text-success mb-2"></i>
+                                        <h6>Kubernetes</h6>
+                                        <small class="text-muted">Scalable orchestration</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Docker Compose Deployment -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fab fa-docker text-primary me-2"></i>Docker Compose Production Deployment</h4>
+            </div>
+            <div class="card-body">
+                <h5>Prerequisites</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Docker Engine 20.10+</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Docker Compose 2.0+</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>At least 16GB RAM</li>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>100GB free disk space</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li><i class="fas fa-check-circle text-success me-2"></i>Linux/Windows/MacOS host</li>
+                            <li><i class="fas fa-shield-alt text-primary me-2"></i>SSL/TLS certificates (optional)</li>
+                            <li><i class="fas fa-key text-warning me-2"></i>Secure passwords and keys</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5>Quick Start</h5>
+                <div class="step-card card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <span class="step-number">1</span>
+                            <strong>Clone and navigate to the deployment directory:</strong>
+                        </div>
+                        <div class="code-block">
+cd /path/to/complianceai/configs/deployment
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <span class="step-number">2</span>
+                            <strong>Set environment variables:</strong>
+                        </div>
+                        <div class="code-block">
+export BUILD_NUMBER=v1.0.0<br>
+export DB_PASSWORD=your_secure_db_password<br>
+export MONGO_PASSWORD=your_secure_mongo_password<br>
+export JWT_SECRET_KEY=your_256_bit_jwt_secret<br>
+export ENCRYPTION_KEY=your_256_bit_encryption_key<br>
+export GRAFANA_PASSWORD=your_secure_grafana_password
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <span class="step-number">3</span>
+                            <strong>Deploy the stack:</strong>
+                        </div>
+                        <div class="code-block">
+docker-compose -f docker-compose.prod.yml up -d
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card card">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <span class="step-number">4</span>
+                            <strong>Verify deployment:</strong>
+                        </div>
+                        <div class="code-block">
+docker-compose -f docker-compose.prod.yml ps<br>
+docker-compose -f docker-compose.prod.yml logs -f web-interface
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Configuration Options</h5>
+
+                <h6>Environment Variables</h6>
+                <div class="table-responsive">
+                    <table class="table table-striped config-table">
+                        <thead>
+                            <tr>
+                                <th>Variable</th>
+                                <th>Description</th>
+                                <th>Required</th>
+                                <th>Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>BUILD_NUMBER</code></td>
+                                <td>Docker image tag version</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><code>DB_PASSWORD</code></td>
+                                <td>PostgreSQL password</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><code>MONGO_PASSWORD</code></td>
+                                <td>MongoDB password</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><code>JWT_SECRET_KEY</code></td>
+                                <td>JWT signing secret (256-bit)</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><code>ENCRYPTION_KEY</code></td>
+                                <td>Data encryption key (256-bit)</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><code>GRAFANA_PASSWORD</code></td>
+                                <td>Grafana admin password</td>
+                                <td><span class="badge bg-danger">Yes</span></td>
+                                <td>-</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h6>Service Configuration</h6>
+                <p>Each service can be configured via environment variables in the Docker Compose file:</p>
+                <div class="code-block">
+web-interface:<br>
+&nbsp;&nbsp;environment:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- LOG_LEVEL=INFO<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- MAX_CONCURRENT_REPORTS=5<br>
+&nbsp;&nbsp;&nbsp;&nbsp;- REPORT_GENERATION_TIMEOUT=3600
+                </div>
+
+                <h5>Scaling Services</h5>
+
+                <h6>Horizontal Scaling</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Scale web interface instances:</strong>
+                        <div class="code-block">
+docker-compose -f docker-compose.prod.yml up -d --scale web-interface=5
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Scale Kafka brokers:</strong>
+                        <div class="code-block">
+docker-compose -f docker-compose.prod.yml up -d --scale kafka=3
+                        </div>
+                    </div>
+                </div>
+
+                <h6>Vertical Scaling</h6>
+                <p>Update resource limits in the compose file:</p>
+                <div class="code-block">
+web-interface:<br>
+&nbsp;&nbsp;deploy:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;resources:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;limits:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpus: '2.0'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;memory: 2G<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reservations:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cpus: '1.0'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;memory: 1G
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring and Logs -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-line text-primary me-2"></i>Monitoring and Logs</h4>
+            </div>
+            <div class="card-body">
+                <h5>Health Checks</h5>
+                <div class="code-block">
+# Check service health<br>
+docker-compose -f docker-compose.prod.yml ps<br>
+curl http://localhost:8000/health
+                </div>
+
+                <h5>View Logs</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>View all service logs:</strong>
+                        <div class="code-block">
+docker-compose -f docker-compose.prod.yml logs -f
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>View specific service logs:</strong>
+                        <div class="code-block">
+docker-compose -f docker-compose.prod.yml logs -f web-interface
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Metrics Access</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Prometheus metrics:</strong>
+                        <div class="code-block">
+curl http://localhost:9090
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Grafana dashboard:</strong>
+                        <div class="code-block">
+# Default credentials: admin / GRAFANA_PASSWORD<br>
+open http://localhost:3000
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backup and Recovery -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-save text-primary me-2"></i>Backup and Recovery</h4>
+            </div>
+            <div class="card-body">
+                <h5>Automated Backups</h5>
+                <p>Backups are configured to run daily at 2 AM. View backup status:</p>
+                <div class="code-block">
+docker-compose -f docker-compose.prod.yml logs backup
+                </div>
+
+                <h5>Manual Backup</h5>
+                <p>Create immediate backup:</p>
+                <div class="code-block">
+docker-compose -f docker-compose.prod.yml exec backup /app/backup.sh
+                </div>
+
+                <h5>Restore from Backup</h5>
+                <div class="step-card card">
+                    <div class="card-body">
+                        <span class="step-number">1</span>
+                        <strong>Stop services:</strong>
+                        <div class="code-block ms-4">
+docker-compose -f docker-compose.prod.yml down
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card card">
+                    <div class="card-body">
+                        <span class="step-number">2</span>
+                        <strong>Restore databases:</strong>
+                        <div class="code-block ms-4">
+docker-compose -f docker-compose.prod.yml exec postgres /app/restore.sh
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card card">
+                    <div class="card-body">
+                        <span class="step-number">3</span>
+                        <strong>Start services:</strong>
+                        <div class="code-block ms-4">
+docker-compose -f docker-compose.prod.yml up -d
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kubernetes Deployment -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-dharmachakra text-primary me-2"></i>Kubernetes Production Deployment</h4>
+            </div>
+            <div class="card-body">
+                <h5>Prerequisites</h5>
+                <ul>
+                    <li>Kubernetes 1.24+</li>
+                    <li>kubectl configured</li>
+                    <li>Helm 3.0+ (optional)</li>
+                    <li>16GB RAM cluster</li>
+                    <li>100GB storage per node</li>
+                </ul>
+
+                <h5>Quick Start</h5>
+                <div class="step-card card">
+                    <div class="card-body">
+                        <span class="step-number">1</span>
+                        <strong>Set up namespace:</strong>
+                        <div class="code-block ms-4">
+kubectl create namespace complianceai-prod
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card card">
+                    <div class="card-body">
+                        <span class="step-number">2</span>
+                        <strong>Create secrets:</strong>
+                        <div class="code-block ms-4">
+# Create secrets from environment variables<br>
+kubectl create secret generic complianceai-secrets \<br>
+&nbsp;&nbsp;--from-literal=db-password=$DB_PASSWORD \<br>
+&nbsp;&nbsp;--from-literal=mongo-password=$MONGO_PASSWORD \<br>
+&nbsp;&nbsp;--from-literal=jwt-secret-key=$JWT_SECRET_KEY \<br>
+&nbsp;&nbsp;--from-literal=encryption-key=$ENCRYPTION_KEY \<br>
+&nbsp;&nbsp;--from-literal=grafana-password=$GRAFANA_PASSWORD \<br>
+&nbsp;&nbsp;--namespace complianceai-prod
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card card">
+                    <div class="card-body">
+                        <span class="step-number">3</span>
+                        <strong>Deploy the application:</strong>
+                        <div class="code-block ms-4">
+kubectl apply -f kubernetes-prod.yml
+                        </div>
+                    </div>
+                </div>
+
+                <div class="step-card card">
+                    <div class="card-body">
+                        <span class="step-number">4</span>
+                        <strong>Verify deployment:</strong>
+                        <div class="code-block ms-4">
+kubectl get pods -n complianceai-prod<br>
+kubectl get services -n complianceai-prod<br>
+kubectl get ingress -n complianceai-prod
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Configuration Management</h5>
+
+                <h6>ConfigMaps</h6>
+                <p>Application configuration is managed via ConfigMaps:</p>
+                <div class="code-block">
+# View current configuration<br>
+kubectl get configmap complianceai-config -n complianceai-prod -o yaml<br>
+<br>
+# Update configuration<br>
+kubectl edit configmap complianceai-config -n complianceai-prod
+                </div>
+
+                <h6>Secrets</h6>
+                <p>Sensitive data is stored in Kubernetes secrets:</p>
+                <div class="code-block">
+# View secret keys (values are base64 encoded)<br>
+kubectl get secret complianceai-secrets -n complianceai-prod -o yaml<br>
+<br>
+# Update a secret<br>
+kubectl patch secret complianceai-secrets -n complianceai-prod \<br>
+&nbsp;&nbsp;--type='json' -p='[{"op": "replace", "path": "/data/new-key", "value": "base64-value"}]'
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Considerations -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-shield-alt text-primary me-2"></i>Security Considerations</h4>
+            </div>
+            <div class="card-body">
+                <h5>Network Security</h5>
+                <ul>
+                    <li>All services communicate over an isolated Docker network</li>
+                    <li>External access is restricted to nginx (ports 80/443)</li>
+                    <li>Internal services are not exposed externally</li>
+                </ul>
+
+                <h5>Secrets Management</h5>
+                <ul>
+                    <li>Database passwords are passed via environment variables</li>
+                    <li>JWT secrets and encryption keys must be securely generated</li>
+                    <li>Consider using Docker secrets or external secret management</li>
+                </ul>
+
+                <h5>SSL/TLS Configuration</h5>
+                <p>SSL certificates are expected to be mounted at <code>/etc/nginx/ssl/</code>:</p>
+                <div class="code-block">
+# Generate self-signed certificate for testing<br>
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \<br>
+&nbsp;&nbsp;-keyout ssl/tls.key -out ssl/tls.crt
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-tools text-primary me-2"></i>Troubleshooting</h4>
+            </div>
+            <div class="card-body">
+                <h5>Common Issues</h5>
+
+                <div class="accordion" id="dockerTroubleshooting">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#port-conflicts">
+                                Port conflicts
+                            </button>
+                        </h2>
+                        <div id="port-conflicts" class="accordion-collapse collapse show" data-bs-parent="#dockerTroubleshooting">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check port usage<br>
+netstat -tlnp | grep :80<br>
+netstat -tlnp | grep :443<br>
+<br>
+# Stop conflicting services or change ports in compose file
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#memory-issues">
+                                Out of memory
+                            </button>
+                        </h2>
+                        <div id="memory-issues" class="accordion-collapse collapse" data-bs-parent="#dockerTroubleshooting">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check memory usage<br>
+docker stats<br>
+<br>
+# Increase Docker memory limit or reduce service resource limits
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#service-startup">
+                                Service startup failures
+                            </button>
+                        </h2>
+                        <div id="service-startup" class="accordion-collapse collapse" data-bs-parent="#dockerTroubleshooting">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check service logs<br>
+docker-compose -f docker-compose.prod.yml logs &lt;service-name&gt;<br>
+<br>
+# Verify environment variables<br>
+docker-compose -f docker-compose.prod.yml config
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Kubernetes Issues</h5>
+
+                <div class="accordion" id="k8sTroubleshooting">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#pod-failures">
+                                Pod fails to start
+                            </button>
+                        </h2>
+                        <div id="pod-failures" class="accordion-collapse collapse show" data-bs-parent="#k8sTroubleshooting">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check pod status<br>
+kubectl describe pod &lt;pod-name&gt; -n complianceai-prod<br>
+<br>
+# Check pod logs<br>
+kubectl logs &lt;pod-name&gt; -n complianceai-prod<br>
+<br>
+# Check events<br>
+kubectl get events -n complianceai-prod
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#service-unreachable">
+                                Service unreachable
+                            </button>
+                        </h2>
+                        <div id="service-unreachable" class="accordion-collapse collapse" data-bs-parent="#k8sTroubleshooting">
+                            <div class="accordion-body">
+                                <div class="code-block">
+# Check service endpoints<br>
+kubectl get endpoints -n complianceai-prod<br>
+<br>
+# Check service configuration<br>
+kubectl describe service &lt;service-name&gt; -n complianceai-prod
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Optimization -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-tachometer-alt text-primary me-2"></i>Performance Optimization</h4>
+            </div>
+            <div class="card-body">
+                <h5>Resource Allocation</h5>
+                <p>Monitor and adjust resource requests/limits:</p>
+                <div class="code-block">
+kubectl top pods -n complianceai-prod<br>
+kubectl top nodes
+                </div>
+
+                <h5>Database Optimization</h5>
+                <p>Tune PostgreSQL parameters:</p>
+                <div class="code-block">
+# In kubernetes-prod.yml, update postgres deployment<br>
+env:<br>
+- name: POSTGRES_SHARED_BUFFERS<br>
+&nbsp;&nbsp;value: "512MB"<br>
+- name: POSTGRES_EFFECTIVE_CACHE_SIZE<br>
+&nbsp;&nbsp;value: "1536MB"<br>
+- name: POSTGRES_MAINTENANCE_WORK_MEM<br>
+&nbsp;&nbsp;value: "128MB"
+                </div>
+
+                <h5>Caching Strategy</h5>
+                <p>Configure Redis for optimal performance:</p>
+                <div class="code-block">
+# In kubernetes-prod.yml, update redis deployment<br>
+env:<br>
+- name: REDIS_MAXMEMORY<br>
+&nbsp;&nbsp;value: "512mb"<br>
+- name: REDIS_MAXMEMORY_POLICY<br>
+&nbsp;&nbsp;value: "allkeys-lru"
+                </div>
+            </div>
+        </div>
+
+        <!-- Support and Maintenance -->
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-life-ring text-primary me-2"></i>Support and Maintenance</h4>
+            </div>
+            <div class="card-body">
+                <h5>Regular Maintenance Tasks</h5>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Weekly</h6>
+                        <ul class="small">
+                            <li>Review monitoring dashboards</li>
+                            <li>Check backup completion</li>
+                            <li>Update security patches</li>
+                            <li>Review error logs</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Monthly</h6>
+                        <ul class="small">
+                            <li>Performance optimization review</li>
+                            <li>Security vulnerability assessment</li>
+                            <li>Database maintenance (VACUUM, REINDEX)</li>
+                            <li>Certificate renewal check</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Quarterly</h6>
+                        <ul class="small">
+                            <li>Full security audit</li>
+                            <li>Disaster recovery testing</li>
+                            <li>Performance benchmarking</li>
+                            <li>Regulatory compliance review</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h5>Getting Help</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Resources</h6>
+                        <ul>
+                            <li><strong>Documentation:</strong> Main ComplianceAI documentation</li>
+                            <li><strong>Support Portal:</strong> support.company.com</li>
+                            <li><strong>Emergency Contact:</strong> +1-555-0199 (24/7)</li>
+                            <li><strong>Community:</strong> complianceai-users@company.com</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Version History</h6>
+                        <ul class="small">
+                            <li><strong>v1.0:</strong> Initial production deployment configurations</li>
+                            <li><strong>v1.1:</strong> Added Kubernetes manifests and security hardening</li>
+                            <li><strong>v1.2:</strong> Enhanced monitoring and backup configurations</li>
+                            <li><strong>v1.3:</strong> Added disaster recovery and performance optimization</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

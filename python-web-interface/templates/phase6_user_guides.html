@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 6 User Guides - ComplianceAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="/static/css/design-system.css" rel="stylesheet">
+    <style>
+        .guide-section { margin-bottom: 2rem; }
+        .step-number { display: inline-block; width: 30px; height: 30px; background: var(--primary-600); color: white; border-radius: 50%; text-align: center; line-height: 30px; margin-right: 10px; }
+        .code-block { background: #f8f9fa; border-left: 4px solid var(--primary-600); padding: 1rem; margin: 1rem 0; }
+        .highlight { background: #fff3cd; padding: 2px 4px; border-radius: 3px; }
+        .nav-link { color: var(--text-secondary); }
+        .nav-link.active { color: var(--primary-600); font-weight: bold; }
+        .search-container { position: relative; max-width: 400px; }
+        .search-input { padding-left: 2.5rem; }
+        .search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #6c757d; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-shield-alt me-2"></i>ComplianceAI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/phase3">Intelligence & Compliance</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/phase4">Report Generation</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/phase6">Production Readiness</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link active" href="/phase6/guides">User Guides</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="fas fa-book-open text-primary me-2"></i>Phase 6: Documentation & Production Readiness</h2>
+                        <p class="text-muted mb-0">Comprehensive user guides for production deployment and system management</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success">Web-Based Documentation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Navigation -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="form-control search-input" id="guideSearch" placeholder="Search guides..." onkeyup="searchGuides()">
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="btn-group" role="group">
+                    <input type="radio" class="btn-check" name="guideView" id="overview" autocomplete="off" checked>
+                    <label class="btn btn-outline-primary" for="overview">Overview</label>
+                    <input type="radio" class="btn-check" name="guideView" id="detailed" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="detailed">Detailed</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-md-3">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Guide Sections</h6>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#architecture" class="list-group-item list-group-item-action guide-nav-link">
+                            <i class="fas fa-sitemap me-2"></i>System Architecture
+                        </a>
+                        <a href="#configurations" class="list-group-item list-group-item-action guide-nav-link">
+                            <i class="fas fa-cogs me-2"></i>Configuration Management
+                        </a>
+                        <a href="#deployment" class="list-group-item list-group-item-action guide-nav-link">
+                            <i class="fas fa-server me-2"></i>Deployment Guide
+                        </a>
+                        <a href="#data-migration" class="list-group-item list-group-item-action guide-nav-link">
+                            <i class="fas fa-database me-2"></i>Data Migration
+                        </a>
+                        <a href="#monitoring" class="list-group-item list-group-item-action guide-nav-link">
+                            <i class="fas fa-chart-line me-2"></i>Monitoring Setup
+                        </a>
+                        <a href="#troubleshooting" class="list-group-item list-group-item-action guide-nav-link">
+                            <i class="fas fa-tools me-2"></i>Troubleshooting
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="col-md-9">
+                <!-- System Architecture Guide -->
+                <div id="architecture" class="guide-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-sitemap text-primary me-2"></i>System Architecture</h4>
+                        </div>
+                        <div class="card-body">
+                            <p>The ComplianceAI system follows a microservices architecture designed for regulatory compliance processing at enterprise scale.</p>
+
+                            <h5>Core Components</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Application Services</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-microchip text-primary me-2"></i><strong>Regulatory Intelligence Agent</strong></li>
+                                        <li class="ms-3">Handles data ingestion and regulatory updates</li>
+                                        <li><i class="fas fa-brain text-success me-2"></i><strong>Intelligence & Compliance Agent</strong></li>
+                                        <li class="ms-3">Processes rules and compliance logic</li>
+                                        <li><i class="fas fa-cogs text-warning me-2"></i><strong>Decision & Orchestration Agent</strong></li>
+                                        <li class="ms-3">Manages report generation and delivery</li>
+                                        <li><i class="fas fa-upload text-info me-2"></i><strong>Intake & Processing Agent</strong></li>
+                                        <li class="ms-3">Handles document processing and data intake</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Infrastructure Services</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-stream text-primary me-2"></i><strong>Apache Kafka</strong></li>
+                                        <li class="ms-3">Message bus for inter-service communication</li>
+                                        <li><i class="fas fa-database text-success me-2"></i><strong>PostgreSQL</strong></li>
+                                        <li class="ms-3">Primary relational database</li>
+                                        <li><i class="fas fa-server text-warning me-2"></i><strong>Redis</strong></li>
+                                        <li class="ms-3">Caching and session management</li>
+                                        <li><i class="fas fa-search text-info me-2"></i><strong>Qdrant</strong></li>
+                                        <li class="ms-3">Vector database for document search</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h5>Data Flow</h5>
+                            <div class="code-block">
+                                <strong>Regulatory Data Flow:</strong><br>
+                                Regulatory Sources → Intelligence Agent → Kafka Topics → Compliance Agent → Validation Engine → Decision Agent → Report Generation → Delivery Channels
+                            </div>
+
+                            <h5>Communication Patterns</h5>
+                            <ul>
+                                <li><strong>Event-Driven:</strong> Kafka topics for asynchronous communication</li>
+                                <li><strong>REST APIs:</strong> Synchronous service-to-service calls</li>
+                                <li><strong>Database Queries:</strong> Direct data access with connection pooling</li>
+                                <li><strong>WebSocket:</strong> Real-time updates for web interface</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration Management Guide -->
+                <div id="configurations" class="guide-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-cogs text-primary me-2"></i>Configuration Management</h4>
+                        </div>
+                        <div class="card-body">
+                            <p>Comprehensive configuration management for multi-jurisdiction regulatory compliance.</p>
+
+                            <h5>Jurisdiction Configuration</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Step 1: Select Jurisdiction Template</h6>
+                                    <div class="code-block">
+                                        # Copy base template for new jurisdiction
+                                        cp configs/jurisdictions/base_jurisdiction.yaml configs/jurisdictions/new_jurisdiction.yaml
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Step 2: Configure Basic Information</h6>
+                                    <div class="code-block">
+                                        jurisdiction:
+                                          id: "NEW"
+                                          name: "New Jurisdiction"
+                                          code: "NJ"
+                                          region: "Asia-Pacific"
+                                          timezone: "Asia/Tokyo"
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5>Step 3: Configure Regulatory Authorities</h5>
+                            <div class="code-block">
+                                authorities:
+                                  - id: "regulator_1"
+                    name: "Financial Services Authority"
+                    website: "https://www.regulator.nj"
+                    api_endpoint: "https://api.regulator.nj/v1"
+                                  - id: "central_bank"
+                    name: "Central Bank of New Jurisdiction"
+                    website: "https://www.cb.nj"
+                    api_endpoint: "https://api.cb.nj/v1"
+                            </div>
+
+                            <h5>Step 4: Define Report Types</h5>
+                            <div class="code-block">
+                                reports:
+                                  - id: "FINREP_NJ"
+                    name: "Financial Reporting (NJ)"
+                    frequency: "quarterly"
+                    format: "XBRL"
+                    mandatory: true
+                                  - id: "RISK_NJ"
+                    name: "Risk Assessment Report"
+                    frequency: "annual"
+                    format: "JSON"
+                    mandatory: true
+                            </div>
+
+                            <h5>Step 5: Set Validation Rules</h5>
+                            <div class="code-block">
+                                validation:
+                                  business_rules:
+                                    - id: "capital_adequacy"
+                      expression: "tier1_capital >= regulatory_minimum"
+                      severity: "critical"
+                      enabled: true
+                                    - id: "liquidity_ratio"
+                      expression: "liquid_assets >= short_term_liabilities * 1.1"
+                      severity: "error"
+                      enabled: true
+                            </div>
+
+                            <h5>Step 6: Configure Submission Channels</h5>
+                            <div class="code-block">
+                                submission:
+                                  channels:
+                                    - type: "API"
+                      primary: true
+                      endpoint: "https://api.regulator.nj/submit"
+                      authentication: "oauth2"
+                                    - type: "SFTP"
+                      primary: false
+                      endpoint: "sftp.regulator.nj"
+                      authentication: "ssh_key"
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deployment Guide -->
+                <div id="deployment" class="guide-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-server text-primary me-2"></i>Deployment Guide</h4>
+                        </div>
+                        <div class="card-body">
+                            <p>Production-ready deployment configurations for various environments and platforms.</p>
+
+                            <h5>Prerequisites</h5>
+                            <ul>
+                                <li>Docker Engine 20.10+</li>
+                                <li>Docker Compose 2.0+</li>
+                                <li>4GB RAM minimum (8GB recommended)</li>
+                                <li>2 CPU cores minimum (4 cores recommended)</li>
+                                <li>20GB free disk space</li>
+                            </ul>
+
+                            <h5>Docker Compose Deployment</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Step 1: Environment Setup</h6>
+                                    <div class="code-block">
+                                        # Copy environment template
+                                        cp .env.example .env
+
+                                        # Edit environment variables
+                                        nano .env
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Step 2: Port Configuration</h6>
+                                    <div class="code-block">
+                                        # Check for port conflicts
+                                        python scripts/port_manager.py
+
+                                        # This automatically updates docker-compose.yml
+                                        # with available ports
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6>Step 3: Start Services</h6>
+                            <div class="code-block">
+                                # Start all services
+                                docker-compose up -d
+
+                                # Check service status
+                                docker-compose ps
+
+                                # View logs
+                                docker-compose logs -f
+                            </div>
+
+                            <h6>Step 4: Verify Deployment</h6>
+                            <div class="code-block">
+                                # Check service health
+                                curl http://localhost:8001/health
+
+                                # Access web interface
+                                open http://localhost:8001
+
+                                # Run automated tests
+                                python scripts/automated_tests.py
+                            </div>
+
+                            <h5>Kubernetes Deployment</h5>
+                            <p>For production environments requiring high availability and scalability:</p>
+
+                            <div class="code-block">
+                                # Apply Kubernetes manifests
+                                kubectl apply -f configs/deployment/kubernetes-prod.yml
+
+                                # Check pod status
+                                kubectl get pods
+
+                                # Check service endpoints
+                                kubectl get services
+
+                                # Monitor deployments
+                                kubectl get deployments
+                            </div>
+
+                            <h5>Cloud Deployment Options</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fab fa-aws fa-2x text-warning mb-3"></i>
+                                            <h6>AWS Deployment</h6>
+                                            <ul class="list-unstyled small">
+                                                <li>ECS Fargate</li>
+                                                <li>RDS PostgreSQL</li>
+                                                <li>MSK Kafka</li>
+                                                <li>ElastiCache Redis</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fab fa-google fa-2x text-blue mb-3"></i>
+                                            <h6>GCP Deployment</h6>
+                                            <ul class="list-unstyled small">
+                                                <li>Cloud Run</li>
+                                                <li>Cloud SQL</li>
+                                                <li>Pub/Sub</li>
+                                                <li>Memorystore</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fab fa-microsoft fa-2x text-primary mb-3"></i>
+                                            <h6>Azure Deployment</h6>
+                                            <ul class="list-unstyled small">
+                                                <li>Container Apps</li>
+                                                <li>Database for PostgreSQL</li>
+                                                <li>Event Hubs</li>
+                                                <li>Cache for Redis</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Migration Guide -->
+                <div id="data-migration" class="guide-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-database text-primary me-2"></i>Data Migration</h4>
+                        </div>
+                        <div class="card-body">
+                            <p>Comprehensive data migration tools for seamless transitions between environments and versions.</p>
+
+                            <h5>Migration Types</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>PostgreSQL Migrations</h6>
+                                    <div class="code-block">
+                                        # Run schema migration
+                                        python scripts/data_migration/postgresql/data_migration_tool.py migrate \
+                                          --source-db "postgresql://user:pass@host:5432/source_db" \
+                                          --target-db "postgresql://user:pass@host:5432/target_db" \
+                                          --tables regulatory.compliance_rules,regulatory.report_schedules
+
+                                        # Validate migration
+                                        python scripts/data_migration/postgresql/data_migration_tool.py validate
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>MongoDB Migrations</h6>
+                                    <div class="code-block">
+                                        # Run document migration
+                                        python scripts/data_migration/mongodb/mongo_migration_tool.py migrate \
+                                          --source-uri "mongodb://user:pass@host:27017/source_db" \
+                                          --target-uri "mongodb://user:pass@host:27017/target_db" \
+                                          --collections regulatory_updates,compliance_events
+
+                                        # Validate migration
+                                        python scripts/data_migration/mongodb/mongo_migration_tool.py validate
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5>Kafka Schema Migrations</h5>
+                            <div class="code-block">
+                                # Update schema registry
+                                python configs/kafka/scripts/kafka_schema_manager.py update \
+                                  --schema-file configs/kafka/schemas/compliance_event.avsc \
+                                  --compatibility FULL
+
+                                # Validate schema compatibility
+                                python configs/kafka/scripts/kafka_schema_manager.py validate \
+                                  --topic regulatory-updates
+
+                                # Migrate topic data
+                                python configs/kafka/scripts/kafka_schema_manager.py migrate \
+                                  --topic regulatory-updates \
+                                  --from-version 1.0 \
+                                  --to-version 2.0
+                            </div>
+
+                            <h5>Migration Validation</h5>
+                            <div class="code-block">
+                                # Run comprehensive validation
+                                python scripts/data_migration/validation/data_validator.py validate \
+                                  --db-type all \
+                                  --output-format json \
+                                  --report-file migration_validation_report.json
+
+                                # Check data integrity
+                                python scripts/data_migration/validation/data_validator.py validate \
+                                  --db-type postgresql \
+                                  --check integrity
+
+                                # Validate regulatory compliance
+                                python scripts/data_migration/validation/data_validator.py validate \
+                                  --db-type all \
+                                  --check compliance
+                            </div>
+
+                            <h5>Rollback Procedures</h5>
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>Important:</strong> Always create backups before running migrations. Rollback procedures are available for all migration types.
+                            </div>
+
+                            <div class="code-block">
+                                # Create backup before migration
+                                python scripts/data_migration/postgresql/data_migration_tool.py backup \
+                                  --db-uri "postgresql://user:pass@host:5432/db" \
+                                  --backup-file pre_migration_backup.sql
+
+                                # Rollback if needed
+                                python scripts/data_migration/postgresql/data_migration_tool.py rollback \
+                                  --migration-id MIG-2024-001 \
+                                  --backup-file pre_migration_backup.sql
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monitoring Setup Guide -->
+                <div id="monitoring" class="guide-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-chart-line text-primary me-2"></i>Monitoring Setup</h4>
+                        </div>
+                        <div class="card-body">
+                            <p>Complete monitoring stack with Prometheus, Grafana, and Alertmanager for comprehensive system observability.</p>
+
+                            <h5>Monitoring Components</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-tachometer-alt fa-2x text-success mb-3"></i>
+                                            <h6>Prometheus</h6>
+                                            <p class="small">Metrics collection and storage</p>
+                                            <div class="code-block small">
+                                                Port: 9090<br>
+                                                Config: /etc/prometheus/prometheus.yml
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-chart-bar fa-2x text-primary mb-3"></i>
+                                            <h6>Grafana</h6>
+                                            <p class="small">Visualization and dashboards</p>
+                                            <div class="code-block small">
+                                                Port: 3000<br>
+                                                Default: admin/admin
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <i class="fas fa-bell fa-2x text-warning mb-3"></i>
+                                            <h6>Alertmanager</h6>
+                                            <p class="small">Alert routing and notification</p>
+                                            <div class="code-block small">
+                                                Port: 9093<br>
+                                                Config: /etc/alertmanager/alertmanager.yml
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5>Setting Up Monitoring</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Step 1: Configure Prometheus</h6>
+                                    <div class="code-block">
+                                        # Prometheus configuration
+                                        global:
+                                          scrape_interval: 15s
+                                          evaluation_interval: 15s
+
+                                        rule_files:
+                                          - "alert_rules.yml"
+
+                                        alerting:
+                                          alertmanagers:
+                                          - static_configs:
+                                            - targets:
+                                              - alertmanager:9093
+
+                                        scrape_configs:
+                                          - job_name: 'complianceai'
+                                            static_configs:
+                                            - targets: ['web-interface:8000', 'intelligence-agent:8002', 'decision-agent:8003']
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Step 2: Configure Alertmanager</h6>
+                                    <div class="code-block">
+                                        global:
+                                          smtp_smarthost: 'smtp.gmail.com:587'
+                                          smtp_from: 'alerts@complianceai.com'
+
+                                        route:
+                                          group_by: ['alertname']
+                                          group_wait: 10s
+                                          group_interval: 10s
+                                          repeat_interval: 1h
+                                          receiver: 'email-alerts'
+
+                                        receivers:
+                                        - name: 'email-alerts'
+                                          email_configs:
+                                          - to: 'admin@complianceai.com'
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h6>Step 3: Import Grafana Dashboards</h6>
+                            <div class="code-block">
+                                # Access Grafana web interface
+                                open http://localhost:3000
+
+                                # Login with default credentials
+                                Username: admin
+                                Password: admin
+
+                                # Import dashboard
+                                Dashboard → Import → Upload JSON file
+                                Select: monitoring/grafana/dashboards/complianceai-overview.json
+                            </div>
+
+                            <h5>Key Metrics to Monitor</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>System Metrics</h6>
+                                    <ul>
+                                        <li>CPU usage per service</li>
+                                        <li>Memory consumption</li>
+                                        <li>Disk I/O operations</li>
+                                        <li>Network traffic</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Application Metrics</h6>
+                                    <ul>
+                                        <li>Request response times</li>
+                                        <li>Error rates</li>
+                                        <li>Active connections</li>
+                                        <li>Queue lengths</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h5>Business Metrics</h5>
+                            <ul>
+                                <li>Regulatory rules processed</li>
+                                <li>Report generation success rate</li>
+                                <li>Compliance check accuracy</li>
+                                <li>Data quality scores</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troubleshooting Guide -->
+                <div id="troubleshooting" class="guide-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4><i class="fas fa-tools text-primary me-2"></i>Troubleshooting</h4>
+                        </div>
+                        <div class="card-body">
+                            <p>Common issues and their solutions for ComplianceAI deployment and operation.</p>
+
+                            <h5>Service Startup Issues</h5>
+                            <div class="accordion" id="troubleshootingAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#service-startup">
+                                            Service fails to start
+                                        </button>
+                                    </h2>
+                                    <div id="service-startup" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <h6>Check service logs:</h6>
+                                            <div class="code-block">
+                                                # Check specific service logs
+                                                docker-compose logs intelligence-agent
+
+                                                # Check all service logs
+                                                docker-compose logs
+
+                                                # Follow logs in real-time
+                                                docker-compose logs -f web-interface
+                                            </div>
+
+                                            <h6>Common causes:</h6>
+                                            <ul>
+                                                <li>Port conflicts - use port manager script</li>
+                                                <li>Environment variables not set</li>
+                                                <li>Database connection issues</li>
+                                                <li>Insufficient system resources</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#database-connection">
+                                            Database connection errors
+                                        </button>
+                                    </h2>
+                                    <div id="database-connection" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <h6>Verify database connectivity:</h6>
+                                            <div class="code-block">
+                                                # Test PostgreSQL connection
+                                                docker-compose exec postgres pg_isready -U postgres -d kyc_db
+
+                                                # Test MongoDB connection
+                                                docker-compose exec mongodb mongosh --eval "db.adminCommand('ping')"
+
+                                                # Check Redis connectivity
+                                                docker-compose exec redis redis-cli ping
+                                            </div>
+
+                                            <h6>Environment variables to check:</h6>
+                                            <ul>
+                                                <li>POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB</li>
+                                                <li>MONGO_USER, MONGO_PASSWORD, MONGO_DB</li>
+                                                <li>REDIS_HOST, REDIS_PORT</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#kafka-issues">
+                                            Kafka connectivity issues
+                                        </button>
+                                    </h2>
+                                    <div id="kafka-issues" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <h6>Check Kafka cluster health:</h6>
+                                            <div class="code-block">
+                                                # List Kafka topics
+                                                docker-compose exec kafka kafka-topics --bootstrap-server localhost:29092 --list
+
+                                                # Check topic details
+                                                docker-compose exec kafka kafka-topics --bootstrap-server localhost:29092 --describe --topic regulatory-updates
+
+                                                # Test message production
+                                                docker-compose exec kafka kafka-console-producer --bootstrap-server localhost:29092 --topic test
+                                            </div>
+
+                                            <h6>Common issues:</h6>
+                                            <ul>
+                                                <li>Zookeeper not running</li>
+                                                <li>Network connectivity problems</li>
+                                                <li>Topic not created</li>
+                                                <li>Schema registry misconfiguration</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#performance-issues">
+                                            Performance degradation
+                                        </button>
+                                    </h2>
+                                    <div id="performance-issues" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <h6>Monitor system resources:</h6>
+                                            <div class="code-block">
+                                                # Check container resource usage
+                                                docker stats
+
+                                                # Monitor database performance
+                                                docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT * FROM pg_stat_activity;"
+
+                                                # Check Redis memory usage
+                                                docker-compose exec redis redis-cli info memory
+                                            </div>
+
+                                            <h6>Optimization steps:</h6>
+                                            <ul>
+                                                <li>Increase container resource limits</li>
+                                                <li>Optimize database queries</li>
+                                                <li>Implement caching strategies</li>
+                                                <li>Scale services horizontally</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5>Getting Help</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Documentation Resources</h6>
+                                    <ul>
+                                        <li><a href="#architecture">System Architecture Guide</a></li>
+                                        <li><a href="#configurations">Configuration Management</a></li>
+                                        <li><a href="#deployment">Deployment Guide</a></li>
+                                        <li><a href="#monitoring">Monitoring Setup</a></li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Support Options</h6>
+                                    <ul>
+                                        <li><strong>GitHub Issues:</strong> Report bugs and request features</li>
+                                        <li><strong>Documentation:</strong> Check the troubleshooting section</li>
+                                        <li><strong>Logs:</strong> Enable debug logging for detailed information</li>
+                                        <li><strong>Community:</strong> Join the ComplianceAI community forum</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Search functionality
+        function searchGuides() {
+            const searchTerm = document.getElementById('guideSearch').value.toLowerCase();
+            const guideSections = document.querySelectorAll('.guide-section');
+
+            guideSections.forEach(section => {
+                const text = section.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    section.style.display = 'block';
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        // Smooth scrolling for navigation
+        document.querySelectorAll('.guide-nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Highlight active navigation
+        window.addEventListener('scroll', function() {
+            const sections = document.querySelectorAll('.guide-section');
+            const navLinks = document.querySelectorAll('.guide-nav-link');
+
+            let currentSection = '';
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+
+                if (pageYOffset >= sectionTop - sectionHeight / 3) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + currentSection) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

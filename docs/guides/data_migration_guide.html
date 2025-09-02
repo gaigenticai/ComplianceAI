@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Migration Guide - ComplianceAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../../static/css/design-system.css" rel="stylesheet">
+    <style>
+        .code-block { background: #f8f9fa; border-left: 4px solid var(--primary-600); padding: 1rem; margin: 1rem 0; font-family: 'JetBrains Mono', monospace; font-size: 0.9em; }
+        .highlight { background: #fff3cd; padding: 2px 4px; border-radius: 3px; }
+        .nav-link { color: var(--text-secondary); }
+        .nav-link.active { color: var(--primary-600); font-weight: bold; }
+        .feature-list { list-style: none; padding: 0; }
+        .feature-list li { margin-bottom: 0.5rem; }
+        .feature-list li i { margin-right: 0.5rem; color: var(--success-500); }
+        .migration-step { border-left: 4px solid var(--primary-600); padding-left: 1rem; margin: 1rem 0; background: #f8f9ff; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../../../">
+                <i class="fas fa-shield-alt me-2"></i>ComplianceAI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="../../../">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../../phase6">Phase 6</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../../../phase6/guides">User Guides</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="jurisdiction_configuration_guide.html">Jurisdictions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="deployment_guide.html">Deployment</a></li>
+                    <li class="nav-item"><a class="nav-link" href="monitoring_guide.html">Monitoring</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="fas fa-database text-primary me-2"></i>Data Migration Guide</h2>
+                        <p class="text-muted mb-0">Comprehensive data migration and validation tools for ComplianceAI</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success">Web-Based Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../../../">Home</a></li>
+                <li class="breadcrumb-item"><a href="../../../phase6">Phase 6</a></li>
+                <li class="breadcrumb-item"><a href="../../../phase6/guides">User Guides</a></li>
+                <li class="breadcrumb-item active">Data Migration</li>
+            </ol>
+        </nav>
+
+        <!-- Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-info-circle text-primary me-2"></i>Overview</h4>
+            </div>
+            <div class="card-body">
+                <p>This directory contains comprehensive data migration and validation tools for the ComplianceAI system. These tools support migrating data between different environments, validating data integrity, and ensuring compliance with regulatory requirements.</p>
+
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <h6>Directory Structure</h6>
+                        <div class="code-block">
+data_migration/<br>
+├── postgresql/              # PostgreSQL migration tools<br>
+│   └── data_migration_tool.py<br>
+├── mongodb/                 # MongoDB migration tools<br>
+│   └── mongo_migration_tool.py<br>
+├── kafka/                   # Kafka data migration tools<br>
+│   └── kafka_migration_tool.py<br>
+└── validation/              # Data validation tools<br>
+    └── data_validator.py
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Key Features</h6>
+                        <ul class="feature-list">
+                            <li><i class="fas fa-exchange-alt"></i>Multi-database support (PostgreSQL, MongoDB, Kafka)</li>
+                            <li><i class="fas fa-check-circle"></i>Comprehensive data validation</li>
+                            <li><i class="fas fa-shield-alt"></i>Regulatory compliance checks</li>
+                            <li><i class="fas fa-tachometer-alt"></i>Parallel processing for performance</li>
+                            <li><i class="fas fa-save"></i>Automated backup and recovery</li>
+                            <li><i class="fas fa-chart-line"></i>Progress monitoring and reporting</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PostgreSQL Migration -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-database text-primary me-2"></i>PostgreSQL Data Migration Tool</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Features:</strong> Full/Partial Migration • Parallel Processing • Data Validation • Backup/Restore • Progress Tracking • Error Handling
+                </div>
+
+                <h5>Migration Examples</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Migrate All Tables</h6>
+                        <div class="code-block">
+python postgresql/data_migration_tool.py migrate \<br>
+  --source-db "postgresql://user:pass@dev-db/complianceai" \<br>
+  --target-db "postgresql://user:pass@staging-db/complianceai" \<br>
+  --workers 8 \<br>
+  --batch-size 5000
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Migrate Specific Tables</h6>
+                        <div class="code-block">
+python postgresql/data_migration_tool.py migrate \<br>
+  --tables regulatory.jurisdiction_configs,regulatory.regulatory_obligations \<br>
+  --source-db "postgresql://user:pass@source-db/db" \<br>
+  --target-db "postgresql://user:pass@target-db/db"
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Backup Operations</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Create Full Backup</h6>
+                        <div class="code-block">
+python postgresql/data_migration_tool.py backup \<br>
+  --source-db "postgresql://user:pass@source-db/db" \<br>
+  --backup-file ./backups/complianceai_backup_20240115.sql.gz
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Backup Specific Tables</h6>
+                        <div class="code-block">
+python postgresql/data_migration_tool.py backup \<br>
+  --tables regulatory.finrep_balance_sheet,regulatory.corep_own_funds \<br>
+  --source-db "postgresql://user:pass@source-db/db" \<br>
+  --backup-file ./backups/finrep_backup.sql.gz
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Validation</h5>
+                <div class="code-block">
+# Validate data integrity after migration<br>
+python postgresql/data_migration_tool.py validate \<br>
+  --source-db "postgresql://user:pass@source-db/db" \<br>
+  --target-db "postgresql://user:pass@target-db/db" \<br>
+  --report-file ./reports/migration_validation_20240115.json
+                </div>
+
+                <h5>Command Line Options</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Option</th>
+                                <th>Description</th>
+                                <th>Default</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>--source-db</code></td>
+                                <td>Source database connection string</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><code>--target-db</code></td>
+                                <td>Target database connection string</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td><code>--tables</code></td>
+                                <td>Comma-separated list of tables</td>
+                                <td>All tables</td>
+                            </tr>
+                            <tr>
+                                <td><code>--batch-size</code></td>
+                                <td>Records per batch</td>
+                                <td>1000</td>
+                            </tr>
+                            <tr>
+                                <td><code>--workers</code></td>
+                                <td>Number of parallel workers</td>
+                                <td>4</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- MongoDB Migration -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-leaf text-success me-2"></i>MongoDB Data Migration Tool</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-success">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Features:</strong> Collection Migration • Document Validation • Index Preservation • Progress Monitoring • Error Recovery
+                </div>
+
+                <h5>Migration Examples</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Migrate All Collections</h6>
+                        <div class="code-block">
+python mongodb/mongo_migration_tool.py migrate \<br>
+  --source-uri "mongodb://user:pass@dev-mongo/complianceai" \<br>
+  --target-uri "mongodb://user:pass@staging-mongo/complianceai" \<br>
+  --database complianceai \<br>
+  --workers 6 \<br>
+  --batch-size 2000
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Migrate Specific Collections</h6>
+                        <div class="code-block">
+python mongodb/mongo_migration_tool.py migrate \<br>
+  --collections regulatory_documents,compliance_rules \<br>
+  --source-uri "mongodb://source/db" \<br>
+  --target-uri "mongodb://target/db" \<br>
+  --database complianceai
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Backup Operations</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Create Collection Backup</h6>
+                        <div class="code-block">
+python mongodb/mongo_migration_tool.py backup \<br>
+  --source-uri "mongodb://source/db" \<br>
+  --database complianceai \<br>
+  --backup-file ./backups/mongodb_backup_20240115.json.gz
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Backup Specific Collections</h6>
+                        <div class="code-block">
+python mongodb/mongo_migration_tool.py backup \<br>
+  --collections audit_events,report_templates \<br>
+  --source-uri "mongodb://source/db" \<br>
+  --database complianceai \<br>
+  --backup-file ./backups/audit_backup.json.gz
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Validation</h5>
+                <div class="code-block">
+# Validate collection migration<br>
+python mongodb/mongo_migration_tool.py validate \<br>
+  --source-uri "mongodb://source/db" \<br>
+  --target-uri "mongodb://target/db" \<br>
+  --database complianceai \<br>
+  --report-file ./reports/mongo_validation_20240115.json
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Validation Tool -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-check-double text-warning me-2"></i>Data Validation Tool</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Features:</strong> Multi-Database Support • Comprehensive Checks • Compliance Validation • Performance Monitoring • Automated Reporting
+                </div>
+
+                <h5>Validation Checks</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Integrity Checks</h6>
+                        <ul>
+                            <li>Referential integrity validation</li>
+                            <li>Foreign key constraint verification</li>
+                            <li>Orphaned record detection</li>
+                            <li>Index consistency checks</li>
+                        </ul>
+
+                        <h6>Consistency Checks</h6>
+                        <ul>
+                            <li>Cross-table data consistency</li>
+                            <li>Business rule validation</li>
+                            <li>Date range validation</li>
+                            <li>Balance sheet reconciliation</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Completeness Checks</h6>
+                        <ul>
+                            <li>Required field validation</li>
+                            <li>Null value analysis</li>
+                            <li>Data coverage assessment</li>
+                            <li>Missing record identification</li>
+                        </ul>
+
+                        <h6>Accuracy Checks</h6>
+                        <ul>
+                            <li>Data format validation</li>
+                            <li>Range and limit checks</li>
+                            <li>Currency code validation</li>
+                            <li>Date consistency validation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5>Usage Examples</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Run All Validation Checks</h6>
+                        <div class="code-block">
+python validation/data_validator.py validate \<br>
+  --db-type postgresql \<br>
+  --connection "postgresql://user:pass@host/db" \<br>
+  --output-dir ./reports
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Validate Specific Checks</h6>
+                        <div class="code-block">
+python validation/data_validator.py validate \<br>
+  --checks integrity,consistency,completeness \<br>
+  --db-type postgresql \<br>
+  --connection "postgresql://user:pass@host/db"
+                        </div>
+                    </div>
+                </div>
+
+                <h6>Generate Validation Report</h6>
+                <div class="code-block">
+# Generate JSON validation report<br>
+python validation/data_validator.py report \<br>
+  --db-type postgresql \<br>
+  --connection "postgresql://user:pass@host/db" \<br>
+  --output-dir ./reports \<br>
+  --output-format json
+                </div>
+
+                <h6>Monitor Data Quality</h6>
+                <div class="code-block">
+# Continuous data quality monitoring<br>
+python validation/data_validator.py monitor \<br>
+  --db-type all \<br>
+  --connection "postgresql://user:pass@host/db" \<br>
+  --threshold 0.95
+                </div>
+            </div>
+        </div>
+
+        <!-- Migration Best Practices -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-lightbulb text-primary me-2"></i>Migration Best Practices</h4>
+            </div>
+            <div class="card-body">
+                <h5>Pre-Migration Preparation</h5>
+
+                <div class="migration-step">
+                    <h6>1. Backup Source Data</h6>
+                    <div class="code-block">
+# PostgreSQL backup<br>
+python postgresql/data_migration_tool.py backup --source-db "postgresql://..." --backup-file pre_migration_backup.sql.gz<br>
+<br>
+# MongoDB backup<br>
+python mongodb/mongo_migration_tool.py backup --source-uri "mongodb://..." --backup-file pre_migration_backup.json.gz
+                    </div>
+                </div>
+
+                <div class="migration-step">
+                    <h6>2. Validate Source Data</h6>
+                    <div class="code-block">
+# Run comprehensive validation<br>
+python validation/data_validator.py validate --db-type all --connection "..." --checks integrity,consistency,completeness,accuracy
+                    </div>
+                </div>
+
+                <div class="migration-step">
+                    <h6>3. Plan Migration Window</h6>
+                    <ul>
+                        <li>Schedule during low-traffic periods</li>
+                        <li>Notify stakeholders of maintenance window</li>
+                        <li>Prepare rollback procedures</li>
+                    </ul>
+                </div>
+
+                <h5>Migration Execution</h5>
+
+                <div class="migration-step">
+                    <h6>1. Test Migration</h6>
+                    <div class="code-block">
+# Dry run first<br>
+python postgresql/data_migration_tool.py migrate --dry-run --source-db "..." --target-db "..."
+                    </div>
+                </div>
+
+                <div class="migration-step">
+                    <h6>2. Execute Migration</h6>
+                    <div class="code-block">
+# Full migration with progress monitoring<br>
+python postgresql/data_migration_tool.py migrate --source-db "..." --target-db "..." --workers 8 --verbose
+                    </div>
+                </div>
+
+                <div class="migration-step">
+                    <h6>3. Validate Results</h6>
+                    <div class="code-block">
+# Comprehensive validation<br>
+python validation/data_validator.py validate --source-db "..." --target-db "..." --report-file migration_validation.json
+                    </div>
+                </div>
+
+                <h5>Post-Migration Tasks</h5>
+
+                <div class="migration-step">
+                    <h6>1. Update Application Configuration</h6>
+                    <ul>
+                        <li>Point application to new database</li>
+                        <li>Update connection strings</li>
+                        <li>Test application functionality</li>
+                    </ul>
+                </div>
+
+                <div class="migration-step">
+                    <h6>2. Monitor Performance</h6>
+                    <div class="code-block">
+# Monitor migrated database performance<br>
+python validation/data_validator.py validate --checks performance --db-type postgresql --connection "..."
+                    </div>
+                </div>
+
+                <div class="migration-step">
+                    <h6>3. Optimize as Needed</h6>
+                    <ul>
+                        <li>Rebuild indexes if necessary</li>
+                        <li>Update statistics</li>
+                        <li>Adjust configuration parameters</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Environment Configurations -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-layer-group text-primary me-2"></i>Environment-Specific Configurations</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="fas fa-code text-danger me-2"></i>Development</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="small">Small datasets, fast migration</p>
+                                <div class="code-block small">
+python postgresql/data_migration_tool.py migrate \<br>
+  --batch-size 1000 \<br>
+  --workers 2 \<br>
+  --source-db "postgresql://dev/db" \<br>
+  --target-db "postgresql://dev/db"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="fas fa-flask text-secondary me-2"></i>Staging</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="small">Medium datasets, balanced performance</p>
+                                <div class="code-block small">
+python postgresql/data_migration_tool.py migrate \<br>
+  --batch-size 5000 \<br>
+  --workers 4 \<br>
+  --source-db "postgresql://staging/db" \<br>
+  --target-db "postgresql://staging/db"
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h6 class="mb-0"><i class="fas fa-server text-success me-2"></i>Production</h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="small">Large datasets, maximum performance and safety</p>
+                                <div class="code-block small">
+python postgresql/data_migration_tool.py migrate \<br>
+  --batch-size 10000 \<br>
+  --workers 8 \<br>
+  --source-db "postgresql://prod/db" \<br>
+  --target-db "postgresql://prod/db" \<br>
+  --verbose \<br>
+  --report-file production_migration_$(date +%Y%m%d_%H%M%S).json
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-tools text-primary me-2"></i>Troubleshooting</h4>
+            </div>
+            <div class="card-body">
+                <h5>Common Migration Issues</h5>
+
+                <div class="accordion" id="troubleshootingAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#connectionProblems">
+                                Connection Problems
+                            </button>
+                        </h2>
+                        <div id="connectionProblems" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <h6>PostgreSQL Connection Failed</h6>
+                                <div class="code-block">
+# Check connection string<br>
+psql "postgresql://user:pass@host/db" -c "SELECT 1"<br>
+<br>
+# Verify network connectivity<br>
+telnet host 5432<br>
+<br>
+# Check authentication<br>
+psql -h host -U user -d db
+                                </div>
+
+                                <h6>MongoDB Connection Failed</h6>
+                                <div class="code-block">
+# Test MongoDB connection<br>
+mongosh "mongodb://user:pass@host/db" --eval "db.runCommand({ping: 1})"<br>
+<br>
+# Check MongoDB logs<br>
+docker logs mongodb_container
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#performanceIssues">
+                                Performance Issues
+                            </button>
+                        </h2>
+                        <div id="performanceIssues" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <h6>Slow Migration</h6>
+                                <ul>
+                                    <li>Increase batch size: <code>--batch-size 10000</code></li>
+                                    <li>Add more workers: <code>--workers 8</code></li>
+                                    <li>Check network bandwidth</li>
+                                    <li>Monitor disk I/O</li>
+                                </ul>
+
+                                <h6>Memory Issues</h6>
+                                <ul>
+                                    <li>Reduce batch size: <code>--batch-size 1000</code></li>
+                                    <li>Decrease worker count: <code>--workers 2</code></li>
+                                    <li>Monitor memory usage during migration</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dataIntegrity">
+                                Data Integrity Issues
+                            </button>
+                        </h2>
+                        <div id="dataIntegrity" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <h6>Validation Failures</h6>
+                                <div class="code-block">
+# Run detailed validation<br>
+python validation/data_validator.py validate --verbose --checks integrity,consistency<br>
+<br>
+# Check specific tables<br>
+python postgresql/data_migration_tool.py analyze --source-db "..."
+                                </div>
+
+                                <h6>Constraint Violations</h6>
+                                <div class="code-block">
+-- Check for constraint violations<br>
+SELECT * FROM pg_constraint WHERE schemaname = 'regulatory';
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5>Recovery Procedures</h5>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>PostgreSQL Rollback</h6>
+                        <div class="code-block">
+# Restore from backup<br>
+pg_restore -h host -U user -d db pre_migration_backup.sql<br>
+<br>
+# Or drop and recreate target tables<br>
+# (Custom rollback procedures needed)
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>MongoDB Rollback</h6>
+                        <div class="code-block">
+# Restore from backup<br>
+mongorestore --db target_db --drop backup_directory/<br>
+<br>
+# Or drop collections and restore<br>
+# (Custom rollback procedures needed)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Considerations -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-shield-alt text-primary me-2"></i>Security Considerations</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Connection Security</h6>
+                        <ul>
+                            <li>Use SSL/TLS for all database connections</li>
+                            <li>Store credentials securely (not in scripts)</li>
+                            <li>Use read-only connections for source databases</li>
+                            <li>Implement connection timeouts</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Data Protection</h6>
+                        <ul>
+                            <li>Encrypt backups at rest and in transit</li>
+                            <li>Implement access controls on migration tools</li>
+                            <li>Audit all migration activities</li>
+                            <li>Comply with data residency requirements</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h6>Access Control</h6>
+                <div class="code-block">
+-- Create migration user with limited privileges<br>
+CREATE USER migration_user WITH PASSWORD 'secure_password';<br>
+GRANT CONNECT ON DATABASE complianceai TO migration_user;<br>
+GRANT SELECT ON ALL TABLES IN SCHEMA regulatory TO migration_user;<br>
+GRANT INSERT, UPDATE ON target_tables TO migration_user;
+                </div>
+            </div>
+        </div>
+
+        <!-- Support and Documentation -->
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-life-ring text-primary me-2"></i>Support & Documentation</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Resources</h6>
+                        <ul>
+                            <li><strong>Migration Logs:</strong> Check application logs for detailed error information</li>
+                            <li><strong>Database Logs:</strong> Review PostgreSQL/MongoDB logs for connection issues</li>
+                            <li><strong>Performance Metrics:</strong> Use validation tool to monitor system performance</li>
+                            <li><strong>Community Support:</strong> Refer to ComplianceAI documentation and user forums</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Version History</h6>
+                        <ul class="small">
+                            <li><strong>v1.0:</strong> Initial migration tools with PostgreSQL and MongoDB support</li>
+                            <li><strong>v1.1:</strong> Added comprehensive validation and reporting capabilities</li>
+                            <li><strong>v1.2:</strong> Enhanced performance with parallel processing and batch operations</li>
+                            <li><strong>v1.3:</strong> Added security features and compliance validation checks</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

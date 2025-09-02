@@ -1,0 +1,237 @@
+{
+  "type": "record",
+  "name": "RegulatoryUpdate",
+  "namespace": "com.complianceai.regulatory",
+  "version": "1.0.0",
+  "doc": "Schema for regulatory document updates and changes",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for the regulatory update event"
+    },
+    {
+      "name": "document_id",
+      "type": "string",
+      "doc": "Unique identifier of the regulatory document"
+    },
+    {
+      "name": "document_type",
+      "type": {
+        "type": "enum",
+        "name": "DocumentType",
+        "symbols": ["regulation", "guidance", "directive", "communication", "technical_standard"]
+      },
+      "doc": "Type of regulatory document"
+    },
+    {
+      "name": "jurisdiction",
+      "type": "string",
+      "doc": "Regulatory jurisdiction (e.g., EU, UK, US)"
+    },
+    {
+      "name": "title",
+      "type": "string",
+      "doc": "Document title"
+    },
+    {
+      "name": "summary",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Brief summary of the document changes"
+    },
+    {
+      "name": "effective_date",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Date when the regulatory change becomes effective"
+    },
+    {
+      "name": "publication_date",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Date when the document was published"
+    },
+    {
+      "name": "source_url",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "URL where the document can be found"
+    },
+    {
+      "name": "issuing_authority",
+      "type": "string",
+      "doc": "Regulatory authority that issued the document"
+    },
+    {
+      "name": "affected_sectors",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "doc": "Financial sectors affected by this regulatory change"
+    },
+    {
+      "name": "impact_level",
+      "type": {
+        "type": "enum",
+        "name": "ImpactLevel",
+        "symbols": ["low", "medium", "high", "critical"]
+      },
+      "doc": "Business impact level of the regulatory change"
+    },
+    {
+      "name": "change_type",
+      "type": {
+        "type": "enum",
+        "name": "ChangeType",
+        "symbols": ["new_requirement", "amendment", "clarification", "withdrawal", "extension"]
+      },
+      "doc": "Type of change in the regulatory document"
+    },
+    {
+      "name": "affected_requirements",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "AffectedRequirement",
+          "fields": [
+            {
+              "name": "requirement_id",
+              "type": "string",
+              "doc": "ID of the affected requirement"
+            },
+            {
+              "name": "change_description",
+              "type": "string",
+              "doc": "Description of how the requirement is affected"
+            }
+          ]
+        }
+      },
+      "doc": "List of requirements affected by this change"
+    },
+    {
+      "name": "keywords",
+      "type": {
+        "type": "array",
+        "items": "string"
+      },
+      "doc": "Keywords for search and categorization"
+    },
+    {
+      "name": "attachments",
+      "type": {
+        "type": "array",
+        "items": {
+          "type": "record",
+          "name": "Attachment",
+          "fields": [
+            {
+              "name": "filename",
+              "type": "string",
+              "doc": "Name of the attached file"
+            },
+            {
+              "name": "content_type",
+              "type": "string",
+              "doc": "MIME type of the attachment"
+            },
+            {
+              "name": "size_bytes",
+              "type": "long",
+              "doc": "Size of the attachment in bytes"
+            },
+            {
+              "name": "checksum",
+              "type": "string",
+              "doc": "SHA256 checksum of the attachment"
+            }
+          ]
+        }
+      },
+      "doc": "Document attachments and supporting files"
+    },
+    {
+      "name": "processing_status",
+      "type": {
+        "type": "enum",
+        "name": "ProcessingStatus",
+        "symbols": ["received", "processing", "parsed", "validated", "published", "failed"]
+      },
+      "default": "received",
+      "doc": "Current processing status of the document"
+    },
+    {
+      "name": "processing_metadata",
+      "type": ["null", {
+        "type": "record",
+        "name": "ProcessingMetadata",
+        "fields": [
+          {
+            "name": "parsed_at",
+            "type": ["null", {
+              "type": "long",
+              "logicalType": "timestamp-millis"
+            }],
+            "default": null,
+            "doc": "Timestamp when document was parsed"
+          },
+          {
+            "name": "parser_version",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Version of the document parser used"
+          },
+          {
+            "name": "confidence_score",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Confidence score of the parsing accuracy"
+          },
+          {
+            "name": "processing_errors",
+            "type": {
+              "type": "array",
+              "items": "string"
+            },
+            "default": [],
+            "doc": "List of processing errors encountered"
+          }
+        ]
+      }],
+      "default": null,
+      "doc": "Metadata about document processing"
+    },
+    {
+      "name": "metadata",
+      "type": {
+        "type": "map",
+        "values": "string"
+      },
+      "default": {},
+      "doc": "Additional metadata key-value pairs"
+    },
+    {
+      "name": "created_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the event was created"
+    },
+    {
+      "name": "updated_at",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "doc": "Timestamp when the event was last updated"
+    }
+  ]
+}

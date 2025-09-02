@@ -1,0 +1,268 @@
+{
+  "topics": [
+    {
+      "name": "regulatory-updates",
+      "partitions": 3,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "604800000",
+        "segment.ms": "86400000",
+        "max.message.bytes": "10485760"
+      },
+      "schema": {
+        "subject": "regulatory-updates-value",
+        "schema_file": "schemas/regulatory_update.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Regulatory document updates and changes",
+      "consumers": [
+        "regulatory-intelligence-service",
+        "intelligence-compliance-service",
+        "decision-orchestration-service"
+      ],
+      "producers": [
+        "regulatory-intelligence-service"
+      ]
+    },
+    {
+      "name": "compliance-events",
+      "partitions": 6,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "2592000000",
+        "segment.ms": "86400000",
+        "max.message.bytes": "5242880",
+        "compression.type": "lz4"
+      },
+      "schema": {
+        "subject": "compliance-events-value",
+        "schema_file": "schemas/compliance_event.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Compliance-related events and activities",
+      "consumers": [
+        "intelligence-compliance-service",
+        "decision-orchestration-service",
+        "monitoring-service"
+      ],
+      "producers": [
+        "web-interface",
+        "regulatory-intelligence-service",
+        "intelligence-compliance-service",
+        "decision-orchestration-service",
+        "intake-processing-service"
+      ]
+    },
+    {
+      "name": "data-processing-events",
+      "partitions": 4,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "604800000",
+        "segment.ms": "86400000",
+        "max.message.bytes": "2097152"
+      },
+      "schema": {
+        "subject": "data-processing-events-value",
+        "schema_file": "schemas/data_processing_event.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Data processing events and status updates",
+      "consumers": [
+        "monitoring-service",
+        "reporting-service"
+      ],
+      "producers": [
+        "intake-processing-service",
+        "regulatory-intelligence-service",
+        "intelligence-compliance-service"
+      ]
+    },
+    {
+      "name": "system-metrics",
+      "partitions": 2,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "259200000",
+        "segment.ms": "3600000",
+        "max.message.bytes": "1048576",
+        "compression.type": "gzip"
+      },
+      "schema": {
+        "subject": "system-metrics-value",
+        "schema_file": "schemas/system_metrics.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "System performance and health metrics",
+      "consumers": [
+        "monitoring-service",
+        "alerting-service"
+      ],
+      "producers": [
+        "web-interface",
+        "regulatory-intelligence-service",
+        "intelligence-compliance-service",
+        "decision-orchestration-service",
+        "intake-processing-service"
+      ]
+    },
+    {
+      "name": "report-commands",
+      "partitions": 3,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "86400000",
+        "segment.ms": "3600000",
+        "max.message.bytes": "1048576"
+      },
+      "schema": {
+        "subject": "report-commands-value",
+        "schema_file": "schemas/report_command.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Report generation and processing commands",
+      "consumers": [
+        "decision-orchestration-service"
+      ],
+      "producers": [
+        "web-interface",
+        "api-gateway"
+      ]
+    },
+    {
+      "name": "report-status-updates",
+      "partitions": 4,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "2592000000",
+        "segment.ms": "86400000",
+        "max.message.bytes": "2097152"
+      },
+      "schema": {
+        "subject": "report-status-updates-value",
+        "schema_file": "schemas/report_status.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Report generation status updates",
+      "consumers": [
+        "web-interface",
+        "monitoring-service"
+      ],
+      "producers": [
+        "decision-orchestration-service"
+      ]
+    },
+    {
+      "name": "audit-events",
+      "partitions": 5,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "31536000000",
+        "segment.ms": "604800000",
+        "max.message.bytes": "1048576",
+        "compression.type": "gzip"
+      },
+      "schema": {
+        "subject": "audit-events-value",
+        "schema_file": "schemas/audit_event.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Security and audit events",
+      "consumers": [
+        "audit-service",
+        "compliance-monitoring"
+      ],
+      "producers": [
+        "web-interface",
+        "regulatory-intelligence-service",
+        "intelligence-compliance-service",
+        "decision-orchestration-service",
+        "intake-processing-service"
+      ]
+    },
+    {
+      "name": "error-events",
+      "partitions": 3,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "604800000",
+        "segment.ms": "86400000",
+        "max.message.bytes": "2097152"
+      },
+      "schema": {
+        "subject": "error-events-value",
+        "schema_file": "schemas/error_event.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Application errors and exceptions",
+      "consumers": [
+        "monitoring-service",
+        "alerting-service"
+      ],
+      "producers": [
+        "web-interface",
+        "regulatory-intelligence-service",
+        "intelligence-compliance-service",
+        "decision-orchestration-service",
+        "intake-processing-service"
+      ]
+    },
+    {
+      "name": "data-quality-events",
+      "partitions": 2,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "2592000000",
+        "segment.ms": "86400000",
+        "max.message.bytes": "1048576"
+      },
+      "schema": {
+        "subject": "data-quality-events-value",
+        "schema_file": "schemas/data_quality_event.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Data quality assessment results",
+      "consumers": [
+        "data-quality-service",
+        "monitoring-service"
+      ],
+      "producers": [
+        "intake-processing-service"
+      ]
+    },
+    {
+      "name": "workflow-events",
+      "partitions": 3,
+      "replication_factor": 3,
+      "config": {
+        "cleanup.policy": "delete",
+        "retention.ms": "2592000000",
+        "segment.ms": "86400000",
+        "max.message.bytes": "1048576"
+      },
+      "schema": {
+        "subject": "workflow-events-value",
+        "schema_file": "schemas/workflow_event.avsc",
+        "schema_type": "AVRO"
+      },
+      "description": "Workflow execution events",
+      "consumers": [
+        "workflow-engine",
+        "monitoring-service"
+      ],
+      "producers": [
+        "decision-orchestration-service",
+        "workflow-engine"
+      ]
+    }
+  ]
+}

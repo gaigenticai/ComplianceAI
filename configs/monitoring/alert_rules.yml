@@ -1,0 +1,459 @@
+# Prometheus Alert Rules for ComplianceAI
+# These rules define alerts for system health, performance, and business metrics
+
+groups:
+  # Infrastructure Alerts
+  - name: infrastructure_alerts
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+          runbook_url: "https://complianceai.example.com/runbooks/instance-down"
+
+      - alert: HighCpuUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 10m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is {{ $value }}% on {{ $labels.instance }}"
+          runbook_url: "https://complianceai.example.com/runbooks/high-cpu"
+
+      - alert: HighMemoryUsage
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is {{ $value }}% on {{ $labels.instance }}"
+          runbook_url: "https://complianceai.example.com/runbooks/high-memory"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Disk space is {{ $value }}% available on {{ $labels.instance }}"
+          runbook_url: "https://complianceai.example.com/runbooks/low-disk-space"
+
+      - alert: NetworkErrors
+        expr: rate(node_network_receive_errs_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Network errors on {{ $labels.instance }}"
+          description: "Network receive errors rate is {{ $value }} on {{ $labels.instance }}"
+          runbook_url: "https://complianceai.example.com/runbooks/network-errors"
+
+  # Database Alerts
+  - name: database_alerts
+    rules:
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL has been down for more than 1 minute"
+          runbook_url: "https://complianceai.example.com/runbooks/postgresql-down"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_activity_count > 180
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "High PostgreSQL connections"
+          description: "PostgreSQL has {{ $value }} active connections"
+          runbook_url: "https://complianceai.example.com/runbooks/postgresql-connections"
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_activity_max_tx_duration[5m]) > 300
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "PostgreSQL slow queries"
+          description: "PostgreSQL has slow queries running for more than 5 minutes"
+          runbook_url: "https://complianceai.example.com/runbooks/postgresql-slow-queries"
+
+      - alert: MongoDBDown
+        expr: mongodb_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: database
+        annotations:
+          summary: "MongoDB is down"
+          description: "MongoDB has been down for more than 1 minute"
+          runbook_url: "https://complianceai.example.com/runbooks/mongodb-down"
+
+      - alert: MongoDBHighConnections
+        expr: mongodb_connections{state="active"} > 80
+        for: 5m
+        labels:
+          severity: warning
+          category: database
+        annotations:
+          summary: "High MongoDB connections"
+          description: "MongoDB has {{ $value }} active connections"
+          runbook_url: "https://complianceai.example.com/runbooks/mongodb-connections"
+
+  # Cache Alerts
+  - name: cache_alerts
+    rules:
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis has been down for more than 1 minute"
+          runbook_url: "https://complianceai.example.com/runbooks/redis-down"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value }}%"
+          runbook_url: "https://complianceai.example.com/runbooks/redis-memory"
+
+      - alert: RedisHighRejectedConnections
+        expr: rate(redis_rejected_connections_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: cache
+        annotations:
+          summary: "Redis rejecting connections"
+          description: "Redis is rejecting {{ $value }} connections per second"
+          runbook_url: "https://complianceai.example.com/runbooks/redis-connections"
+
+  # Messaging Alerts
+  - name: messaging_alerts
+    rules:
+      - alert: KafkaBrokerDown
+        expr: kafka_server_broker_state == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: messaging
+        annotations:
+          summary: "Kafka broker down"
+          description: "Kafka broker {{ $labels.instance }} is down"
+          runbook_url: "https://complianceai.example.com/runbooks/kafka-broker-down"
+
+      - alert: KafkaHighLag
+        expr: kafka_consumergroup_lag > 10000
+        for: 5m
+        labels:
+          severity: warning
+          category: messaging
+        annotations:
+          summary: "High Kafka consumer lag"
+          description: "Consumer group {{ $labels.consumergroup }} has lag of {{ $value }}"
+          runbook_url: "https://complianceai.example.com/runbooks/kafka-high-lag"
+
+      - alert: KafkaUnderReplicatedPartitions
+        expr: kafka_server_replicamanager_underreplicatedpartitions > 0
+        for: 5m
+        labels:
+          severity: warning
+          category: messaging
+        annotations:
+          summary: "Kafka under-replicated partitions"
+          description: "Kafka has {{ $value }} under-replicated partitions"
+          runbook_url: "https://complianceai.example.com/runbooks/kafka-under-replicated"
+
+      - alert: ZookeeperDown
+        expr: zookeeper_status == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: messaging
+        annotations:
+          summary: "Zookeeper is down"
+          description: "Zookeeper instance {{ $labels.instance }} is down"
+          runbook_url: "https://complianceai.example.com/runbooks/zookeeper-down"
+
+  # Application Alerts
+  - name: application_alerts
+    rules:
+      - alert: ApplicationDown
+        expr: up{job=~"complianceai-.*"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "Application {{ $labels.job }} is down"
+          description: "{{ $labels.job }} has been down for more than 2 minutes"
+          runbook_url: "https://complianceai.example.com/runbooks/application-down"
+
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "High error rate on {{ $labels.job }}"
+          description: "Error rate is {{ $value }}% on {{ $labels.job }}"
+          runbook_url: "https://complianceai.example.com/runbooks/high-error-rate"
+
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "Slow response time on {{ $labels.job }}"
+          description: "95th percentile response time is {{ $value }}s on {{ $labels.job }}"
+          runbook_url: "https://complianceai.example.com/runbooks/slow-response"
+
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / process_virtual_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "High memory usage on {{ $labels.job }}"
+          description: "Memory usage is {{ $value }}% on {{ $labels.job }}"
+          runbook_url: "https://complianceai.example.com/runbooks/high-memory-usage"
+
+  # Business Logic Alerts
+  - name: business_alerts
+    rules:
+      - alert: ReportGenerationFailed
+        expr: complianceai_report_generation_status{status="failed"} > 0
+        for: 5m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "Report generation failed"
+          description: "{{ $value }} report generations have failed in the last 5 minutes"
+          runbook_url: "https://complianceai.example.com/runbooks/report-generation-failed"
+
+      - alert: ReportSubmissionFailed
+        expr: complianceai_report_submission_status{status="failed"} > 0
+        for: 10m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "Report submission failed"
+          description: "{{ $value }} report submissions have failed in the last 10 minutes"
+          runbook_url: "https://complianceai.example.com/runbooks/report-submission-failed"
+
+      - alert: HighValidationErrors
+        expr: rate(complianceai_validation_errors_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "High validation error rate"
+          description: "Validation error rate is {{ $value }} per second"
+          runbook_url: "https://complianceai.example.com/runbooks/high-validation-errors"
+
+      - alert: RegulatoryDeadlineApproaching
+        expr: complianceai_regulatory_deadline_hours_remaining < 24
+        for: 1h
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Regulatory deadline approaching"
+          description: "Regulatory deadline in {{ $value }} hours for {{ $labels.report_type }}"
+          runbook_url: "https://complianceai.example.com/runbooks/deadline-approaching"
+
+      - alert: RegulatoryDeadlineMissed
+        expr: complianceai_regulatory_deadline_hours_remaining < 0
+        for: 5m
+        labels:
+          severity: critical
+          category: business
+        annotations:
+          summary: "Regulatory deadline missed"
+          description: "Regulatory deadline missed by {{ $value }} hours for {{ $labels.report_type }}"
+          runbook_url: "https://complianceai.example.com/runbooks/deadline-missed"
+
+      - alert: DataQualityIssues
+        expr: complianceai_data_quality_score < 95
+        for: 10m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "Data quality issues detected"
+          description: "Data quality score is {{ $value }}% for {{ $labels.data_source }}"
+          runbook_url: "https://complianceai.example.com/runbooks/data-quality-issues"
+
+      - alert: SLA_Breach
+        expr: complianceai_sla_compliance_ratio < 99.9
+        for: 5m
+        labels:
+          severity: warning
+          category: business
+        annotations:
+          summary: "SLA breach detected"
+          description: "SLA compliance ratio is {{ $value }}% for {{ $labels.service }}"
+          runbook_url: "https://complianceai.example.com/runbooks/sla-breach"
+
+  # Security Alerts
+  - name: security_alerts
+    rules:
+      - alert: FailedLoginAttempts
+        expr: rate(complianceai_failed_login_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High failed login attempts"
+          description: "Failed login rate is {{ $value }} per second from {{ $labels.ip }}"
+          runbook_url: "https://complianceai.example.com/runbooks/failed-logins"
+
+      - alert: SuspiciousActivity
+        expr: complianceai_suspicious_activity_score > 80
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Suspicious activity detected"
+          description: "Suspicious activity score is {{ $value }} for user {{ $labels.user_id }}"
+          runbook_url: "https://complianceai.example.com/runbooks/suspicious-activity"
+
+      - alert: CertificateExpiry
+        expr: x509_cert_not_after - time() < 604800
+        for: 1h
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Certificate expiring soon"
+          description: "Certificate {{ $labels.cert_subject }} expires in {{ $value | humanizeDuration }}"
+          runbook_url: "https://complianceai.example.com/runbooks/certificate-expiry"
+
+  # External Service Alerts
+  - name: external_service_alerts
+    rules:
+      - alert: ExternalServiceDown
+        expr: probe_success == 0
+        for: 5m
+        labels:
+          severity: warning
+          category: external
+        annotations:
+          summary: "External service down"
+          description: "External service {{ $labels.instance }} is not responding"
+          runbook_url: "https://complianceai.example.com/runbooks/external-service-down"
+
+      - alert: ExternalServiceSlow
+        expr: probe_duration_seconds > 5
+        for: 5m
+        labels:
+          severity: warning
+          category: external
+        annotations:
+          summary: "External service slow"
+          description: "External service {{ $labels.instance }} response time is {{ $value }}s"
+          runbook_url: "https://complianceai.example.com/runbooks/external-service-slow"
+
+      - alert: EBA_API_Down
+        expr: probe_success{instance="https://api.eba.europa.eu/health"} == 0
+        for: 10m
+        labels:
+          severity: critical
+          category: external
+        annotations:
+          summary: "EBA API is down"
+          description: "EBA API is not responding for more than 10 minutes"
+          runbook_url: "https://complianceai.example.com/runbooks/eba-api-down"
+
+      - alert: FCA_API_Down
+        expr: probe_success{instance="https://www.fca.org.uk"} == 0
+        for: 10m
+        labels:
+          severity: critical
+          category: external
+        annotations:
+          summary: "FCA API is down"
+          description: "FCA website is not responding for more than 10 minutes"
+          runbook_url: "https://complianceai.example.com/runbooks/fca-api-down"
+
+  # Performance Alerts
+  - name: performance_alerts
+    rules:
+      - alert: HighThroughput
+        expr: rate(http_requests_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: info
+          category: performance
+        annotations:
+          summary: "High throughput detected"
+          description: "Request rate is {{ $value }} requests per second on {{ $labels.job }}"
+          runbook_url: "https://complianceai.example.com/runbooks/high-throughput"
+
+      - alert: DatabaseSlowQuery
+        expr: histogram_quantile(0.95, rate(postgres_query_duration_seconds_bucket[5m])) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Slow database queries"
+          description: "95th percentile query time is {{ $value }}s"
+          runbook_url: "https://complianceai.example.com/runbooks/database-slow-query"
+
+      - alert: QueueBacklog
+        expr: kafka_consumergroup_lag > 50000
+        for: 10m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Message queue backlog"
+          description: "Consumer group {{ $labels.consumergroup }} has backlog of {{ $value }} messages"
+          runbook_url: "https://complianceai.example.com/runbooks/queue-backlog"
+
+      - alert: MemoryLeakDetected
+        expr: increase(process_resident_memory_bytes[1h]) > 100000000
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "Possible memory leak"
+          description: "Memory usage increased by {{ $value }} bytes in the last hour on {{ $labels.job }}"
+          runbook_url: "https://complianceai.example.com/runbooks/memory-leak"

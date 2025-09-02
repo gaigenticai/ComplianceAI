@@ -1,0 +1,362 @@
+# Alertmanager Configuration for ComplianceAI
+# This configuration defines how alerts are routed, grouped, and notified
+
+global:
+  # The smarthost and SMTP sender used for mail notifications
+  smtp_smarthost: 'smtp.company.com:587'
+  smtp_from: 'alerts@complianceai.company.com'
+  smtp_auth_username: 'alerts@company.com'
+  smtp_auth_password: '<smtp-password>'
+  smtp_require_tls: true
+
+  # The directory from which notification templates are read
+  templates:
+    - '/etc/alertmanager/templates/*.tmpl'
+
+  # The default HTTP client configuration
+  http_config:
+    tls_config:
+      insecure_skip_verify: false
+
+# The root route on which each incoming alert enters
+route:
+  # The root route must not have any matchers as it is the entry point for all alerts
+  # It needs to have a receiver configured so that all alerts that do not match
+  # any of the sub-routes are sent to a default receiver
+  receiver: 'default-pager'
+
+  # The labels by which incoming alerts are grouped together
+  group_by: ['alertname', 'cluster', 'service']
+
+  # When a new group of alerts is created by an incoming alert, wait at
+  # least 'group_wait' to send the initial notification
+  group_wait: 10s
+
+  # When the first notification was sent, wait 'group_interval' to send a batch
+  # of new alerts that started firing for that group
+  group_interval: 10s
+
+  # If an alert has successfully been sent, wait 'repeat_interval' to
+  # resend them
+  repeat_interval: 1h
+
+  # All the child routes are evaluated for the incoming alerts
+  routes:
+    # Critical alerts - page immediately
+    - matchers:
+        - severity =~ "critical"
+      receiver: 'critical-pager'
+      continue: true
+
+    # Infrastructure alerts
+    - matchers:
+        - category =~ "infrastructure|database|cache|messaging"
+      receiver: 'infrastructure-team'
+      group_by: ['alertname', 'instance']
+      continue: true
+
+    # Application alerts
+    - matchers:
+        - category =~ "application"
+      receiver: 'application-team'
+      group_by: ['alertname', 'job', 'instance']
+      continue: true
+
+    # Business alerts
+    - matchers:
+        - category =~ "business"
+      receiver: 'compliance-team'
+      group_by: ['alertname', 'report_type']
+      continue: true
+
+    # Security alerts
+    - matchers:
+        - category =~ "security"
+      receiver: 'security-team'
+      group_by: ['alertname', 'user_id', 'ip']
+      continue: true
+
+    # External service alerts
+    - matchers:
+        - category =~ "external"
+      receiver: 'external-monitoring'
+      group_by: ['alertname', 'instance']
+      continue: true
+
+    # Performance alerts
+    - matchers:
+        - category =~ "performance"
+      receiver: 'performance-team'
+      group_by: ['alertname', 'job']
+      continue: true
+
+    # Development/Staging alerts (less urgent)
+    - matchers:
+        - environment =~ "staging|development"
+      receiver: 'development-team'
+      group_by: ['alertname', 'environment']
+      continue: true
+
+    # Catch-all for any remaining alerts
+    - matchers:
+        - severity =~ "warning|info"
+      receiver: 'default-warning'
+
+# Inhibition rules allow to mute a set of alerts given that another alert is firing
+inhibit_rules:
+  # Critical alerts inhibit warnings
+  - source_matchers:
+      - severity = "critical"
+    target_matchers:
+      - severity = "warning"
+    equal: ['alertname', 'cluster', 'service']
+
+  # Application down inhibits related alerts
+  - source_matchers:
+      - alertname = "ApplicationDown"
+    target_matchers:
+      - category = "application"
+    equal: ['job', 'instance']
+
+  # Database down inhibits related alerts
+  - source_matchers:
+      - alertname =~ ".*Database.*Down"
+    target_matchers:
+      - category = "database"
+    equal: ['instance']
+
+  # Infrastructure down inhibits application alerts
+  - source_matchers:
+      - category = "infrastructure"
+      - severity = "critical"
+    target_matchers:
+      - category =~ "application|business"
+    equal: ['cluster']
+
+# Receivers define how alerts are sent
+receivers:
+  # Default pager for critical alerts
+  - name: 'critical-pager'
+    pagerduty_configs:
+      - routing_key: '<pagerduty-integration-key>'
+        service_key: '<pagerduty-service-key>'
+        url: 'https://events.pagerduty.com/v2/enqueue'
+        client: 'ComplianceAI'
+        client_url: 'https://complianceai.company.com'
+        description: '{{ .GroupLabels.alertname }}: {{ .CommonAnnotations.summary }}'
+        details:
+          firing: '{{ .Alerts.Firing | len }}'
+          resolved: '{{ .Alerts.Resolved | len }}'
+          description: '{{ .CommonAnnotations.description }}'
+          runbook: '{{ .CommonAnnotations.runbook_url }}'
+        severity: 'critical'
+
+  # Infrastructure team notifications
+  - name: 'infrastructure-team'
+    email_configs:
+      - to: 'infrastructure@company.com'
+        from: 'alerts@complianceai.company.com'
+        smarthost: 'smtp.company.com:587'
+        auth_username: 'alerts@company.com'
+        auth_password: '<smtp-password>'
+        auth_identity: 'alerts@company.com'
+        headers:
+          Subject: '[INFRASTRUCTURE ALERT] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Infrastructure Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Severity:</strong> {{ .GroupLabels.severity }}</p>
+          <p><strong>Instance:</strong> {{ .GroupLabels.instance }}</p>
+          <p><strong>Time:</strong> {{ .CommonLabels.alertname }}</p>
+          <p><strong>Runbook:</strong> <a href="{{ .CommonAnnotations.runbook_url }}">{{ .CommonAnnotations.runbook_url }}</a></p>
+          <h3>Alert Details:</h3>
+          {{ range .Alerts }}
+          <div style="border: 1px solid #ccc; margin: 10px 0; padding: 10px;">
+            <p><strong>Status:</strong> {{ .Status }}</p>
+            <p><strong>Labels:</strong></p>
+            <ul>
+            {{ range .Labels.SortedPairs }}<li>{{ .Name }}: {{ .Value }}</li>{{ end }}
+            </ul>
+            <p><strong>Annotations:</strong></p>
+            <ul>
+            {{ range .Annotations.SortedPairs }}<li>{{ .Name }}: {{ .Value }}</li>{{ end }}
+            </ul>
+          </div>
+          {{ end }}
+        send_resolved: true
+    slack_configs:
+      - api_url: '<slack-webhook-url>'
+        channel: '#infrastructure-alerts'
+        username: 'ComplianceAI Infrastructure'
+        color: '{{ if eq .GroupLabels.severity "critical" }}danger{{ else if eq .GroupLabels.severity "warning" }}warning{{ else }}good{{ end }}'
+        title: '[{{ .GroupLabels.severity | toUpper }}] Infrastructure Alert'
+        title_link: 'https://grafana.company.com/d/infrastructure-dashboard'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Instance:* {{ .GroupLabels.instance }}
+          *Runbook:* {{ .CommonAnnotations.runbook_url }}
+        send_resolved: true
+
+  # Application team notifications
+  - name: 'application-team'
+    email_configs:
+      - to: 'application-team@company.com'
+        from: 'alerts@complianceai.company.com'
+        smarthost: 'smtp.company.com:587'
+        headers:
+          Subject: '[APPLICATION ALERT] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Application Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Service:</strong> {{ .GroupLabels.job }}</p>
+          <p><strong>Severity:</strong> {{ .GroupLabels.severity }}</p>
+          <p><strong>Runbook:</strong> <a href="{{ .CommonAnnotations.runbook_url }}">{{ .CommonAnnotations.runbook_url }}</a></p>
+        send_resolved: true
+    slack_configs:
+      - api_url: '<slack-webhook-url>'
+        channel: '#application-alerts'
+        username: 'ComplianceAI Application'
+        title: '[{{ .GroupLabels.severity | toUpper }}] Application Alert'
+        title_link: 'https://grafana.company.com/d/application-dashboard'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Service:* {{ .GroupLabels.job }}
+          *Runbook:* {{ .CommonAnnotations.runbook_url }}
+        send_resolved: true
+
+  # Compliance team notifications
+  - name: 'compliance-team'
+    email_configs:
+      - to: 'compliance@company.com, regulatory@company.com'
+        from: 'alerts@complianceai.company.com'
+        smarthost: 'smtp.company.com:587'
+        headers:
+          Subject: '[COMPLIANCE ALERT] {{ .GroupLabels.alertname }} - {{ .GroupLabels.report_type }}'
+        html: |
+          <h2>Compliance Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Report Type:</strong> {{ .GroupLabels.report_type }}</p>
+          <p><strong>Severity:</strong> {{ .GroupLabels.severity }}</p>
+          <p><strong>Business Impact:</strong> HIGH</p>
+          <p><strong>Runbook:</strong> <a href="{{ .CommonAnnotations.runbook_url }}">{{ .CommonAnnotations.runbook_url }}</a></p>
+          <p><strong>Action Required:</strong> Immediate attention required</p>
+        send_resolved: true
+    slack_configs:
+      - api_url: '<slack-webhook-url>'
+        channel: '#compliance-alerts'
+        username: 'ComplianceAI Compliance'
+        title: '[{{ .GroupLabels.severity | toUpper }}] Compliance Alert'
+        title_link: 'https://complianceai.company.com/dashboard'
+        text: |
+          <!channel> *CRITICAL COMPLIANCE ALERT*
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Report Type:* {{ .GroupLabels.report_type }}
+          *IMMEDIATE ACTION REQUIRED*
+          *Runbook:* {{ .CommonAnnotations.runbook_url }}
+        send_resolved: true
+    pagerduty_configs:
+      - routing_key: '<compliance-pagerduty-key>'
+        service_key: '<compliance-service-key>'
+        severity: 'critical'
+
+  # Security team notifications
+  - name: 'security-team'
+    email_configs:
+      - to: 'security@company.com, ciso@company.com'
+        from: 'alerts@complianceai.company.com'
+        smarthost: 'smtp.company.com:587'
+        headers:
+          Subject: '[SECURITY ALERT] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Security Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>User ID:</strong> {{ .GroupLabels.user_id }}</p>
+          <p><strong>IP Address:</strong> {{ .GroupLabels.ip }}</p>
+          <p><strong>Severity:</strong> {{ .GroupLabels.severity }}</p>
+          <p><strong>Security Incident Response Required</strong></p>
+        send_resolved: true
+    slack_configs:
+      - api_url: '<slack-webhook-url>'
+        channel: '#security-incidents'
+        username: 'ComplianceAI Security'
+        title: '[{{ .GroupLabels.severity | toUpper }}] Security Alert'
+        text: |
+          <!channel> *SECURITY INCIDENT ALERT*
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *User:* {{ .GroupLabels.user_id }}
+          *IP:* {{ .GroupLabels.ip }}
+          *IMMEDIATE SECURITY RESPONSE REQUIRED*
+        send_resolved: true
+    pagerduty_configs:
+      - routing_key: '<security-pagerduty-key>'
+        service_key: '<security-service-key>'
+        severity: 'critical'
+
+  # External monitoring notifications
+  - name: 'external-monitoring'
+    email_configs:
+      - to: 'external-monitoring@company.com'
+        from: 'alerts@complianceai.company.com'
+        smarthost: 'smtp.company.com:587'
+        headers:
+          Subject: '[EXTERNAL SERVICE ALERT] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>External Service Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Service:</strong> {{ .GroupLabels.instance }}</p>
+          <p><strong>Impact:</strong> May affect regulatory reporting capabilities</p>
+        send_resolved: true
+
+  # Performance team notifications
+  - name: 'performance-team'
+    email_configs:
+      - to: 'performance@company.com'
+        from: 'alerts@complianceai.company.com'
+        smarthost: 'smtp.company.com:587'
+        headers:
+          Subject: '[PERFORMANCE ALERT] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Performance Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Service:</strong> {{ .GroupLabels.job }}</p>
+          <p><strong>Performance Impact:</strong> May affect system responsiveness</p>
+        send_resolved: true
+
+  # Development team notifications
+  - name: 'development-team'
+    slack_configs:
+      - api_url: '<slack-webhook-url>'
+        channel: '#development-alerts'
+        username: 'ComplianceAI Development'
+        title: '[{{ .GroupLabels.severity | toUpper }}] Development Alert'
+        text: |
+          *Alert:* {{ .GroupLabels.alertname }}
+          *Description:* {{ .CommonAnnotations.description }}
+          *Environment:* {{ .GroupLabels.environment }}
+          *Runbook:* {{ .CommonAnnotations.runbook_url }}
+        send_resolved: true
+
+  # Default pager for non-critical alerts
+  - name: 'default-pager'
+    pagerduty_configs:
+      - routing_key: '<default-pagerduty-key>'
+        service_key: '<default-service-key>'
+        severity: 'warning'
+
+  # Default warning notifications
+  - name: 'default-warning'
+    email_configs:
+      - to: 'devops@company.com'
+        from: 'alerts@complianceai.company.com'
+        smarthost: 'smtp.company.com:587'
+        headers:
+          Subject: '[WARNING] {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>Warning Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><strong>Description:</strong> {{ .CommonAnnotations.description }}</p>
+          <p><strong>Please review and take appropriate action if needed.</strong></p>
+        send_resolved: true

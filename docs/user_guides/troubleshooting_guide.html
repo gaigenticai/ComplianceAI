@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troubleshooting and FAQ Guide - ComplianceAI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #2c3e50;
+        }
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header p {
+            font-size: 1.2em;
+            color: #7f8c8d;
+        }
+        .toc {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+        .toc h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+        .toc li {
+            margin: 8px 0;
+        }
+        .toc a {
+            color: #3498db;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .toc a:hover {
+            background: #e3f2fd;
+        }
+        .section {
+            margin-bottom: 50px;
+            scroll-margin-top: 80px;
+        }
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            font-size: 1.8em;
+            margin-top: 40px;
+        }
+        .section h3 {
+            color: #34495e;
+            font-size: 1.4em;
+            margin-top: 30px;
+        }
+        .section h4 {
+            color: #5a6c7d;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        .faq-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #3498db;
+        }
+        .faq-question {
+            padding: 15px 20px;
+            margin: 0;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-answer {
+            padding: 0 20px 20px 20px;
+            display: none;
+            border-top: 1px solid #dee2e6;
+            margin-top: 10px;
+        }
+        .faq-toggle {
+            font-size: 1.2em;
+            color: #3498db;
+            transition: transform 0.3s;
+        }
+        .faq-item.active .faq-toggle {
+            transform: rotate(45deg);
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .error-code {
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .error-code .code {
+            font-weight: bold;
+            color: #dc3545;
+            font-size: 1.1em;
+        }
+        .config-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .config-table th,
+        .config-table td {
+            border: 1px solid #dee2e6;
+            padding: 12px;
+            text-align: left;
+        }
+        .config-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .config-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .step-list {
+            counter-reset: step-counter;
+            margin: 20px 0;
+        }
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 15px;
+            padding-left: 40px;
+            position: relative;
+        }
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #3498db;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        .contact-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .contact-card h4 {
+            margin-top: 0;
+            color: white;
+        }
+        .api-endpoint {
+            background: #e8f4f8;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .api-endpoint .method {
+            font-weight: bold;
+            color: #0056b3;
+        }
+        .diagnostic-tool {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .diagnostic-tool h4 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+        .nav-buttons {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .nav-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .nav-button:hover {
+            background: #2980b9;
+        }
+        .search-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .search-input {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        .category-filter {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .category-button {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        .category-button.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        .category-button:hover {
+            background: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-buttons">
+        <button class="nav-button" onclick="scrollToTop()">Top</button>
+        <button class="nav-button" onclick="toggleTOC()">TOC</button>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>Troubleshooting and FAQ Guide</h1>
+            <p>Comprehensive guide to resolving issues and finding answers in ComplianceAI</p>
+        </div>
+
+        <div class="search-container">
+            <input type="text" class="search-input" id="faqSearch" placeholder="Search FAQs..." onkeyup="searchFAQs()">
+        </div>
+
+        <div class="category-filter">
+            <button class="category-button active" onclick="filterCategory('all')">All</button>
+            <button class="category-button" onclick="filterCategory('general')">General</button>
+            <button class="category-button" onclick="filterCategory('technical')">Technical</button>
+            <button class="category-button" onclick="filterCategory('reports')">Reports</button>
+            <button class="category-button" onclick="filterCategory('integration')">Integration</button>
+            <button class="category-button" onclick="filterCategory('performance')">Performance</button>
+        </div>
+
+        <div class="toc" id="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#faq">Frequently Asked Questions</a></li>
+                <li><a href="#error-codes">Error Codes and Solutions</a></li>
+                <li><a href="#troubleshooting">Troubleshooting Procedures</a></li>
+                <li><a href="#diagnostics">System Diagnostics</a></li>
+                <li><a href="#performance">Performance Issues</a></li>
+                <li><a href="#support">Getting Help</a></li>
+            </ul>
+        </div>
+
+        <section id="faq" class="section">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-item" data-category="general">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>What is ComplianceAI and how does it work?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>ComplianceAI is an advanced regulatory compliance platform that automates the collection, processing, and submission of regulatory reports. It consists of four main agents:</p>
+                    <ul>
+                        <li><strong>Regulatory Intelligence Agent:</strong> Monitors and processes regulatory changes</li>
+                        <li><strong>Intelligence & Compliance Agent:</strong> Compiles rules and handles jurisdictions</li>
+                        <li><strong>Decision & Orchestration Agent:</strong> Generates and submits reports</li>
+                        <li><strong>Intake & Processing Agent:</strong> Handles data ingestion and validation</li>
+                    </ul>
+                    <p>The system integrates with banking systems, processes regulatory data, and ensures compliance with frameworks like FINREP, COREP, and DORA.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="technical">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I configure a new data source connection?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>To configure a new data source:</p>
+                    <ol>
+                        <li>Navigate to the Data Sources configuration page</li>
+                        <li>Click "Add New Data Source"</li>
+                        <li>Select the data source type (Database, API, File System)</li>
+                        <li>Enter connection parameters:
+                            <ul>
+                                <li>Host/IP address</li>
+                                <li>Port number</li>
+                                <li>Database name or API endpoint</li>
+                                <li>Authentication credentials</li>
+                            </ul>
+                        </li>
+                        <li>Test the connection</li>
+                        <li>Configure data mapping rules</li>
+                        <li>Save and activate the configuration</li>
+                    </ol>
+                    <p>Always test connections in a development environment first before deploying to production.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="reports">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Why did my report generation fail?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Report generation can fail for several reasons:</p>
+                    <ul>
+                        <li><strong>Data Source Issues:</strong> Source system unavailable or connection problems</li>
+                        <li><strong>Data Quality:</strong> Missing or invalid data in source systems</li>
+                        <li><strong>Template Errors:</strong> Incorrect or outdated report templates</li>
+                        <li><strong>Validation Failures:</strong> Data doesn't meet regulatory requirements</li>
+                        <li><strong>System Resources:</strong> Insufficient memory or processing capacity</li>
+                    </ul>
+                    <p>Check the generation logs for specific error messages and follow the troubleshooting procedures in the Error Codes section below.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="technical">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I update regulatory templates?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>To update regulatory templates:</p>
+                    <ol>
+                        <li>Download the latest template from the regulatory authority website</li>
+                        <li>Access the Template Management section</li>
+                        <li>Locate the template to update</li>
+                        <li>Upload the new template file</li>
+                        <li>Map the new fields to data sources</li>
+                        <li>Validate the template structure</li>
+                        <li>Test with sample data</li>
+                        <li>Approve and deploy the updated template</li>
+                    </ol>
+                    <p>Always backup the existing template before making changes and test thoroughly in a non-production environment.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="integration">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I troubleshoot SFTP delivery issues?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>For SFTP delivery issues:</p>
+                    <div class="step-list">
+                        <li>Verify SFTP server connectivity using ping or telnet</li>
+                        <li>Check SSH key permissions and format</li>
+                        <li>Confirm the target directory exists and is writable</li>
+                        <li>Test authentication with SFTP client</li>
+                        <li>Review firewall rules for port 22</li>
+                        <li>Check file size limits and disk space</li>
+                        <li>Examine SFTP server logs for error details</li>
+                    </div>
+                    <p>Use the SFTP diagnostic tool in the System Diagnostics section for automated testing.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="general">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>What are the system requirements?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Minimum system requirements:</p>
+                    <ul>
+                        <li><strong>CPU:</strong> 4-core processor (8-core recommended)</li>
+                        <li><strong>Memory:</strong> 16GB RAM (32GB recommended)</li>
+                        <li><strong>Storage:</strong> 500GB SSD (1TB recommended)</li>
+                        <li><strong>Network:</strong> 1Gbps connection</li>
+                        <li><strong>OS:</strong> Linux (Ubuntu 20.04+, CentOS 8+), Windows Server 2019+</li>
+                        <li><strong>Database:</strong> PostgreSQL 12+, MongoDB 4.4+</li>
+                        <li><strong>Java:</strong> OpenJDK 11+ (for Kafka and other components)</li>
+                    </ul>
+                    <p>For high-volume processing, consider distributed deployment with load balancing.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="performance">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>Why is the system running slowly?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Common performance issues and solutions:</p>
+                    <ul>
+                        <li><strong>Database Queries:</strong> Check for missing indexes and optimize slow queries</li>
+                        <li><strong>Memory Usage:</strong> Monitor JVM heap size and garbage collection</li>
+                        <li><strong>Network Latency:</strong> Test connectivity to external services</li>
+                        <li><strong>Concurrent Users:</strong> Check for resource contention</li>
+                        <li><strong>Large Datasets:</strong> Consider data partitioning and archiving</li>
+                    </ul>
+                    <p>Use the Performance Diagnostics tool to identify bottlenecks automatically.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="technical">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I monitor system health?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>The system provides comprehensive monitoring through:</p>
+                    <ul>
+                        <li><strong>Dashboard:</strong> Real-time status of all components</li>
+                        <li><strong>Prometheus Metrics:</strong> Detailed performance metrics</li>
+                        <li><strong>Grafana Dashboards:</strong> Visual monitoring and alerting</li>
+                        <li><strong>Health Check APIs:</strong> Automated health verification</li>
+                        <li><strong>Log Aggregation:</strong> Centralized logging with ELK stack</li>
+                    </ul>
+                    <p>Set up alerts for critical metrics like CPU usage > 80%, memory usage > 90%, and response times > 5 seconds.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="reports">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I handle regulatory deadline changes?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>To handle regulatory deadline changes:</p>
+                    <ol>
+                        <li>Monitor regulatory announcements and updates</li>
+                        <li>Update the regulatory calendar in the system</li>
+                        <li>Modify report generation schedules as needed</li>
+                        <li>Update notification templates and alerts</li>
+                        <li>Test the changes with sample data</li>
+                        <li>Communicate changes to relevant stakeholders</li>
+                        <li>Document the changes for audit purposes</li>
+                    </ol>
+                    <p>The system automatically tracks deadline changes through the Regulatory Intelligence Agent.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="integration">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I integrate with a new banking system?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>To integrate a new banking system:</p>
+                    <div class="step-list">
+                        <li>Identify the integration method (API, database, file transfer)</li>
+                        <li>Gather connection details and authentication requirements</li>
+                        <li>Create data mapping specifications</li>
+                        <li>Develop and test the integration adapter</li>
+                        <li>Configure security and access controls</li>
+                        <li>Perform end-to-end testing with sample data</li>
+                        <li>Set up monitoring and error handling</li>
+                        <li>Document the integration for maintenance</li>
+                    </div>
+                    <p>Refer to the Third-Party Integration Guide for detailed procedures.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="general">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I get started with ComplianceAI?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>Getting started with ComplianceAI:</p>
+                    <ol>
+                        <li>Complete the initial system setup and configuration</li>
+                        <li>Configure your institution's regulatory jurisdictions</li>
+                        <li>Set up data source connections</li>
+                        <li>Configure user roles and permissions</li>
+                        <li>Test with sample data and reports</li>
+                        <li>Set up monitoring and alerting</li>
+                        <li>Train users on system procedures</li>
+                        <li>Perform parallel run with existing processes</li>
+                    </ol>
+                    <p>Refer to the Regulatory User Guide for detailed setup instructions.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" data-category="technical">
+                <div class="faq-question" onclick="toggleFAQ(this)">
+                    <span>How do I backup and restore the system?</span>
+                    <span class="faq-toggle">+</span>
+                </div>
+                <div class="faq-answer">
+                    <p>System backup and restore procedures:</p>
+                    <ul>
+                        <li><strong>Database Backup:</strong> Use PostgreSQL pg_dump and MongoDB mongodump</li>
+                        <li><strong>Configuration Files:</strong> Backup all YAML and properties files</li>
+                        <li><strong>Certificates and Keys:</strong> Secure backup of encryption keys</li>
+                        <li><strong>Generated Reports:</strong> Archive important regulatory reports</li>
+                        <li><strong>Logs:</strong> Backup recent log files for troubleshooting</li>
+                    </ul>
+                    <p>Automate backups using the provided backup scripts and test restore procedures regularly.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="error-codes" class="section">
+            <h2>Error Codes and Solutions</h2>
+
+            <h3>Data Processing Errors</h3>
+            <div class="error-code">
+                <div class="code">DAT-001: Data Source Unavailable</div>
+                <p><strong>Description:</strong> Cannot connect to configured data source</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Check network connectivity to data source</li>
+                    <li>Verify connection credentials and permissions</li>
+                    <li>Test with database client tools</li>
+                    <li>Check firewall rules and security groups</li>
+                    <li>Review data source logs for issues</li>
+                </ul>
+            </div>
+
+            <div class="error-code">
+                <div class="code">DAT-002: Data Quality Issues</div>
+                <p><strong>Description:</strong> Data fails validation rules</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Review validation error details</li>
+                    <li>Check source data for completeness</li>
+                    <li>Verify data type conversions</li>
+                    <li>Update validation rules if needed</li>
+                    <li>Cleanse data in source system</li>
+                </ul>
+            </div>
+
+            <h3>Report Generation Errors</h3>
+            <div class="error-code">
+                <div class="code">GEN-001: Template Not Found</div>
+                <p><strong>Description:</strong> Report template file missing or corrupted</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Verify template file exists in templates directory</li>
+                    <li>Check file permissions and ownership</li>
+                    <li>Download latest template from regulatory authority</li>
+                    <li>Validate template file format and structure</li>
+                    <li>Restart the report generation service</li>
+                </ul>
+            </div>
+
+            <div class="error-code">
+                <div class="code">GEN-002: Calculation Errors</div>
+                <p><strong>Description:</strong> Mathematical errors in report calculations</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Review calculation formulas in template</li>
+                    <li>Check for division by zero or invalid operations</li>
+                    <li>Verify data types and ranges</li>
+                    <li>Test calculations with sample data</li>
+                    <li>Update calculation logic if needed</li>
+                </ul>
+            </div>
+
+            <h3>Integration Errors</h3>
+            <div class="error-code">
+                <div class="code">INT-001: API Authentication Failed</div>
+                <p><strong>Description:</strong> Cannot authenticate with external API</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Verify API credentials and tokens</li>
+                    <li>Check token expiration dates</li>
+                    <li>Test API connectivity separately</li>
+                    <li>Review API documentation for authentication requirements</li>
+                    <li>Regenerate API keys if necessary</li>
+                </ul>
+            </div>
+
+            <div class="error-code">
+                <div class="code">INT-002: SFTP Connection Failed</div>
+                <p><strong>Description:</strong> Cannot connect to SFTP server</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Test basic connectivity with ping</li>
+                    <li>Verify SFTP server is running and accessible</li>
+                    <li>Check SSH key format and permissions</li>
+                    <li>Test connection with SFTP client</li>
+                    <li>Review firewall and security group rules</li>
+                </ul>
+            </div>
+
+            <h3>System Errors</h3>
+            <div class="error-code">
+                <div class="code">SYS-001: Out of Memory</div>
+                <p><strong>Description:</strong> JVM or system running out of memory</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Increase JVM heap size in configuration</li>
+                    <li>Monitor memory usage with diagnostic tools</li>
+                    <li>Optimize memory-intensive operations</li>
+                    <li>Consider horizontal scaling for high load</li>
+                    <li>Review and fix memory leaks</li>
+                </ul>
+            </div>
+
+            <div class="error-code">
+                <div class="code">SYS-002: Database Connection Pool Exhausted</div>
+                <p><strong>Description:</strong> All database connections in use</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Increase connection pool size</li>
+                    <li>Check for connection leaks in application code</li>
+                    <li>Optimize database queries to reduce execution time</li>
+                    <li>Implement connection pooling best practices</li>
+                    <li>Monitor database performance metrics</li>
+                </ul>
+            </div>
+
+            <h3>Validation Errors</h3>
+            <div class="error-code">
+                <div class="code">VAL-001: Schema Validation Failed</div>
+                <p><strong>Description:</strong> Generated report doesn't match XBRL/JSON schema</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Update report template to match latest schema</li>
+                    <li>Check data mapping for correct field assignments</li>
+                    <li>Validate template against schema manually</li>
+                    <li>Review schema change notifications from regulators</li>
+                    <li>Test template with sample data before production use</li>
+                </ul>
+            </div>
+
+            <div class="error-code">
+                <div class="code">VAL-002: Business Rule Violation</div>
+                <p><strong>Description:</strong> Report data violates regulatory business rules</p>
+                <p><strong>Solutions:</strong></p>
+                <ul>
+                    <li>Review the specific business rule that failed</li>
+                    <li>Check source data for accuracy</li>
+                    <li>Verify calculation logic and formulas</li>
+                    <li>Update business rules if regulatory requirements changed</li>
+                    <li>Document exceptions and justifications</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="troubleshooting" class="section">
+            <h2>Troubleshooting Procedures</h2>
+
+            <h3>System Health Check</h3>
+            <div class="diagnostic-tool">
+                <h4>Automated System Health Check</h4>
+                <p>Use this procedure to perform a comprehensive system health assessment:</p>
+                <div class="step-list">
+                    <li>Access the System Diagnostics page in the web interface</li>
+                    <li>Run the "Full System Health Check" diagnostic</li>
+                    <li>Review results for any failing components</li>
+                    <li>Check individual service statuses</li>
+                    <li>Review recent error logs and alerts</li>
+                    <li>Generate and review the health report</li>
+                </div>
+            </div>
+
+            <h4>Manual Health Check Steps</h4>
+            <div class="step-list">
+                <li><strong>Database Connectivity:</strong> Test connections to PostgreSQL and MongoDB</li>
+                <li><strong>Kafka Services:</strong> Verify Kafka brokers and Zookeeper are running</li>
+                <li><strong>API Endpoints:</strong> Test key REST API endpoints for responsiveness</li>
+                <li><strong>File Systems:</strong> Check permissions on template and data directories</li>
+                <li><strong>External Services:</strong> Test connectivity to regulatory authority systems</li>
+                <li><strong>Certificates:</strong> Verify SSL certificates are valid and not expired</li>
+            </div>
+
+            <h3>Report Generation Troubleshooting</h3>
+            <div class="step-list">
+                <li><strong>Check Prerequisites:</strong> Ensure all data sources are available and accessible</li>
+                <li><strong>Review Configuration:</strong> Verify report template and parameter configurations</li>
+                <li><strong>Test Data Quality:</strong> Run data validation checks on source systems</li>
+                <li><strong>Monitor Resources:</strong> Check system resources (CPU, memory, disk space)</li>
+                <li><strong>Review Logs:</strong> Examine application and system logs for error messages</li>
+                <li><strong>Test Components:</strong> Test individual components (data extraction, transformation, validation)</li>
+                <li><strong>Retry Generation:</strong> Attempt report generation with simplified parameters</li>
+            </div>
+
+            <h3>Performance Troubleshooting</h3>
+            <h4>High CPU Usage</h4>
+            <div class="step-list">
+                <li>Identify processes consuming high CPU using system monitoring tools</li>
+                <li>Check for infinite loops or recursive operations in code</li>
+                <li>Review database query performance and add indexes if needed</li>
+                <li>Consider optimizing algorithms for large datasets</li>
+                <li>Implement caching for frequently accessed data</li>
+                <li>Scale horizontally by adding more processing nodes</li>
+            </div>
+
+            <h4>Memory Issues</h4>
+            <div class="step-list">
+                <li>Monitor JVM heap usage with diagnostic tools</li>
+                <li>Check for memory leaks in application code</li>
+                <li>Increase JVM heap size if appropriate</li>
+                <li>Implement object pooling for frequently created objects</li>
+                <li>Optimize data structures and reduce memory footprint</li>
+                <li>Consider using memory-efficient algorithms</li>
+            </div>
+
+            <h4>Slow Response Times</h4>
+            <div class="step-list">
+                <li>Measure response times for different operations</li>
+                <li>Identify bottlenecks using profiling tools</li>
+                <li>Optimize database queries and add appropriate indexes</li>
+                <li>Implement caching for static and semi-static data</li>
+                <li>Consider asynchronous processing for long-running operations</li>
+                <li>Review network latency and optimize data transfer</li>
+            </div>
+
+            <h3>Integration Troubleshooting</h3>
+            <h4>API Integration Issues</h4>
+            <div class="step-list">
+                <li>Test API connectivity using tools like curl or Postman</li>
+                <li>Verify authentication credentials and token validity</li>
+                <li>Check API rate limits and request throttling</li>
+                <li>Review API documentation for correct request format</li>
+                <li>Test with minimal payload to isolate issues</li>
+                <li>Check for API version compatibility</li>
+            </div>
+
+            <h4>Database Integration Issues</h4>
+            <div class="step-list">
+                <li>Test database connectivity with client tools</li>
+                <li>Verify connection string and credentials</li>
+                <li>Check user permissions and database roles</li>
+                <li>Test with simple SELECT queries</li>
+                <li>Review database server logs for errors</li>
+                <li>Check for database locks or blocking operations</li>
+            </div>
+
+            <h3>Security Troubleshooting</h3>
+            <div class="warning">
+                <strong>Important:</strong> When troubleshooting security issues, always follow your organization's security policies and procedures.
+            </div>
+
+            <div class="step-list">
+                <li><strong>Certificate Issues:</strong> Check certificate validity dates and trust chains</li>
+                <li><strong>Authentication Problems:</strong> Verify user credentials and access permissions</li>
+                <li><strong>Encryption Errors:</strong> Test encryption/decryption with known data</li>
+                <li><strong>Network Security:</strong> Review firewall rules and VPN configurations</li>
+                <li><strong>Access Control:</strong> Check role-based access control configurations</li>
+            </div>
+        </section>
+
+        <section id="diagnostics" class="section">
+            <h2>System Diagnostics</h2>
+
+            <h3>Diagnostic Tools</h3>
+            <div class="diagnostic-tool">
+                <h4>System Health Check API</h4>
+                <div class="api-endpoint">
+                    <div class="method">GET</div> <code>/api/v1/diagnostics/health</code><br>
+                    Comprehensive system health assessment
+                </div>
+                <div class="code-block">
+// Response Example
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "checks": {
+    "database": {
+      "status": "healthy",
+      "response_time": "45ms",
+      "details": "PostgreSQL connection successful"
+    },
+    "kafka": {
+      "status": "healthy",
+      "response_time": "12ms",
+      "details": "All brokers responding"
+    },
+    "api_services": {
+      "status": "healthy",
+      "response_time": "156ms",
+      "details": "All endpoints responding"
+    }
+  },
+  "recommendations": []
+}
+                </div>
+            </div>
+
+            <div class="diagnostic-tool">
+                <h4>Performance Diagnostics API</h4>
+                <div class="api-endpoint">
+                    <div class="method">GET</div> <code>/api/v1/diagnostics/performance</code><br>
+                    Detailed performance metrics and analysis
+                </div>
+                <div class="code-block">
+// Response Example
+{
+  "cpu_usage": 45.2,
+  "memory_usage": 68.7,
+  "disk_usage": 52.1,
+  "network_io": {
+    "bytes_sent": "1.2GB",
+    "bytes_received": "890MB"
+  },
+  "database_connections": {
+    "active": 15,
+    "idle": 35,
+    "total": 50
+  },
+  "slow_queries": [
+    {
+      "query": "SELECT * FROM large_table WHERE date > ?",
+      "execution_time": "45.2s",
+      "recommendation": "Add index on date column"
+    }
+  ]
+}
+                </div>
+            </div>
+
+            <h3>Log Analysis Tools</h3>
+            <div class="diagnostic-tool">
+                <h4>Log Analysis Commands</h4>
+                <div class="code-block">
+# Search for errors in application logs
+grep "ERROR" /var/log/complianceai/application.log | tail -20
+
+# Find performance-related log entries
+grep "PERFORMANCE" /var/log/complianceai/application.log | grep "slow"
+
+# Check for authentication failures
+grep "AUTHENTICATION_FAILED" /var/log/complianceai/security.log
+
+# Monitor Kafka consumer lag
+kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group compliance-group --describe
+
+# Check system resource usage
+top -b -n1 | head -20
+htop  # Interactive process viewer
+                </div>
+            </div>
+
+            <h3>Database Diagnostics</h3>
+            <div class="diagnostic-tool">
+                <h4>PostgreSQL Diagnostic Queries</h4>
+                <div class="code-block">
+-- Check active connections
+SELECT count(*) as active_connections FROM pg_stat_activity;
+
+-- Find slow queries
+SELECT pid, now() - pg_stat_activity.query_start AS duration, query
+FROM pg_stat_activity
+WHERE state = 'active' AND now() - pg_stat_activity.query_start > interval '1 minute'
+ORDER BY duration DESC;
+
+-- Check table sizes
+SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
+FROM pg_tables
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+
+-- Monitor locks
+SELECT blocked_locks.pid AS blocked_pid,
+       blocked_activity.usename AS blocked_user,
+       blocking_locks.pid AS blocking_pid,
+       blocking_activity.usename AS blocking_user,
+       blocked_activity.query AS blocked_statement
+FROM pg_locks blocked_locks
+JOIN pg_stat_activity blocked_activity ON blocked_activity.pid = blocked_locks.pid
+JOIN pg_locks blocking_locks ON blocking_locks.locktype = blocked_locks.locktype
+    AND blocking_locks.database IS NOT DISTINCT FROM blocked_locks.database
+    AND blocking_locks.relation IS NOT DISTINCT FROM blocked_locks.relation
+    AND blocking_locks.page IS NOT DISTINCT FROM blocked_locks.page
+    AND blocking_locks.tuple IS NOT DISTINCT FROM blocked_locks.tuple
+    AND blocking_locks.virtualxid IS NOT DISTINCT FROM blocked_locks.virtualxid
+    AND blocking_locks.transactionid IS NOT DISTINCT FROM blocked_locks.transactionid
+    AND blocking_locks.classid IS NOT DISTINCT FROM blocked_locks.classid
+    AND blocking_locks.objid IS NOT DISTINCT FROM blocked_locks.objid
+    AND blocking_locks.objsubid IS NOT DISTINCT FROM blocked_locks.objsubid
+    AND blocking_locks.pid != blocked_locks.pid
+JOIN pg_stat_activity blocking_activity ON blocking_activity.pid = blocking_locks.pid
+WHERE NOT blocked_locks.granted;
+                </div>
+            </div>
+
+            <h3>Network Diagnostics</h3>
+            <div class="diagnostic-tool">
+                <h4>Network Testing Commands</h4>
+                <div class="code-block">
+# Test basic connectivity
+ping -c 4 api.eba.europa.eu
+
+# Test port connectivity
+telnet sftp.eba.europa.eu 22
+nc -zv api.eba.europa.eu 443
+
+# Check DNS resolution
+nslookup api.eba.europa.eu
+dig api.eba.europa.eu
+
+# Test SSL certificate
+openssl s_client -connect api.eba.europa.eu:443 -servername api.eba.europa.eu
+
+# Network performance test
+iperf -c server.example.com
+
+# Trace network path
+traceroute api.eba.europa.eu
+                </div>
+            </div>
+        </section>
+
+        <section id="performance" class="section">
+            <h2>Performance Issues</h2>
+
+            <h3>Common Performance Problems</h3>
+            <div class="warning">
+                <strong>Symptoms of Performance Issues:</strong>
+                <ul>
+                    <li>Slow report generation times</li>
+                    <li>High CPU or memory usage</li>
+                    <li>Database query timeouts</li>
+                    <li>Application response delays</li>
+                    <li>Increased error rates</li>
+                    <li>User interface freezing or slowing</li>
+                </ul>
+            </div>
+
+            <h3>Performance Optimization Strategies</h3>
+            <h4>Database Optimization</h4>
+            <div class="step-list">
+                <li>Analyze slow queries using EXPLAIN PLAN</li>
+                <li>Add appropriate indexes on frequently queried columns</li>
+                <li>Optimize table structures and data types</li>
+                <li>Implement query result caching</li>
+                <li>Use database connection pooling</li>
+                <li>Consider database partitioning for large tables</li>
+                <li>Archive old data to improve query performance</li>
+            </div>
+
+            <h4>Application Optimization</h4>
+            <div class="step-list">
+                <li>Implement caching for frequently accessed data</li>
+                <li>Optimize algorithms and data structures</li>
+                <li>Use asynchronous processing for long-running tasks</li>
+                <li>Implement pagination for large datasets</li>
+                <li>Optimize memory usage and garbage collection</li>
+                <li>Use lazy loading where appropriate</li>
+                <li>Profile application performance regularly</li>
+            </div>
+
+            <h4>Infrastructure Optimization</h4>
+            <div class="step-list">
+                <li>Scale horizontally by adding more servers</li>
+                <li>Implement load balancing for high-traffic periods</li>
+                <li>Use content delivery networks (CDNs) for static assets</li>
+                <li>Optimize network configuration and bandwidth</li>
+                <li>Implement auto-scaling based on demand</li>
+                <li>Use faster storage solutions (SSD, NVMe)</li>
+                <li>Optimize operating system and kernel parameters</li>
+            </div>
+
+            <h3>Performance Monitoring</h3>
+            <div class="highlight">
+                <strong>Key Metrics to Monitor:</strong>
+                <ul>
+                    <li>Response time for API endpoints</li>
+                    <li>Database query execution times</li>
+                    <li>CPU and memory utilization</li>
+                    <li>Disk I/O operations</li>
+                    <li>Network throughput and latency</li>
+                    <li>Error rates and failure patterns</li>
+                    <li>User session duration and concurrency</li>
+                </ul>
+            </div>
+
+            <h3>Performance Testing</h3>
+            <div class="success">
+                <strong>Recommended Testing Tools:</strong>
+                <ul>
+                    <li>JMeter for load testing API endpoints</li>
+                    <li>Gatling for high-performance testing</li>
+                    <li>Locust for distributed load testing</li>
+                    <li>Apache Bench for basic performance testing</li>
+                    <li>New Relic or AppDynamics for application monitoring</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="support" class="section">
+            <h2>Getting Help</h2>
+
+            <h3>Support Resources</h3>
+            <div class="contact-card">
+                <h4>Technical Support</h4>
+                <p><strong>Email:</strong> support@complianceai.com</p>
+                <p><strong>Phone:</strong> +1 (555) 123-4567</p>
+                <p><strong>Hours:</strong> Monday - Friday, 9:00 AM - 6:00 PM EST</p>
+                <p><strong>Response Time:</strong> Critical issues: < 1 hour, General issues: < 4 hours</p>
+            </div>
+
+            <div class="contact-card">
+                <h4>Emergency Support</h4>
+                <p><strong>24/7 Hotline:</strong> +1 (555) 911-4567</p>
+                <p><strong>Use for:</strong> System outages, security incidents, regulatory deadline emergencies</p>
+                <p><strong>Escalation:</strong> Automatic escalation to senior engineers for critical issues</p>
+            </div>
+
+            <h3>Support Request Process</h3>
+            <div class="step-list">
+                <li><strong>Gather Information:</strong> Collect error messages, logs, and system information</li>
+                <li><strong>Document Issue:</strong> Describe the problem, steps to reproduce, and business impact</li>
+                <li><strong>Create Support Ticket:</strong> Use the support portal or email with detailed information</li>
+                <li><strong>Provide Access:</strong> Grant temporary access if requested by support team</li>
+                <li><strong>Follow Up:</strong> Respond promptly to support requests for additional information</li>
+                <li><strong>Implement Fixes:</strong> Apply recommended solutions and test thoroughly</li>
+            </div>
+
+            <h3>Support Ticket Information</h3>
+            <div class="highlight">
+                <strong>Include in Support Requests:</strong>
+                <ul>
+                    <li>System version and environment details</li>
+                    <li>Exact error messages and stack traces</li>
+                    <li>Steps to reproduce the issue</li>
+                    <li>Recent changes or deployments</li>
+                    <li>Log files from the time of the issue</li>
+                    <li>Screenshots of error conditions</li>
+                    <li>Business impact assessment</li>
+                </ul>
+            </div>
+
+            <h3>Knowledge Base</h3>
+            <div class="success">
+                <strong>Self-Service Resources:</strong>
+                <ul>
+                    <li>Online documentation and user guides</li>
+                    <li>Video tutorials and training materials</li>
+                    <li>Community forums and user discussions</li>
+                    <li>Release notes and known issues</li>
+                    <li>API documentation and examples</li>
+                    <li>Best practices and configuration guides</li>
+                </ul>
+            </div>
+
+            <h3>Escalation Procedures</h3>
+            <table class="config-table">
+                <thead>
+                    <tr>
+                        <th>Issue Severity</th>
+                        <th>Response Time</th>
+                        <th>Escalation Path</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Critical (System Down)</td>
+                        <td>Immediate</td>
+                        <td>→ Support Manager → CTO</td>
+                    </tr>
+                    <tr>
+                        <td>High (Major Impact)</td>
+                        <td>&lt; 1 hour</td>
+                        <td>→ Senior Engineer → Engineering Manager</td>
+                    </tr>
+                    <tr>
+                        <td>Medium (Limited Impact)</td>
+                        <td>&lt; 4 hours</td>
+                        <td>→ Support Engineer → Team Lead</td>
+                    </tr>
+                    <tr>
+                        <td>Low (Minor Issues)</td>
+                        <td>&lt; 24 hours</td>
+                        <td>→ Support Engineer</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Preventive Support</h3>
+            <div class="highlight">
+                <strong>Proactive Measures:</strong>
+                <ul>
+                    <li>Regular system health checks and maintenance</li>
+                    <li>Performance monitoring and optimization</li>
+                    <li>Security updates and patch management</li>
+                    <li>Capacity planning and resource monitoring</li>
+                    <li>Backup verification and disaster recovery testing</li>
+                    <li>User training and knowledge sharing</li>
+                </ul>
+            </div>
+        </section>
+
+        <div class="footer">
+            <p>&copy; 2024 ComplianceAI. Troubleshooting and FAQ Guide v2.0</p>
+            <p>Last updated: January 2024 | For urgent issues, call our 24/7 support hotline: +1 (555) 911-4567</p>
+        </div>
+    </div>
+
+    <script>
+        function toggleFAQ(element) {
+            const answer = element.nextElementSibling;
+            const toggle = element.querySelector('.faq-toggle');
+
+            if (answer.style.display === 'block') {
+                answer.style.display = 'none';
+                toggle.textContent = '+';
+                element.parentElement.classList.remove('active');
+            } else {
+                answer.style.display = 'block';
+                toggle.textContent = '−';
+                element.parentElement.classList.add('active');
+            }
+        }
+
+        function searchFAQs() {
+            const input = document.getElementById('faqSearch');
+            const filter = input.value.toUpperCase();
+            const faqItems = document.querySelectorAll('.faq-item');
+
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question').textContent.toUpperCase();
+                const answer = item.querySelector('.faq-answer').textContent.toUpperCase();
+
+                if (question.includes(filter) || answer.includes(filter)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function filterCategory(category) {
+            const faqItems = document.querySelectorAll('.faq-item');
+            const buttons = document.querySelectorAll('.category-button');
+
+            // Update button states
+            buttons.forEach(button => {
+                if (button.textContent.toLowerCase() === category || (category === 'all' && button.textContent.toLowerCase() === 'all')) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+
+            // Filter FAQs
+            faqItems.forEach(item => {
+                const itemCategory = item.getAttribute('data-category');
+                if (category === 'all' || itemCategory === category) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleTOC() {
+            const toc = document.getElementById('toc');
+            if (toc.style.display === 'none') {
+                toc.style.display = 'block';
+            } else {
+                toc.style.display = 'none';
+            }
+        }
+
+        // Add smooth scrolling to TOC links
+        document.querySelectorAll('.toc a').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize - show all FAQs and TOC
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('toc').style.display = 'block';
+            filterCategory('all');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('faqSearch').focus();
+            }
+        });
+    </script>
+</body>
+</html>

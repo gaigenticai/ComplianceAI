@@ -142,8 +142,13 @@ class WebInterfaceService:
             from phase4_api import app as phase4_app
             self.app.mount("/api/phase4", phase4_app)
             logger.info("Phase 4 API mounted successfully")
+
+            # Mount Phase 6 API
+            from phase6_api import router as phase6_router
+            self.app.include_router(phase6_router, prefix="/api/v1")
+            logger.info("Phase 6 API mounted successfully")
         except ImportError as e:
-            logger.warning("Failed to mount Phase 3 API", error=str(e))
+            logger.warning("Failed to mount Phase APIs", error=str(e))
     
     def _setup_routes(self):
         """Setup all API routes and endpoints"""
@@ -452,6 +457,26 @@ class WebInterfaceService:
                     return HTMLResponse(content=f.read(), status_code=200)
             except FileNotFoundError:
                 return HTMLResponse(content="<h1>Phase 4 User Guides Not Found</h1><p>Please ensure phase4_user_guides.html exists in templates/</p>", status_code=404)
+
+        # PHASE 6 DASHBOARD (Rule 6 & 7 compliance)
+        @self.app.get("/phase6")
+        async def phase6_dashboard(request: Request):
+            """Phase 6 Documentation & Production Readiness Dashboard"""
+            try:
+                with open('templates/phase6_dashboard.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Phase 6 Dashboard Not Found</h1><p>Please ensure phase6_dashboard.html exists in templates/</p>", status_code=404)
+
+        # PHASE 6 USER GUIDES (Rule 9 compliance)
+        @self.app.get("/phase6/guides")
+        async def phase6_user_guides(request: Request):
+            """Phase 6 User Guides - Web-based documentation"""
+            try:
+                with open('templates/phase6_user_guides.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Phase 6 User Guides Not Found</h1><p>Please ensure phase6_user_guides.html exists in templates/</p>", status_code=404)
 
         # REGULATORY INTELLIGENCE ENDPOINTS (Rule 6 & 7 compliance)
         @self.app.get("/regulatory")

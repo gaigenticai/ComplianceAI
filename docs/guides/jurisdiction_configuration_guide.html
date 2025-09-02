@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jurisdiction Configuration Guide - ComplianceAI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../../../static/css/design-system.css" rel="stylesheet">
+    <style>
+        .code-block { background: #f8f9fa; border-left: 4px solid var(--primary-600); padding: 1rem; margin: 1rem 0; font-family: 'JetBrains Mono', monospace; }
+        .highlight { background: #fff3cd; padding: 2px 4px; border-radius: 3px; }
+        .config-example { background: #e7f3ff; border: 1px solid #b3d7ff; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
+        .nav-link { color: var(--text-secondary); }
+        .nav-link.active { color: var(--primary-600); font-weight: bold; }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../../../">
+                <i class="fas fa-shield-alt me-2"></i>ComplianceAI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="../../../">Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../../../phase6">Phase 6</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="../../../phase6/guides">User Guides</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link" href="jurisdiction_configuration_guide.html">Jurisdictions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="deployment_guide.html">Deployment</a></li>
+                    <li class="nav-item"><a class="nav-link" href="monitoring_guide.html">Monitoring</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h2><i class="fas fa-globe text-primary me-2"></i>Jurisdiction Configuration Guide</h2>
+                        <p class="text-muted mb-0">Comprehensive guide for configuring regulatory jurisdictions in ComplianceAI</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-success">Web-Based Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../../../">Home</a></li>
+                <li class="breadcrumb-item"><a href="../../../phase6">Phase 6</a></li>
+                <li class="breadcrumb-item"><a href="../../../phase6/guides">User Guides</a></li>
+                <li class="breadcrumb-item active">Jurisdiction Configuration</li>
+            </ol>
+        </nav>
+
+        <!-- Overview -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-info-circle text-primary me-2"></i>Overview</h4>
+            </div>
+            <div class="card-body">
+                <p>This directory contains sample configuration files for different regulatory jurisdictions supported by ComplianceAI.</p>
+
+                <p>Jurisdiction configurations define how the system handles regulatory compliance for specific geographic regions. Each configuration includes:</p>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-building text-primary me-2"></i>Regulatory authorities and their APIs</li>
+                            <li><i class="fas fa-file-alt text-success me-2"></i>Report types and templates</li>
+                            <li><i class="fas fa-check-circle text-warning me-2"></i>Validation rules and business logic</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-upload text-info me-2"></i>Submission channels and deadlines</li>
+                            <li><i class="fas fa-calendar text-danger me-2"></i>Compliance calendars and holidays</li>
+                            <li><i class="fas fa-shield-alt text-secondary me-2"></i>Security and encryption settings</li>
+                            <li><i class="fas fa-tachometer-alt text-dark me-2"></i>Performance and monitoring parameters</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Configurations -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-list text-primary me-2"></i>Available Configurations</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Base Configuration</h5>
+                        <div class="card feature-card">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-cube text-primary me-2"></i>base_jurisdiction.yaml
+                                </h6>
+                                <p class="card-text">Template for creating new jurisdiction configurations</p>
+                                <ul class="small">
+                                    <li><strong>Purpose:</strong> Template for new jurisdictions</li>
+                                    <li><strong>Usage:</strong> Copy and customize</li>
+                                    <li><strong>Contains:</strong> All configuration options with defaults</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>European Union</h5>
+                        <div class="card feature-card">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-euro-sign text-success me-2"></i>eu_jurisdiction.yaml
+                                </h6>
+                                <p class="card-text">European Union regulatory configuration</p>
+                                <ul class="small">
+                                    <li><strong>Bodies:</strong> EBA, ECB, ESMA, EIOPA</li>
+                                    <li><strong>Reports:</strong> FINREP, COREP, DORA, PSD2</li>
+                                    <li><strong>Standards:</strong> IFRS, XBRL 3.1</li>
+                                    <li><strong>Currency:</strong> EUR</li>
+                                    <li><strong>Timezone:</strong> Europe/Brussels</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h5>United Kingdom</h5>
+                        <div class="card feature-card">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-pound-sign text-warning me-2"></i>uk_jurisdiction.yaml
+                                </h6>
+                                <p class="card-text">United Kingdom regulatory configuration</p>
+                                <ul class="small">
+                                    <li><strong>Bodies:</strong> FCA, PRA, Bank of England</li>
+                                    <li><strong>Reports:</strong> FINREP UK, COREP UK, FS45</li>
+                                    <li><strong>Standards:</strong> UK GAAP, XBRL 1.0</li>
+                                    <li><strong>Currency:</strong> GBP</li>
+                                    <li><strong>Timezone:</strong> Europe/London</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>United States</h5>
+                        <div class="card feature-card">
+                            <div class="card-body">
+                                <h6 class="card-title">
+                                    <i class="fas fa-dollar-sign text-info me-2"></i>us_jurisdiction.yaml
+                                </h6>
+                                <p class="card-text">United States regulatory configuration</p>
+                                <ul class="small">
+                                    <li><strong>Bodies:</strong> Federal Reserve, OCC, FDIC</li>
+                                    <li><strong>Reports:</strong> FFIEC 031, Y-9C, FR Y-14</li>
+                                    <li><strong>Standards:</strong> US GAAP, XBRL 2.0</li>
+                                    <li><strong>Currency:</strong> USD</li>
+                                    <li><strong>Timezone:</strong> America/New_York</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Structure -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-sitemap text-primary me-2"></i>Configuration Structure</h4>
+            </div>
+            <div class="card-body">
+                <p>Each jurisdiction configuration follows this structure:</p>
+
+                <div class="config-example">
+                    <pre><code>jurisdiction:
+  # Basic information
+  id: "UNIQUE_ID"
+  name: "Display Name"
+  code: "ISO_CODE"
+  region: "CONTINENT"
+  timezone: "IANA_TIMEZONE"
+
+  # Regulatory authorities
+  authorities:
+    - id: "authority_id"
+      name: "Full Authority Name"
+      website: "https://authority.example.com"
+      api_endpoint: "https://api.authority.example.com"
+
+  # Report definitions
+  reports:
+    - id: "REPORT_ID"
+      name: "Report Display Name"
+      frequency: "quarterly|annual"
+      format: "XBRL|JSON|CSV|XML"
+      mandatory: true|false
+
+  # Validation rules
+  validation:
+    business_rules:
+      - id: "rule_id"
+        name: "Rule Description"
+        expression: "mathematical_expression"
+        severity: "critical|error|warning"
+        enabled: true|false
+
+  # Submission settings
+  submission:
+    channels:
+      - type: "API|SFTP"
+        primary: true|false
+        endpoint: "submission_url"
+        authentication: "oauth2|ssh_key|api_key"
+
+    deadlines:
+      - report_type: "REPORT_ID"
+        frequency: "quarterly|annual"
+        offset_days: 45
+        grace_period_days: 15
+
+  # Calendar and holidays
+  calendar:
+    holidays:
+      - name: "Holiday Name"
+        date: "MM-DD"
+        type: "fixed|dynamic"
+
+  # Security configuration
+  security:
+    encryption:
+      algorithm: "AES-256-GCM"
+      key_rotation_days: 90
+
+    digital_signatures:
+      algorithm: "RSA-PSS"
+      key_size: 4096
+
+  # Performance settings
+  performance:
+    report_generation_timeout: 3600
+    max_concurrent_reports: 5
+
+  # Monitoring configuration
+  monitoring:
+    metrics:
+      - name: "metric_name"
+        threshold: 100
+        alert: true</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Use -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-play text-primary me-2"></i>How to Use</h4>
+            </div>
+            <div class="card-body">
+                <h5>1. Select or Create Configuration</h5>
+                <p>Choose an existing configuration or create a new one:</p>
+
+                <div class="code-block">
+# Copy base template
+cp base_jurisdiction.yaml my_jurisdiction.yaml
+
+# Edit configuration
+nano my_jurisdiction.yaml
+                </div>
+
+                <h5>2. Configure System</h5>
+                <p>Update your main configuration to use the jurisdiction:</p>
+
+                <div class="code-block">
+# In your main config file
+compliance:
+  jurisdictions:
+    - id: "EU"
+      config_file: "configs/jurisdictions/eu_jurisdiction.yaml"
+      enabled: true
+      primary: true
+                </div>
+
+                <h5>3. Validate Configuration</h5>
+                <p>Test your configuration before deployment:</p>
+
+                <div class="code-block">
+# Validate YAML syntax
+python -c "import yaml; yaml.safe_load(open('eu_jurisdiction.yaml'))"
+
+# Test configuration loading
+python -m complianceai.config validate eu_jurisdiction.yaml
+                </div>
+
+                <h5>4. Deploy Configuration</h5>
+                <p>Apply the configuration to your system:</p>
+
+                <div class="code-block">
+# Restart services to pick up new configuration
+docker-compose restart complianceai
+
+# Or reload configuration dynamically
+curl -X POST http://localhost:8000/api/config/reload
+                </div>
+            </div>
+        </div>
+
+        <!-- Customization Guidelines -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-tools text-primary me-2"></i>Customization Guidelines</h4>
+            </div>
+            <div class="card-body">
+                <h5>Adding New Jurisdictions</h5>
+                <ol>
+                    <li><strong>Copy Base Template:</strong> Start with base_jurisdiction.yaml</li>
+                    <li><strong>Set Basic Information:</strong> Update id, name, code, region, timezone</li>
+                    <li><strong>Configure Authorities:</strong> Add relevant regulatory bodies</li>
+                    <li><strong>Define Reports:</strong> Specify required report types and formats</li>
+                    <li><strong>Set Validation Rules:</strong> Add jurisdiction-specific business rules</li>
+                    <li><strong>Configure Submission:</strong> Set up appropriate submission channels</li>
+                    <li><strong>Define Calendar:</strong> Configure holidays and business days</li>
+                    <li><strong>Set Security:</strong> Configure encryption and authentication</li>
+                    <li><strong>Tune Performance:</strong> Adjust timeouts and limits for your scale</li>
+                </ol>
+
+                <h5>Regulatory Updates</h5>
+                <p>Regularly update configurations for:</p>
+                <ul>
+                    <li><strong>New Regulations:</strong> Add new report types and validation rules</li>
+                    <li><strong>Changed Deadlines:</strong> Update submission deadlines and grace periods</li>
+                    <li><strong>API Changes:</strong> Modify endpoint URLs and authentication methods</li>
+                    <li><strong>Security Updates:</strong> Update encryption algorithms and key rotation policies</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Multi-Jurisdiction Setup -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-layer-group text-primary me-2"></i>Multi-Jurisdiction Setup</h4>
+            </div>
+            <div class="card-body">
+                <p>For institutions operating in multiple jurisdictions:</p>
+
+                <div class="code-block">
+compliance:
+  jurisdictions:
+    - id: "EU"
+      config_file: "eu_jurisdiction.yaml"
+      enabled: true
+      primary: false
+
+    - id: "UK"
+      config_file: "uk_jurisdiction.yaml"
+      enabled: true
+      primary: true  # Primary jurisdiction
+
+    - id: "US"
+      config_file: "us_jurisdiction.yaml"
+      enabled: false  # Disabled for now
+                </div>
+            </div>
+        </div>
+
+        <!-- Validation Rules -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-check-double text-primary me-2"></i>Validation Rules</h4>
+            </div>
+            <div class="card-body">
+                <h5>Business Rule Expressions</h5>
+                <p>Use these operators in validation expressions:</p>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6>Arithmetic</h6>
+                        <ul class="small">
+                            <li><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Comparison</h6>
+                        <ul class="small">
+                            <li><code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4">
+                        <h6>Logical</h6>
+                        <ul class="small">
+                            <li><code>and</code>, <code>or</code>, <code>not</code></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h6>Functions</h6>
+                <ul class="small">
+                    <li><code>sum()</code>, <code>avg()</code>, <code>min()</code>, <code>max()</code>, <code>count()</code></li>
+                    <li><strong>Fields:</strong> Reference data fields by name (e.g., total_assets, total_liabilities)</li>
+                </ul>
+
+                <h5>Example Rules</h5>
+                <div class="config-example">
+                    <pre><code>business_rules:
+  - id: "balance_sheet"
+    expression: "total_assets == total_liabilities + total_equity"
+    severity: "critical"
+
+  - id: "capital_adequacy"
+    expression: "cet1_ratio >= 4.5 and total_capital_ratio >= 8.0"
+    severity: "critical"
+
+  - id: "large_exposure"
+    expression: "max_customer_exposure <= tier1_capital * 0.25"
+    severity: "error"</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Considerations -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-shield-alt text-primary me-2"></i>Security Considerations</h4>
+            </div>
+            <div class="card-body">
+                <h5>Encryption Settings</h5>
+                <div class="code-block">
+security:
+  encryption:
+    algorithm: "AES-256-GCM"  # Recommended
+    key_rotation_days: 90     # Maximum 90 days
+    key_management: "HSM"     # Hardware Security Module
+                </div>
+
+                <h5>Authentication Methods</h5>
+                <div class="code-block">
+submission:
+  channels:
+    - type: "API"
+      authentication: "oauth2_client_credentials"
+    - type: "SFTP"
+      authentication: "ssh_key"
+                </div>
+
+                <h5>Access Control</h5>
+                <div class="code-block">
+access_control:
+  rbac_enabled: true
+  mfa_required: true
+  session_timeout_minutes: 30
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Tuning -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-tachometer-alt text-primary me-2"></i>Performance Tuning</h4>
+            </div>
+            <div class="card-body">
+                <h5>Timeout Settings</h5>
+                <div class="code-block">
+performance:
+  report_generation_timeout: 3600    # 1 hour
+  api_timeout: 300                   # 5 minutes
+  database_timeout: 60               # 1 minute
+                </div>
+
+                <h5>Resource Limits</h5>
+                <div class="code-block">
+performance:
+  max_concurrent_reports: 5
+  max_memory_usage_gb: 16
+  max_cpu_usage_percent: 80
+                </div>
+            </div>
+        </div>
+
+        <!-- Monitoring and Alerts -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-line text-primary me-2"></i>Monitoring and Alerts</h4>
+            </div>
+            <div class="card-body">
+                <h5>Key Metrics</h5>
+                <div class="code-block">
+monitoring:
+  metrics:
+    - name: "report_generation_time"
+      threshold: 1800
+      alert: true
+    - name: "submission_success_rate"
+      threshold: 99.5
+      alert: true
+                </div>
+
+                <h5>Health Checks</h5>
+                <div class="code-block">
+health_checks:
+  - name: "regulator_api"
+    url: "https://api.regulator.example.com/health"
+    interval_seconds: 300
+    timeout_seconds: 10
+                </div>
+            </div>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class="fas fa-tools text-primary me-2"></i>Troubleshooting</h4>
+            </div>
+            <div class="card-body">
+                <h5>Common Issues</h5>
+
+                <div class="accordion" id="troubleshootingAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#config-loading">
+                                Configuration Loading Errors
+                            </button>
+                        </h2>
+                        <div id="config-loading" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Check YAML syntax</li>
+                                    <li>Verify file permissions</li>
+                                    <li>Ensure all required fields are present</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#validation-failures">
+                                Validation Failures
+                            </button>
+                        </h2>
+                        <div id="validation-failures" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Review validation expressions</li>
+                                    <li>Check data field mappings</li>
+                                    <li>Verify reference data availability</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#submission-errors">
+                                Submission Errors
+                            </button>
+                        </h2>
+                        <div id="submission-errors" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                            <div class="accordion-body">
+                                <ul>
+                                    <li>Test network connectivity</li>
+                                    <li>Verify authentication credentials</li>
+                                    <li>Check regulatory API status</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support and Updates -->
+        <div class="card">
+            <div class="card-header">
+                <h4><i class="fas fa-life-ring text-primary me-2"></i>Support and Updates</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Documentation</h6>
+                        <ul>
+                            <li><a href="../../../phase6/guides">Main User Guides</a></li>
+                            <li><a href="../../../docs/api/">API Documentation</a></li>
+                            <li><a href="../../../docs/architecture/">System Architecture</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Contact Information</h6>
+                        <ul>
+                            <li><strong>Support:</strong> compliance-support@company.com</li>
+                            <li><strong>Updates:</strong> Check quarterly for regulatory updates</li>
+                            <li><strong>Training:</strong> Schedule annual configuration review training</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <hr>
+
+                <h6>Version History</h6>
+                <ul class="small">
+                    <li><strong>v1.0:</strong> Initial jurisdiction configurations (EU, UK, US)</li>
+                    <li><strong>v1.1:</strong> Added DORA and SMCR support</li>
+                    <li><strong>v1.2:</strong> Enhanced security configurations</li>
+                    <li><strong>v1.3:</strong> Improved performance settings</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

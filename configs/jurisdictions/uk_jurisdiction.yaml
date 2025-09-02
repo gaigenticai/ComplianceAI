@@ -1,0 +1,417 @@
+# United Kingdom Jurisdiction Configuration
+# Configuration for UK regulatory compliance (FCA, PRA, Bank of England)
+
+jurisdiction:
+  # Basic jurisdiction information
+  id: "UK"
+  name: "United Kingdom"
+  code: "GB"
+  region: "EUROPE"
+  timezone: "Europe/London"
+
+  # Regulatory authorities
+  authorities:
+    - id: "fca"
+      name: "Financial Conduct Authority"
+      website: "https://www.fca.org.uk"
+      contact_email: "contact@fca.org.uk"
+      api_endpoint: "https://api.fca.org.uk"
+
+    - id: "pra"
+      name: "Prudential Regulation Authority"
+      website: "https://www.bankofengland.co.uk/pra"
+      contact_email: "pra@bankofengland.co.uk"
+      api_endpoint: "https://api.bankofengland.co.uk/pra"
+
+    - id: "boe"
+      name: "Bank of England"
+      website: "https://www.bankofengland.co.uk"
+      contact_email: "info@bankofengland.co.uk"
+      api_endpoint: "https://api.bankofengland.co.uk"
+
+    - id: "hmt"
+      name: "HM Treasury"
+      website: "https://www.gov.uk/government/organisations/hm-treasury"
+      contact_email: "public.enquiries@hmtreasury.gov.uk"
+
+  # Supported report types
+  reports:
+    - id: "FINREP_UK"
+      name: "UK Financial Reporting"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "1.0"
+      taxonomy: "UK_FINREP_1.0"
+      mandatory: true
+      consolidation_levels: ["solo", "group"]
+
+    - id: "COREP_UK"
+      name: "UK Prudential Reporting"
+      frequency: "quarterly"
+      format: "XBRL"
+      template_version: "1.0"
+      taxonomy: "UK_COREP_1.0"
+      mandatory: true
+      consolidation_levels: ["solo", "group"]
+
+    - id: "FS45"
+      name: "Financial Stability Report"
+      frequency: "annual"
+      format: "PDF"
+      template_version: "1.0"
+      mandatory: true
+
+    - id: "PSD2_UK"
+      name: "Payment Services Regulation"
+      frequency: "annual"
+      format: "XML"
+      template_version: "1.0"
+      mandatory: true
+
+    - id: "SMCR"
+      name: "Senior Managers & Certification Regime"
+      frequency: "annual"
+      format: "CSV"
+      template_version: "1.0"
+      mandatory: true
+
+  # Data requirements
+  data_requirements:
+    currency: "GBP"
+    reporting_standard: "UK_GAAP"
+    consolidation_method: "solo"
+    language: "en"
+    decimal_separator: "."
+    date_format: "DD/MM/YYYY"
+    amount_scale: 2
+
+  # Validation rules
+  validation:
+    business_rules:
+      - id: "uk_balance_sheet"
+        name: "UK Balance Sheet Validation"
+        expression: "total_assets == total_liabilities + total_equity"
+        severity: "critical"
+        enabled: true
+        reference: "FSA Handbook"
+
+      - id: "capital_requirements"
+        name: "CRR UK Capital Requirements"
+        expression: "cet1_ratio >= 4.5 AND total_capital_ratio >= 8.0"
+        severity: "critical"
+        enabled: true
+        reference: "CRR UK"
+
+      - id: "liquidity_requirements"
+        name: "UK LCR Requirements"
+        expression: "lcr_ratio >= 100.0"
+        severity: "critical"
+        enabled: true
+        reference: "CRR UK"
+
+      - id: "ring_fencing"
+        name: "Ring-Fencing Compliance"
+        expression: "retail_operations_separate == true"
+        severity: "critical"
+        enabled: true
+        reference: "Financial Services (Banking Reform) Act 2013"
+
+      - id: "smcr_compliance"
+        name: "SMCR Responsibility Mapping"
+        expression: "all_senior_managers_certified == true"
+        severity: "error"
+        enabled: true
+        reference: "SMCR Regulations"
+
+    schema_validation:
+      enabled: true
+      strict_mode: true
+      taxonomy_validation: true
+
+  # Submission requirements
+  submission:
+    channels:
+      - type: "FCA_API"
+        primary: true
+        endpoint: "https://api.fca.org.uk/reporting/submit"
+        authentication: "oauth2_client_credentials"
+        format: "XBRL_JSON"
+        compression: "gzip"
+        encryption: "tls_1_3"
+
+      - type: "PRA_API"
+        primary: true
+        endpoint: "https://api.bankofengland.co.uk/pra/submit"
+        authentication: "oauth2_client_credentials"
+        format: "XBRL_JSON"
+        compression: "gzip"
+        encryption: "tls_1_3"
+
+      - type: "SFTP"
+        primary: false
+        host: "sftp.fca.org.uk"
+        port: 22
+        path: "/reports/{firm_reference_number}/{reporting_period}/"
+        authentication: "ssh_key"
+        key_type: "rsa"
+        key_size: 4096
+        format: "XBRL"
+        compression: "zip"
+        encryption: "sftp"
+
+    deadlines:
+      - report_type: "FINREP_UK"
+        frequency: "quarterly"
+        offset_days: 45
+        grace_period_days: 15
+        reference: "FSA Handbook SUP 16.12"
+
+      - report_type: "COREP_UK"
+        frequency: "quarterly"
+        offset_days: 30
+        grace_period_days: 10
+        reference: "CRR UK Article 99"
+
+      - report_type: "FS45"
+        frequency: "annual"
+        offset_days: 120
+        grace_period_days: 30
+        reference: "Financial Stability Report Guidelines"
+
+    resubmission_policy:
+      allowed: true
+      max_attempts: 3
+      cool_down_period_hours: 24
+
+  # Compliance calendar
+  calendar:
+    holidays:
+      # UK bank holidays
+      - name: "New Year's Day"
+        date: "01-01"
+        type: "fixed"
+
+      - name: "Good Friday"
+        date: "easter-2"
+        type: "easter"
+
+      - name: "Easter Monday"
+        date: "easter+1"
+        type: "easter"
+
+      - name: "Early May Bank Holiday"
+        date: "may_first_monday"
+        type: "dynamic"
+
+      - name: "Spring Bank Holiday"
+        date: "may_last_monday"
+        type: "dynamic"
+
+      - name: "Summer Bank Holiday"
+        date: "august_last_monday"
+        type: "dynamic"
+
+      - name: "Christmas Day"
+        date: "12-25"
+        type: "fixed"
+
+      - name: "Boxing Day"
+        date: "12-26"
+        type: "fixed"
+
+    business_days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+    weekend_days: ["saturday", "sunday"]
+
+    # Special UK banking events
+    special_days:
+      - name: "Brexit Transition End"
+        date: "2020-12-31"
+        type: "one-time"
+
+      - name: "Bank of England Base Rate Decision"
+        dates: ["2024-02-01", "2024-03-21", "2024-05-09", "2024-06-20", "2024-08-01", "2024-09-19", "2024-11-07", "2024-12-19"]
+        type: "scheduled"
+
+  # Data retention policies (UK GDPR and FSA compliant)
+  retention:
+    reports: "6_years"  # FSA requirement
+    audit_logs: "6_years"
+    transaction_data: "5_years"
+    personal_data: "3_years"  # UK GDPR
+
+  # Notification settings
+  notifications:
+    deadline_warnings:
+      - days_before: 45
+        channels: ["email", "dashboard"]
+        priority: "normal"
+      - days_before: 15
+        channels: ["email", "dashboard", "slack"]
+        priority: "high"
+      - days_before: 3
+        channels: ["email", "dashboard", "slack", "sms"]
+        priority: "urgent"
+
+    compliance_alerts:
+      enabled: true
+      channels: ["email", "dashboard", "slack"]
+      escalation:
+        - level: 1
+          delay_hours: 4
+          recipients: ["compliance_team"]
+          channels: ["email", "slack"]
+        - level: 2
+          delay_hours: 24
+          recipients: ["compliance_manager", "risk_team"]
+          channels: ["email", "slack", "phone"]
+        - level: 3
+          delay_hours: 48
+          recipients: ["executive_team", "board_members"]
+          channels: ["email", "slack", "phone", "sms"]
+
+    regulatory_updates:
+      enabled: true
+      sources: ["fca_handbook", "boe_announcements", "hmt_consultations"]
+      keywords: ["FINREP", "COREP", "CRR", "SMCR", "PSD2", "FS45"]
+
+  # Integration settings
+  integrations:
+    banking_systems:
+      - type: "Avaloq"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "avaloq_uk_mapping.json"
+
+      - type: "Misys"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "misys_uk_mapping.json"
+
+      - type: "Temenos"
+        enabled: true
+        connection_timeout: 30
+        retry_attempts: 3
+        data_mapping: "temenos_uk_mapping.json"
+
+    external_apis:
+      - name: "FCA Gateway API"
+        url: "https://api.fca.org.uk/gateway"
+        authentication: "oauth2"
+        rate_limit: 1000
+        timeout: 60
+
+      - name: "Bank of England API"
+        url: "https://api.bankofengland.co.uk"
+        authentication: "api_key"
+        rate_limit: 500
+        timeout: 30
+
+      - name: "Companies House API"
+        url: "https://api.company-information.service.gov.uk"
+        authentication: "api_key"
+        rate_limit: 600
+        timeout: 30
+
+  # Security settings (UK GDPR and PSD2 compliant)
+  security:
+    encryption:
+      algorithm: "AES-256-GCM"
+      key_rotation_days: 90
+      key_management: "HSM"
+
+    digital_signatures:
+      algorithm: "RSA-PSS"
+      key_size: 4096
+      certificate_authority: "qualified_trust_service_provider"
+      certificate_validity_days: 365
+      timestamping: true
+
+    audit_trail:
+      enabled: true
+      retention_days: 2190  # 6 years
+      immutable: true
+      blockchain_verification: false
+
+    access_control:
+      rbac_enabled: true
+      mfa_required: true
+      session_timeout_minutes: 30
+
+  # Performance settings
+  performance:
+    report_generation_timeout: 5400  # 1.5 hours for UK reports
+    max_concurrent_reports: 3
+    cache_ttl_seconds: 3600
+    batch_size: 5000
+    parallel_processing: true
+
+  # Monitoring and alerting
+  monitoring:
+    metrics:
+      - name: "report_generation_time"
+        threshold: 2700  # 45 minutes
+        alert: true
+        severity: "warning"
+
+      - name: "submission_success_rate"
+        threshold: 99.9
+        alert: true
+        severity: "critical"
+
+      - name: "validation_error_rate"
+        threshold: 0.1
+        alert: true
+        severity: "warning"
+
+    health_checks:
+      - name: "fca_api"
+        url: "https://api.fca.org.uk/health"
+        interval_seconds: 300
+        timeout_seconds: 10
+        expected_status: 200
+
+      - name: "boe_api"
+        url: "https://api.bankofengland.co.uk/health"
+        interval_seconds: 300
+        timeout_seconds: 10
+        expected_status: 200
+
+    log_levels:
+      application: "INFO"
+      security: "INFO"
+      performance: "DEBUG"
+
+  # Custom extensions for UK-specific requirements
+  extensions:
+    custom_validations:
+      - name: "uk_ring_fencing_validation"
+        enabled: true
+        script: "uk_ring_fencing_validation.py"
+
+      - name: "uk_smcr_compliance_check"
+        enabled: true
+        script: "uk_smcr_validation.py"
+
+      - name: "uk_pillar_3_disclosure"
+        enabled: true
+        script: "uk_pillar3_validation.py"
+
+    custom_calculations:
+      - name: "uk_leverage_ratio"
+        enabled: true
+        script: "uk_leverage_calculation.py"
+
+      - name: "uk_mrel_tla_calculation"
+        enabled: true
+        script: "uk_mrel_calculation.py"
+
+    custom_workflows:
+      - name: "uk_fca_firm_reporting"
+        enabled: true
+        workflow: "uk_fca_workflow.json"
+
+      - name: "uk_boe_stress_testing"
+        enabled: true
+        workflow: "uk_boe_stress_test_workflow.json"
