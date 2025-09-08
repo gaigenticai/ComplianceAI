@@ -8,23 +8,275 @@
   <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
 </head>
 <body>
-  <h1>KYC Review & Risk Scoring Guide</h1>
-  <p>Phase 2: Identity verification, watchlist screening and risk scoring.</p>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
 
-  <h2>Key Components</h2>
+  
+  <h1>KYC Review & Risk Scoring Guide</h1>
+  <p>This comprehensive guide covers Phase 2: KYC review, identity verification, sanctions screening, and risk scoring in the ComplianceAI system.</p>
+
+  <h2>1. Overview</h2>
+  <p>Phase 2 focuses on comprehensive Know Your Customer (KYC) review processes, including identity verification, sanctions screening, Politically Exposed Persons (PEP) checks, and automated risk scoring. This phase integrates with external watchlist services and government databases to ensure regulatory compliance.</p>
+
+  <h2>2. Key Features</h2>
   <ul>
-    <li>Identity verification (third-party or internal matching)</li>
-    <li>Sanctions & PEP screening</li>
-    <li>Risk score calculation and thresholds</li>
+    <li><strong>Identity Verification:</strong> Multi-source validation using government databases and third-party services</li>
+    <li><strong>Sanctions Screening:</strong> Real-time OFAC, EU, and UN sanctions list checking</li>
+    <li><strong>PEP Screening:</strong> Politically Exposed Persons database matching</li>
+    <li><strong>Risk Scoring:</strong> ML-based risk assessment and scoring algorithms</li>
+    <li><strong>Adverse Media Monitoring:</strong> Negative news and reputation analysis</li>
+    <li><strong>Automated Escalation:</strong> Rule-based case escalation for manual review</li>
   </ul>
 
-  <h2>APIs</h2>
-  <pre>/api/kyc/verify
-/api/screening/watchlist
-/api/kyc/score</pre>
+  <h2>3. Identity Verification Process</h2>
+  <h3>Verification Methods</h3>
+  <ul>
+    <li><strong>Document Verification:</strong> Cross-referencing extracted data with government databases</li>
+    <li><strong>Biometric Matching:</strong> Facial recognition and fingerprint verification</li>
+    <li><strong>Address Validation:</strong> Postal address verification services</li>
+    <li><strong>Database Matching:</strong> Credit bureau and utility provider verification</li>
+  </ul>
 
-  <h2>Troubleshooting</h2>
-  <p>Check third-party connectivity and ensure feature flags for screening are correctly set.</p>
+  <h3>Verification Confidence Levels</h3>
+  <ul>
+    <li><strong>High Confidence:</strong> Multiple sources confirm identity (90-100% match)</li>
+    <li><strong>Medium Confidence:</strong> Partial verification from reliable sources (70-89% match)</li>
+    <li><strong>Low Confidence:</strong> Limited verification or conflicting information (0-69% match)</li>
+    <li><strong>Failed Verification:</strong> Identity cannot be confirmed or appears fraudulent</li>
+  </ul>
+
+  <h2>4. Sanctions & PEP Screening</h2>
+  <h3>Sanctions Lists</h3>
+  <ul>
+    <li><strong>OFAC SDN List:</strong> Office of Foreign Assets Control Specially Designated Nationals</li>
+    <li><strong>EU Sanctions:</strong> European Union restrictive measures and asset freezes</li>
+    <li><strong>UN Sanctions:</strong> United Nations Security Council sanctions</li>
+    <li><strong>Local Lists:</strong> Country-specific sanctions and watchlists</li>
+  </ul>
+
+  <h3>PEP Categories</h3>
+  <ul>
+    <li><strong>National Level:</strong> Heads of state, government ministers, parliament members</li>
+    <li><strong>International Level:</strong> UN officials, international organization leaders</li>
+    <li><strong>Regional Level:</strong> Provincial governors, regional officials</li>
+    <li><strong>Close Associates:</strong> Family members and close business associates</li>
+  </ul>
+
+  <h3>Screening Process</h3>
+  <ol>
+    <li><strong>Name Matching:</strong> Fuzzy logic name matching against watchlists</li>
+    <li><strong>Alias Resolution:</strong> Alternative name and transliteration checking</li>
+    <li><strong>Date of Birth Matching:</strong> DOB verification within tolerance ranges</li>
+    <li><strong>Address Screening:</strong> Location-based sanctions checking</li>
+    <li><strong>Relationship Mapping:</strong> Network analysis for indirect connections</li>
+  </ol>
+
+  <h2>5. Risk Scoring Engine</h2>
+  <h3>Risk Factors</h3>
+  <ul>
+    <li><strong>Customer Profile:</strong> Industry, geography, transaction patterns</li>
+    <li><strong>Product/Service Risk:</strong> High-risk products and jurisdictions</li>
+    <li><strong>Transaction Risk:</strong> Unusual patterns, high-value transfers</li>
+    <li><strong>Channel Risk:</strong> Online vs. branch-based customer acquisition</li>
+    <li><strong>Behavioral Risk:</strong> Account activity patterns and anomalies</li>
+  </ul>
+
+  <h3>Risk Scoring Algorithm</h3>
+  <pre><code>Risk Score = (Profile Risk × 0.3) + (Product Risk × 0.25) +
+             (Transaction Risk × 0.25) + (Channel Risk × 0.15) +
+             (Behavioral Risk × 0.05)</code></pre>
+
+  <h3>Risk Thresholds</h3>
+  <ul>
+    <li><strong>Low Risk (0-30):</strong> Standard due diligence procedures</li>
+    <li><strong>Medium Risk (31-70):</strong> Enhanced due diligence required</li>
+    <li><strong>High Risk (71-100):</strong> Intensive due diligence and potential rejection</li>
+  </ul>
+
+  <h2>6. Automated Decision Engine</h2>
+  <h3>Decision Types</h3>
+  <ul>
+    <li><strong>Auto-Approve:</strong> Low-risk cases meeting all criteria</li>
+    <li><strong>Auto-Reject:</strong> Cases with critical compliance violations</li>
+    <li><strong>Manual Review:</strong> Medium/high-risk cases requiring human assessment</li>
+    <li><strong>Escalation:</strong> Cases requiring senior management approval</li>
+  </ul>
+
+  <h3>Decision Rules</h3>
+  <ul>
+    <li><strong>Clear Pass:</strong> Risk score < 30 AND no sanctions/PEP matches</li>
+    <li><strong>Clear Fail:</strong> Sanctions match OR risk score > 85</li>
+    <li><strong>Review Required:</strong> Risk score 31-70 OR PEP match</li>
+    <li><strong>Escalation:</strong> Risk score 71-84 OR close PEP associate</li>
+  </ul>
+
+  <h2>7. API Endpoints</h2>
+  <h3>Identity Verification</h3>
+  <pre><code>POST /api/kyc/verify
+{
+  "customer_id": "CUST_001",
+  "verification_type": "document",
+  "document_data": {...},
+  "verification_sources": ["government_db", "credit_bureau"]
+}</code></pre>
+
+  <h3>Sanctions Screening</h3>
+  <pre><code>POST /api/screening/watchlist
+{
+  "customer_id": "CUST_001",
+  "screening_type": "sanctions",
+  "name": "John Doe",
+  "aliases": ["Johnny Doe", "J. Doe"],
+  "date_of_birth": "1980-01-01",
+  "nationality": "US"
+}</code></pre>
+
+  <h3>Risk Scoring</h3>
+  <pre><code>POST /api/kyc/score
+{
+  "customer_id": "CUST_001",
+  "risk_factors": {
+    "geography": "high_risk",
+    "industry": "financial_services",
+    "transaction_volume": 500000,
+    "channel": "online"
+  }
+}</code></pre>
+
+  <h3>Case Review Status</h3>
+  <pre><code>GET /api/cases/{case_id}/review-status
+Returns current KYC review status and decision</code></pre>
+
+  <h2>8. Integration with External Services</h2>
+  <h3>Sanctions Databases</h3>
+  <ul>
+    <li><strong>Dow Jones Risk & Compliance:</strong> Real-time sanctions screening</li>
+    <li><strong>Refinitiv World-Check:</strong> Enhanced due diligence database</li>
+    <li><strong>OFAC API:</strong> Direct access to US sanctions lists</li>
+    <li><strong>EU Sanctions List:</strong> European Union restrictive measures</li>
+  </ul>
+
+  <h3>Identity Verification Services</h3>
+  <ul>
+    <li><strong>ID.me:</strong> Government-issued ID verification</li>
+    <li><strong>Jumio:</strong> Document verification and biometric matching</li>
+    <li><strong>Onfido:</strong> Global identity verification platform</li>
+    <li><strong>Trulioo:</strong> Multi-source identity verification</li>
+  </ul>
+
+  <h2>9. Monitoring and Metrics</h2>
+  <h3>Performance Metrics</h3>
+  <ul>
+    <li><strong>Verification Success Rate:</strong> Percentage of successful identity verifications</li>
+    <li><strong>Screening Coverage:</strong> Percentage of sanctions lists checked</li>
+    <li><strong>False Positive Rate:</strong> Incorrect sanctions matches</li>
+    <li><strong>Average Review Time:</strong> Time from submission to decision</li>
+  </ul>
+
+  <h3>Compliance Metrics</h3>
+  <ul>
+    <li><strong>Sanctions Hit Rate:</strong> Actual sanctions matches identified</li>
+    <li><strong>PEP Detection Rate:</strong> Politically exposed persons identified</li>
+    <li><strong>Manual Review Rate:</strong> Cases requiring human intervention</li>
+    <li><strong>Approval Rate:</strong> Percentage of applications approved</li>
+  </ul>
+
+  <h2>10. Configuration and Rules</h2>
+  <h3>Risk Scoring Configuration</h3>
+  <pre><code># Risk weightings
+PROFILE_RISK_WEIGHT = 0.3
+PRODUCT_RISK_WEIGHT = 0.25
+TRANSACTION_RISK_WEIGHT = 0.25
+CHANNEL_RISK_WEIGHT = 0.15
+BEHAVIORAL_RISK_WEIGHT = 0.05
+
+# Risk thresholds
+LOW_RISK_MAX = 30
+MEDIUM_RISK_MAX = 70
+HIGH_RISK_MAX = 100
+
+# Auto-decision thresholds
+AUTO_APPROVE_MAX = 25
+AUTO_REJECT_MIN = 85
+MANUAL_REVIEW_MIN = 31</code></pre>
+
+  <h3>Sanctions Screening Rules</h3>
+  <ul>
+    <li><strong>Name Match Threshold:</strong> 85% fuzzy matching score</li>
+    <li><strong>DOB Tolerance:</strong> ±5 years for date matching</li>
+    <li><strong>Country Risk Levels:</strong> High, Medium, Low classification</li>
+    <li><strong>PEP Relationship Depth:</strong> Direct and first-degree relatives</li>
+  </ul>
+
+  <h2>11. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>High False Positive Rate</dt>
+    <dd>Adjust fuzzy matching thresholds and implement whitelist for common names. Review name matching algorithms.</dd>
+
+    <dt>Third-Party Service Outages</dt>
+    <dd>Implement circuit breaker patterns and fallback to local databases. Configure multiple service providers.</dd>
+
+    <dt>PEP Screening Delays</dt>
+    <dd>Cache frequently accessed PEP data and implement batch processing for bulk screenings.</dd>
+
+    <dt>Risk Score Inconsistencies</dt>
+    <dd>Regularly validate risk scoring models and update factor weights based on regulatory changes.</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Check verification status
+curl http://localhost:8000/api/cases/{case_id}/review-status
+
+# View sanctions screening results
+curl http://localhost:8000/api/screening/results/{case_id}
+
+# Monitor risk scoring metrics
+curl http://localhost:8000/api/performance/metrics</code></pre>
+
+  <h2>12. Regulatory Compliance</h2>
+  <h3>AML Regulations</h3>
+  <ul>
+    <li><strong>AML Directive (EU):</strong> Anti-Money Laundering Directive requirements</li>
+    <li><strong>BSA (US):</strong> Bank Secrecy Act compliance</li>
+    <li><strong>FATF Guidelines:</strong> Financial Action Task Force recommendations</li>
+    <li><strong>Local AML Laws:</strong> Country-specific anti-money laundering regulations</li>
+  </ul>
+
+  <h3>Data Protection</h3>
+  <ul>
+    <li><strong>GDPR Compliance:</strong> EU General Data Protection Regulation</li>
+    <li><strong>CCPA Compliance:</strong> California Consumer Privacy Act</li>
+    <li><strong>Data Retention:</strong> Regulatory data retention requirements</li>
+    <li><strong>Right to be Forgotten:</strong> Data deletion and anonymization procedures</li>
+  </ul>
+
+  <h2>13. Best Practices</h2>
+  <ul>
+    <li><strong>Multi-Source Verification:</strong> Always use multiple verification sources</li>
+    <li><strong>Regular Database Updates:</strong> Keep sanctions and PEP lists current</li>
+    <li><strong>Risk Model Validation:</strong> Regularly validate and update risk scoring models</li>
+    <li><strong>Staff Training:</strong> Ensure compliance staff understand screening procedures</li>
+    <li><strong>Audit Trails:</strong> Maintain comprehensive audit logs of all decisions</li>
+  </ul>
+
+  <h2>14. Security Considerations</h2>
+  <ul>
+    <li><strong>Data Encryption:</strong> All personal data encrypted at rest and in transit</li>
+    <li><strong>Access Controls:</strong> Role-based access to sensitive screening data</li>
+    <li><strong>Audit Logging:</strong> All screening activities logged for compliance</li>
+    <li><strong>Privacy Protection:</strong> Minimal data collection and retention policies</li>
+  </ul>
+
 </body>
 </html>
 

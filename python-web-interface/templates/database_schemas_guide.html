@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Database Schemas Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <h1>Database Schemas Guide</h1>
+  <p>This comprehensive guide covers the complete database architecture for the ComplianceAI platform, including PostgreSQL and MongoDB schemas, relationships, and data flow patterns.</p>
+
+  <h2>1. Database Architecture Overview</h2>
+  <h3>Multi-Database Design</h3>
+  <p>The ComplianceAI platform uses a hybrid database architecture combining PostgreSQL for structured data and MongoDB for unstructured data:</p>
+
+  <h4>PostgreSQL (Primary Database)</h4>
+  <ul>
+    <li><strong>Purpose:</strong> Structured data, transactions, complex queries, reporting</li>
+    <li><strong>Data Types:</strong> Customer profiles, KYC sessions, regulatory compliance, audit trails</li>
+    <li><strong>Features:</strong> ACID transactions, foreign keys, complex joins, analytical queries</li>
+    <li><strong>Database:</strong> kyc_db</li>
+    <li><strong>Schema:</strong> regulatory (main schema)</li>
+  </ul>
+
+  <h4>MongoDB (Document Database)</h4>
+  <ul>
+    <li><strong>Purpose:</strong> Unstructured data, document storage, flexible schemas, caching</li>
+    <li><strong>Data Types:</strong> Raw documents, ML models, processing cache, agent results</li>
+    <li><strong>Features:</strong> Document-oriented storage, schema validation, horizontal scaling</li>
+    <li><strong>Database:</strong> kyc_db</li>
+    <li><strong>Collections:</strong> customers, documents, processing_cache, agent_results, ml_models</li>
+  </ul>
+
+  <h3>Data Flow Architecture</h3>
+  <pre><code>┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Web Interface  │───▶│   PostgreSQL     │───▶│   MongoDB        │
+│  (FastAPI)      │    │   (Structured)   │    │   (Documents)    │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                        │                        │
+         ▼                        ▼                        ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Processing    │    │   Analytics      │    │   Caching        │
+│   Pipeline      │    │   & Reporting    │    │   & Sessions     │
+└─────────────────┘    └──────────────────┘    └─────────────────┘</code></pre>
+
+  <h2>2. PostgreSQL Schema Structure</h2>
+  <h3>Core Tables</h3>
+  <h4>customers</h4>
+  <pre><code>CREATE TABLE customers (
+    customer_id VARCHAR(100) PRIMARY KEY,
+    external_customer_id VARCHAR(100) UNIQUE,
+    customer_type VARCHAR(50) NOT NULL DEFAULT 'individual',
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    risk_level VARCHAR(20) DEFAULT 'medium',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100)
+);
+
+Indexes:
+- PRIMARY KEY on customer_id
+- UNIQUE on external_customer_id
+- status, risk_level, created_at</code></pre>
+
+  <h4>kyc_sessions</h4>
+  <pre><code>CREATE TABLE kyc_sessions (
+    session_id VARCHAR(100) PRIMARY KEY,
+    customer_id VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending',
+    current_stage VARCHAR(50) DEFAULT 'data_ingestion',
+    priority VARCHAR(20) DEFAULT 'normal',
+    regulatory_requirements TEXT[],
+    session_data JSONB,
+    processing_start_time TIMESTAMP WITH TIME ZONE,
+    processing_end_time TIMESTAMP WITH TIME ZONE,
+    processing_duration_seconds DECIMAL(10,3),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+Indexes:
+- PRIMARY KEY on session_id
+- customer_id, status, current_stage, created_at, priority</code></pre>
+
+  <h4>kyc_results</h4>
+  <pre><code>CREATE TABLE kyc_results (
+    result_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL UNIQUE,
+    customer_id VARCHAR(100) NOT NULL,
+    decision VARCHAR(50) NOT NULL,
+    confidence_score DECIMAL(5,4) CHECK (confidence_score >= 0 AND confidence_score <= 1),
+    risk_score DECIMAL(5,4) CHECK (risk_score >= 0 AND risk_score <= 1),
+    compliance_status VARCHAR(50) NOT NULL,
+    processing_time DECIMAL(10,3),
+    agent_results JSONB NOT NULL,
+    recommendations TEXT[],
+    next_review_date TIMESTAMP WITH TIME ZONE,
+    completed_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+Indexes:
+- PRIMARY KEY on result_id
+- UNIQUE on session_id
+- customer_id, decision, confidence_score, risk_score, completed_at, next_review_date</code></pre>
+
+  <h3>Agent-Specific Tables</h3>
+  <h4>data_ingestion_results</h4>
+  <pre><code>CREATE TABLE data_ingestion_results (
+    ingestion_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    source_format VARCHAR(50),
+    original_data JSONB,
+    normalized_data JSONB,
+    schema_detected JSONB,
+    extraction_metadata JSONB,
+    processing_time DECIMAL(8,3),
+    status VARCHAR(50) DEFAULT 'completed',
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+Indexes:
+- PRIMARY KEY on ingestion_id
+- session_id, customer_id, status, created_at</code></pre>
+
+  <h4>kyc_analysis_results</h4>
+  <pre><code>CREATE TABLE kyc_analysis_results (
+    analysis_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    analysis_type VARCHAR(50) DEFAULT 'full',
+    risk_assessment JSONB NOT NULL,
+    compliance_results JSONB,
+    agent_insights JSONB,
+    processing_time DECIMAL(8,3),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+Indexes:
+- PRIMARY KEY on analysis_id
+- session_id, customer_id, created_at</code></pre>
+
+  <h4>decision_results</h4>
+  <pre><code>CREATE TABLE decision_results (
+    decision_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    decision_type VARCHAR(50) NOT NULL,
+    final_decision VARCHAR(50) NOT NULL,
+    confidence_level VARCHAR(20),
+    reasoning TEXT[],
+    risk_assessment JSONB,
+    audit_trail JSONB,
+    escalation_required BOOLEAN DEFAULT FALSE,
+    next_actions TEXT[],
+    processing_time DECIMAL(8,3),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+Indexes:
+- PRIMARY KEY on decision_id
+- session_id, customer_id, final_decision, escalation_required, created_at</code></pre>
+
+  <h3>Regulatory Compliance Tables</h3>
+  <h4>regulatory_obligations</h4>
+  <pre><code>CREATE TABLE regulatory_obligations (
+    obligation_id VARCHAR(100) PRIMARY KEY,
+    regulation_type VARCHAR(50) NOT NULL,
+    jurisdiction VARCHAR(10) NOT NULL,
+    article_reference VARCHAR(100),
+    title TEXT NOT NULL,
+    description TEXT,
+    effective_date DATE NOT NULL,
+    compliance_deadline DATE,
+    status VARCHAR(50) DEFAULT 'active',
+    priority VARCHAR(20) DEFAULT 'medium',
+    category VARCHAR(50),
+    tags TEXT[],
+    content_hash VARCHAR(64),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100)
+);
+
+Indexes:
+- PRIMARY KEY on obligation_id
+- regulation_type, jurisdiction, status, effective_date, compliance_deadline, priority, category</code></pre>
+
+  <h4>regulatory_feed_sources</h4>
+  <pre><code>CREATE TABLE regulatory_feed_sources (
+    feed_id VARCHAR(100) PRIMARY KEY,
+    feed_name VARCHAR(200) NOT NULL,
+    feed_type VARCHAR(50) NOT NULL,
+    url TEXT NOT NULL,
+    jurisdiction VARCHAR(10),
+    regulation_types TEXT[],
+    status VARCHAR(50) DEFAULT 'active',
+    last_successful_poll TIMESTAMP WITH TIME ZONE,
+    last_failed_poll TIMESTAMP WITH TIME ZONE,
+    success_rate DECIMAL(5,4) DEFAULT 1.0,
+    poll_interval_minutes INTEGER DEFAULT 60,
+    authentication_required BOOLEAN DEFAULT FALSE,
+    authentication_type VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+Indexes:
+- PRIMARY KEY on feed_id
+- status, last_successful_poll, last_failed_poll, poll_interval_minutes</code></pre>
+
+  <h4>compliance_rules</h4>
+  <pre><code>CREATE TABLE compliance_rules (
+    rule_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    rule_name VARCHAR(200) NOT NULL,
+    regulation_type VARCHAR(50) NOT NULL,
+    jurisdiction VARCHAR(10) NOT NULL,
+    rule_logic JSONB NOT NULL,
+    severity VARCHAR(20) DEFAULT 'medium',
+    status VARCHAR(50) DEFAULT 'active',
+    description TEXT,
+    remediation_actions TEXT[],
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100),
+
+    UNIQUE (rule_name, regulation_type, jurisdiction)
+);
+
+Indexes:
+- PRIMARY KEY on rule_id
+- UNIQUE on (rule_name, regulation_type, jurisdiction)
+- regulation_type, jurisdiction, severity, status, created_at</code></pre>
+
+  <h3>Audit & Security Tables</h3>
+  <h4>audit_trail</h4>
+  <pre><code>CREATE TABLE audit_trail (
+    audit_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id VARCHAR(100),
+    session_id VARCHAR(100),
+    agent_name VARCHAR(100) NOT NULL,
+    action VARCHAR(100) NOT NULL,
+    resource_type VARCHAR(100),
+    resource_id VARCHAR(100),
+    old_values JSONB,
+    new_values JSONB,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    user_id VARCHAR(100),
+    ip_address INET,
+    user_agent TEXT,
+    success BOOLEAN DEFAULT TRUE,
+    error_message TEXT,
+    processing_time_ms INTEGER,
+    compliance_flags TEXT[]
+);
+
+Indexes:
+- PRIMARY KEY on audit_id
+- customer_id, session_id, agent_name, action, timestamp, user_id, success</code></pre>
+
+  <h4>compliance_violations</h4>
+  <pre><code>CREATE TABLE compliance_violations (
+    violation_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    customer_id VARCHAR(100) NOT NULL,
+    session_id VARCHAR(100),
+    regulation_type VARCHAR(50) NOT NULL,
+    rule_id UUID,
+    severity VARCHAR(20) DEFAULT 'medium',
+    violation_details JSONB NOT NULL,
+    detected_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolved_by VARCHAR(100),
+    resolution_notes TEXT,
+    escalated BOOLEAN DEFAULT FALSE,
+    escalation_details JSONB,
+    status VARCHAR(50) DEFAULT 'open',
+    remediation_required BOOLEAN DEFAULT TRUE,
+    remediation_actions TEXT[],
+
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id),
+    FOREIGN KEY (rule_id) REFERENCES compliance_rules(rule_id)
+);
+
+Indexes:
+- PRIMARY KEY on violation_id
+- customer_id, session_id, regulation_type, severity, detected_at, resolved_at, status, escalated</code></pre>
+
+  <h3>System & Configuration Tables</h3>
+  <h4>system_config</h4>
+  <pre><code>CREATE TABLE system_config (
+    config_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    config_key VARCHAR(200) UNIQUE NOT NULL,
+    config_value TEXT,
+    config_type VARCHAR(50) DEFAULT 'application',
+    description TEXT,
+    is_encrypted BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100)
+);
+
+Indexes:
+- PRIMARY KEY on config_id
+- UNIQUE on config_key
+- config_type, created_at</code></pre>
+
+  <h4>processing_queue</h4>
+  <pre><code>CREATE TABLE processing_queue (
+    queue_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    session_id VARCHAR(100) NOT NULL,
+    customer_id VARCHAR(100) NOT NULL,
+    queue_status VARCHAR(50) DEFAULT 'queued',
+    priority INTEGER DEFAULT 1,
+    queued_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processing_started_at TIMESTAMP WITH TIME ZONE,
+    processing_completed_at TIMESTAMP WITH TIME ZONE,
+    assigned_agent VARCHAR(100),
+    processing_node VARCHAR(100),
+    retry_count INTEGER DEFAULT 0,
+    max_retries INTEGER DEFAULT 3,
+    error_message TEXT,
+    queue_metadata JSONB,
+
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id),
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+);
+
+Indexes:
+- PRIMARY KEY on queue_id
+- queue_status, priority, queued_at, assigned_agent</code></pre>
+
+  <h3>Reporting & Analytics Tables</h3>
+  <h4>report_generation_logs</h4>
+  <pre><code>CREATE TABLE report_generation_logs (
+    log_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    report_type VARCHAR(50) NOT NULL,
+    report_id VARCHAR(100) UNIQUE NOT NULL,
+    customer_id VARCHAR(100),
+    session_id VARCHAR(100),
+    generation_started_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    generation_completed_at TIMESTAMP WITH TIME ZONE,
+    generation_duration_seconds DECIMAL(8,3),
+    status VARCHAR(50) DEFAULT 'processing',
+    file_size_bytes BIGINT,
+    file_path TEXT,
+    delivery_method VARCHAR(50),
+    delivery_status VARCHAR(50),
+    delivery_attempts INTEGER DEFAULT 0,
+    last_delivery_attempt TIMESTAMP WITH TIME ZONE,
+    error_message TEXT,
+    report_metadata JSONB,
+
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id),
+    FOREIGN KEY (session_id) REFERENCES kyc_sessions(session_id)
+);
+
+Indexes:
+- PRIMARY KEY on log_id
+- UNIQUE on report_id
+- report_type, customer_id, session_id, status, generation_started_at, generation_completed_at</code></pre>
+
+  <h4>performance_metrics</h4>
+  <pre><code>CREATE TABLE performance_metrics (
+    metric_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    metric_name VARCHAR(100) NOT NULL,
+    metric_value DECIMAL(15,6),
+    metric_unit VARCHAR(20),
+    collection_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    collection_interval_seconds INTEGER,
+    tags JSONB,
+    metadata JSONB,
+    source_component VARCHAR(100),
+    environment VARCHAR(50) DEFAULT 'production'
+);
+
+Indexes:
+- PRIMARY KEY on metric_id
+- metric_name, collection_timestamp, source_component, environment</code></pre>
+
+  <h2>3. MongoDB Collections</h2>
+  <h3>Document Collections</h3>
+  <h4>customers</h4>
+  <pre><code>db.createCollection('customers', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['customer_id', 'data'],
+      properties: {
+        customer_id: { bsonType: 'string' },
+        data: { bsonType: 'object' },
+        created_at: { bsonType: 'date' },
+        updated_at: { bsonType: 'date' }
+      }
+    }
+  }
+});
+
+Indexes:
+- { 'customer_id': 1 } (unique)
+- { 'created_at': -1 }
+- { 'data.personal_info.email': 1 }</code></pre>
+
+  <h4>documents</h4>
+  <pre><code>db.createCollection('documents', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['customer_id', 'document_type', 'content'],
+      properties: {
+        customer_id: { bsonType: 'string' },
+        document_type: {
+          bsonType: 'string',
+          enum: ['identity', 'address', 'financial', 'other']
+        },
+        content: { bsonType: 'object' },
+        metadata: { bsonType: 'object' },
+        created_at: { bsonType: 'date' }
+      }
+    }
+  }
+});
+
+Indexes:
+- { 'customer_id': 1 }
+- { 'document_type': 1 }
+- { 'created_at': -1 }</code></pre>
+
+  <h3>Processing Collections</h3>
+  <h4>processing_cache</h4>
+  <pre><code>db.createCollection('processing_cache', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['session_id', 'cache_key', 'cache_data'],
+      properties: {
+        session_id: { bsonType: 'string' },
+        cache_key: { bsonType: 'string' },
+        cache_data: { bsonType: 'object' },
+        expires_at: { bsonType: 'date' },
+        created_at: { bsonType: 'date' }
+      }
+    }
+  }
+});
+
+Indexes:
+- { 'session_id': 1 }
+- { 'cache_key': 1 }
+- { 'expires_at': 1 } (TTL index, expireAfterSeconds: 0)</code></pre>
+
+  <h4>agent_results</h4>
+  <pre><code>db.createCollection('agent_results', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['session_id', 'agent_name', 'result_data'],
+      properties: {
+        session_id: { bsonType: 'string' },
+        agent_name: {
+          bsonType: 'string',
+          enum: ['data-ingestion', 'kyc-analysis', 'decision-making', 'compliance-monitoring', 'data-quality']
+        },
+        result_data: { bsonType: 'object' },
+        processing_time: { bsonType: 'number', minimum: 0 },
+        created_at: { bsonType: 'date' }
+      }
+    }
+  }
+});
+
+Indexes:
+- { 'session_id': 1 }
+- { 'agent_name': 1 }
+- { 'created_at': -1 }</code></pre>
+
+  <h3>ML & AI Collections</h3>
+  <h4>ml_models</h4>
+  <pre><code>db.createCollection('ml_models', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['model_name', 'model_type', 'model_data'],
+      properties: {
+        model_name: { bsonType: 'string' },
+        model_type: {
+          bsonType: 'string',
+          enum: ['risk_scoring', 'anomaly_detection', 'classification', 'regression']
+        },
+        model_data: { bsonType: 'object' },
+        version: { bsonType: 'string' },
+        accuracy: { bsonType: 'number', minimum: 0, maximum: 1 },
+        created_at: { bsonType: 'date' },
+        updated_at: { bsonType: 'date' }
+      }
+    }
+  }
+});
+
+Indexes:
+- { 'model_name': 1, 'version': 1 } (unique)
+- { 'model_type': 1 }
+- { 'accuracy': -1 }</code></pre>
+
+  <h4>training_data</h4>
+  <pre><code>db.createCollection('training_data', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['dataset_name', 'data_points'],
+      properties: {
+        dataset_name: { bsonType: 'string' },
+        data_points: { bsonType: 'array' },
+        features: { bsonType: 'array' },
+        labels: { bsonType: 'array' },
+        metadata: { bsonType: 'object' },
+        created_at: { bsonType: 'date' },
+        updated_at: { bsonType: 'date' }
+      }
+    }
+  }
+});
+
+Indexes:
+- { 'dataset_name': 1 } (unique)
+- { 'created_at': -1 }</code></pre>
+
+  <h3>System Collections</h3>
+  <h4>system_config</h4>
+  <pre><code>db.createCollection('system_config');
+db.system_config.createIndex({ 'config_key': 1 }, { unique: true });
+
+// Sample documents
+{
+  config_key: 'mongodb.version',
+  config_value: '1.0.0',
+  config_type: 'database',
+  description: 'MongoDB schema version',
+  created_at: new Date(),
+  updated_at: new Date()
+}</code></pre>
+
+  <h4>system_logs</h4>
+  <pre><code>db.createCollection('system_logs', {
+  validator: {
+    $jsonSchema: {
+      bsonType: 'object',
+      required: ['level', 'component', 'message'],
+      properties: {
+        level: {
+          bsonType: 'string',
+          enum: ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']
+        },
+        component: { bsonType: 'string' },
+        message: { bsonType: 'string' },
+        timestamp: { bsonType: 'date' },
+        correlation_id: { bsonType: 'string' },
+        metadata: { bsonType: 'object' }
+      }
+    }
+  }
+});
+
+Indexes:
+- { 'timestamp': -1 }
+- { 'level': 1 }
+- { 'component': 1 }
+- { 'correlation_id': 1 }</code></pre>
+
+  <h2>4. Database Relationships</h2>
+  <h3>Primary Key Relationships</h3>
+  <pre><code>customers (customer_id)
+├── kyc_sessions (customer_id) [1:N]
+│   ├── kyc_results (customer_id, session_id) [1:1]
+│   ├── data_ingestion_results (customer_id, session_id) [1:N]
+│   ├── kyc_analysis_results (customer_id, session_id) [1:N]
+│   ├── decision_results (customer_id, session_id) [1:N]
+│   ├── compliance_check_results (customer_id, session_id) [1:N]
+│   ├── data_quality_results (customer_id, session_id) [1:N]
+│   ├── processing_queue (customer_id, session_id) [1:N]
+│   └── report_generation_logs (customer_id, session_id) [1:N]
+│
+├── compliance_violations (customer_id) [1:N]
+└── audit_trail (customer_id) [1:N]</code></pre>
+
+  <h3>Cross-Reference Relationships</h3>
+  <pre><code>regulatory_obligations
+├── compliance_rules (regulation_type, jurisdiction) [1:N]
+└── compliance_violations (regulation_type) [1:N]
+
+regulatory_feed_sources
+└── regulatory_obligations (feed metadata) [1:N]
+
+compliance_rules
+├── compliance_violations (rule_id) [1:N]
+└── audit_trail (compliance monitoring) [1:N]</code></pre>
+
+  <h3>Data Synchronization</h3>
+  <pre><code>PostgreSQL → MongoDB Sync:
+├── customers.customer_id → customers.customer_id
+├── kyc_sessions.session_id → processing_cache.session_id
+├── kyc_sessions.session_id → agent_results.session_id
+└── customers.customer_id → documents.customer_id
+
+MongoDB → PostgreSQL Sync:
+├── documents.customer_id → audit_trail.customer_id
+├── agent_results.session_id → kyc_results.agent_results
+└── processing_cache.session_id → kyc_sessions.session_data</code></pre>
+
+  <h2>5. Database Views & Materialized Views</h2>
+  <h3>Reporting Views</h3>
+  <h4>kyc_processing_summary</h4>
+  <pre><code>CREATE OR REPLACE VIEW kyc_processing_summary AS
+SELECT
+    ks.session_id,
+    ks.customer_id,
+    ks.status,
+    ks.current_stage,
+    ks.priority,
+    ks.created_at,
+    ks.processing_duration_seconds,
+    kr.decision,
+    kr.confidence_score,
+    kr.risk_score,
+    kr.compliance_status,
+    CASE
+        WHEN ks.status = 'completed' THEN 'success'
+        WHEN ks.status = 'failed' THEN 'failure'
+        ELSE 'in_progress'
+    END as outcome
+FROM kyc_sessions ks
+LEFT JOIN kyc_results kr ON ks.session_id = kr.session_id;</code></pre>
+
+  <h4>daily_processing_stats</h4>
+  <pre><code>CREATE OR REPLACE VIEW daily_processing_stats AS
+SELECT
+    DATE(created_at) as processing_date,
+    COUNT(*) as total_sessions,
+    COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_sessions,
+    COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_sessions,
+    AVG(processing_duration_seconds) as avg_processing_time,
+    MIN(processing_duration_seconds) as min_processing_time,
+    MAX(processing_duration_seconds) as max_processing_time
+FROM kyc_sessions
+WHERE created_at >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY DATE(created_at)
+ORDER BY processing_date DESC;</code></pre>
+
+  <h3>Analytics Views</h3>
+  <h4>compliance_violations_summary</h4>
+  <pre><code>CREATE OR REPLACE VIEW compliance_violations_summary AS
+SELECT
+    regulation_type,
+    severity,
+    COUNT(*) as violation_count,
+    COUNT(CASE WHEN resolved_at IS NOT NULL THEN 1 END) as resolved_count,
+    COUNT(CASE WHEN escalated = TRUE THEN 1 END) as escalated_count,
+    AVG(EXTRACT(EPOCH FROM (COALESCE(resolved_at, CURRENT_TIMESTAMP) - detected_at))/3600) as avg_resolution_hours
+FROM compliance_violations
+WHERE detected_at >= CURRENT_DATE - INTERVAL '30 days'
+GROUP BY regulation_type, severity
+ORDER BY regulation_type, severity;</code></pre>
+
+  <h4>performance_analytics</h4>
+  <pre><code>CREATE OR REPLACE VIEW performance_analytics AS
+SELECT
+    DATE_TRUNC('hour', collection_timestamp) as hour,
+    metric_name,
+    AVG(metric_value) as avg_value,
+    MIN(metric_value) as min_value,
+    MAX(metric_value) as max_value,
+    COUNT(*) as sample_count,
+    STDDEV(metric_value) as std_dev
+FROM performance_metrics
+WHERE collection_timestamp >= CURRENT_TIMESTAMP - INTERVAL '7 days'
+GROUP BY DATE_TRUNC('hour', collection_timestamp), metric_name
+ORDER BY hour DESC, metric_name;</code></pre>
+
+  <h2>6. Database Triggers & Functions</h2>
+  <h3>Automatic Timestamps</h3>
+  <h4>Update Trigger Function</h4>
+  <pre><code>CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Apply to relevant tables
+CREATE TRIGGER update_customers_updated_at
+    BEFORE UPDATE ON customers
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_kyc_sessions_updated_at
+    BEFORE UPDATE ON kyc_sessions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();</code></pre>
+
+  <h3>Audit Triggers</h3>
+  <h4>Audit Trail Function</h4>
+  <pre><code>CREATE OR REPLACE FUNCTION audit_trail_function()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO audit_trail (
+        customer_id,
+        session_id,
+        agent_name,
+        action,
+        resource_type,
+        resource_id,
+        old_values,
+        new_values,
+        timestamp,
+        success
+    ) VALUES (
+        COALESCE(NEW.customer_id, OLD.customer_id),
+        COALESCE(NEW.session_id, OLD.session_id),
+        'system',
+        TG_OP,
+        TG_TABLE_NAME,
+        COALESCE(NEW.customer_id, OLD.customer_id),
+        CASE WHEN TG_OP IN ('UPDATE', 'DELETE') THEN row_to_json(OLD) ELSE NULL END,
+        CASE WHEN TG_OP IN ('INSERT', 'UPDATE') THEN row_to_json(NEW) ELSE NULL END,
+        CURRENT_TIMESTAMP,
+        TRUE
+    );
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ language 'plpgsql';
+
+-- Apply audit triggers
+CREATE TRIGGER audit_customers
+    AFTER INSERT OR UPDATE OR DELETE ON customers
+    FOR EACH ROW EXECUTE FUNCTION audit_trail_function();</code></pre>
+
+  <h3>Data Validation Functions</h3>
+  <h4>Risk Score Validation</h4>
+  <pre><code>CREATE OR REPLACE FUNCTION validate_risk_score()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.risk_score < 0 OR NEW.risk_score > 1 THEN
+        RAISE EXCEPTION 'Risk score must be between 0 and 1, got: %', NEW.risk_score;
+    END IF;
+
+    -- Auto-classify risk level based on score
+    NEW.risk_level = CASE
+        WHEN NEW.risk_score <= 0.3 THEN 'low'
+        WHEN NEW.risk_score <= 0.7 THEN 'medium'
+        ELSE 'high'
+    END;
+
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER validate_kyc_results_risk_score
+    BEFORE INSERT OR UPDATE ON kyc_results
+    FOR EACH ROW EXECUTE FUNCTION validate_risk_score();</code></pre>
+
+  <h2>7. Database Performance Optimization</h2>
+  <h3>Indexing Strategy</h3>
+  <h4>Primary Indexes</h4>
+  <ul>
+    <li><strong>Single Column:</strong> Foreign keys, status columns, timestamps</li>
+    <li><strong>Composite Indexes:</strong> Frequently queried column combinations</li>
+    <li><strong>Partial Indexes:</strong> Active records, specific status values</li>
+    <li><strong>Functional Indexes:</strong> Computed values, JSON fields</li>
+  </ul>
+
+  <h4>Index Examples</h4>
+  <pre><code>-- Composite indexes for common queries
+CREATE INDEX CONCURRENTLY idx_kyc_sessions_composite
+ON kyc_sessions (customer_id, status, created_at DESC);
+
+CREATE INDEX CONCURRENTLY idx_kyc_results_composite
+ON kyc_results (customer_id, decision, completed_at DESC);
+
+-- Partial indexes for active records
+CREATE INDEX CONCURRENTLY idx_kyc_sessions_active
+ON kyc_sessions (session_id, current_stage)
+WHERE status IN ('pending', 'processing');
+
+CREATE INDEX CONCURRENTLY idx_compliance_violations_unresolved
+ON compliance_violations (violation_id, severity, detected_at)
+WHERE resolved_at IS NULL;
+
+-- JSON field indexes
+CREATE INDEX idx_kyc_sessions_regulatory_req
+ON kyc_sessions USING GIN (regulatory_requirements);
+
+CREATE INDEX idx_kyc_results_agent_results
+ON kyc_results USING GIN (agent_results);</code></pre>
+
+  <h3>Partitioning Strategy</h3>
+  <h4>Time-Based Partitioning</h4>
+  <pre><code>-- Partition audit_trail by month
+CREATE TABLE audit_trail_y2024m01 PARTITION OF audit_trail
+    FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+
+CREATE TABLE audit_trail_y2024m02 PARTITION OF audit_trail
+    FOR VALUES FROM ('2024-02-01') TO ('2024-03-01');
+
+-- Partition performance_metrics by week
+CREATE TABLE performance_metrics_w01 PARTITION OF performance_metrics
+    FOR VALUES FROM ('2024-01-01') TO ('2024-01-08');
+
+CREATE TABLE performance_metrics_w02 PARTITION OF performance_metrics
+    FOR VALUES FROM ('2024-01-08') TO ('2024-01-15');</code></pre>
+
+  <h4>Range-Based Partitioning</h4>
+  <pre><code>-- Partition by risk score ranges
+CREATE TABLE kyc_results_low_risk PARTITION OF kyc_results
+    FOR VALUES FROM (0.0) TO (0.3);
+
+CREATE TABLE kyc_results_medium_risk PARTITION OF kyc_results
+    FOR VALUES FROM (0.3) TO (0.7);
+
+CREATE TABLE kyc_results_high_risk PARTITION OF kyc_results
+    FOR VALUES FROM (0.7) TO (1.0);</code></pre>
+
+  <h3>Connection Pooling</h3>
+  <h4>PgBouncer Configuration</h4>
+  <pre><code>[databases]
+kyc_db = host=postgres port=5432 dbname=kyc_db
+
+[pgbouncer]
+listen_port = 6432
+listen_addr = 0.0.0.0
+auth_type = md5
+auth_file = /etc/pgbouncer/userlist.txt
+pool_mode = transaction
+max_client_conn = 1000
+default_pool_size = 20
+reserve_pool_size = 5
+max_db_connections = 50
+max_user_connections = 50</code></pre>
+
+  <h2>8. Data Backup & Recovery</h2>
+  <h3>PostgreSQL Backup Strategy</h3>
+  <h4>Logical Backups</h4>
+  <pre><code>-- Full database backup
+pg_dump -h localhost -U kyc_app -d kyc_db \
+    --format=custom --compress=9 \
+    --file=/backups/kyc_db_full_$(date +%Y%m%d_%H%M%S).backup
+
+-- Schema-only backup
+pg_dump -h localhost -U kyc_app -d kyc_db \
+    --schema-only --format=plain \
+    --file=/backups/kyc_db_schema_$(date +%Y%m%d).sql
+
+-- Data-only backup
+pg_dump -h localhost -U kyc_app -d kyc_db \
+    --data-only --format=plain \
+    --exclude-table=audit_trail \
+    --file=/backups/kyc_db_data_$(date +%Y%m%d).sql</code></pre>
+
+  <h4>Point-in-Time Recovery</h4>
+  <pre><code>-- Enable WAL archiving
+wal_level = replica
+archive_mode = on
+archive_command = 'cp %p /var/lib/postgresql/archive/%f'
+
+-- Restore to specific point
+pg_restore -h localhost -U kyc_app -d kyc_db \
+    --clean --create --if-exists \
+    /backups/kyc_db_full_20240115_120000.backup
+
+-- Restore to specific timestamp
+pg_restore -h localhost -U kyc_app -d kyc_db \
+    --clean --create --if-exists \
+    --target="2024-01-15 12:00:00" \
+    /backups/kyc_db_full_20240115_120000.backup</code></pre>
+
+  <h3>MongoDB Backup Strategy</h3>
+  <h4>Database Dump</h4>
+  <pre><code>-- Full database backup
+mongodump --host localhost --port 27017 \
+    --db kyc_db \
+    --out /backups/mongodb/kyc_db_$(date +%Y%m%d_%H%M%S)
+
+-- Collection-specific backup
+mongodump --host localhost --port 27017 \
+    --db kyc_db \
+    --collection customers \
+    --out /backups/mongodb/collections/$(date +%Y%m%d)
+
+-- Compressed backup
+mongodump --host localhost --port 27017 \
+    --db kyc_db \
+    --gzip \
+    --archive=/backups/mongodb/kyc_db_$(date +%Y%m%d_%H%M%S).gz</code></pre>
+
+  <h4>Point-in-Time Recovery</h4>
+  <pre><code>-- Restore from dump
+mongorestore --host localhost --port 27017 \
+    --db kyc_db \
+    /backups/mongodb/kyc_db_20240115_120000
+
+-- Restore specific collection
+mongorestore --host localhost --port 27017 \
+    --db kyc_db \
+    --collection customers \
+    /backups/mongodb/collections/20240115/customers.bson
+
+-- Restore from compressed archive
+mongorestore --host localhost --port 27017 \
+    --gzip \
+    --archive=/backups/mongodb/kyc_db_20240115_120000.gz</code></pre>
+
+  <h2>9. Database Monitoring</h2>
+  <h3>PostgreSQL Monitoring</h3>
+  <h4>Connection Monitoring</h4>
+  <pre><code>-- Active connections
+SELECT count(*) as active_connections
+FROM pg_stat_activity
+WHERE state = 'active';
+
+-- Connection states
+SELECT state, count(*) as count
+FROM pg_stat_activity
+GROUP BY state;
+
+-- Long-running queries
+SELECT pid, now() - query_start as duration, query
+FROM pg_stat_activity
+WHERE state = 'active'
+  AND now() - query_start > interval '1 minute'
+ORDER BY duration DESC;</code></pre>
+
+  <h4>Performance Monitoring</h4>
+  <pre><code>-- Table sizes
+SELECT schemaname, tablename,
+       pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) as size
+FROM pg_tables
+WHERE schemaname = 'regulatory'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
+
+-- Index usage
+SELECT schemaname, tablename, indexname,
+       idx_scan as scans,
+       pg_size_pretty(pg_relation_size(indexrelid)) as size
+FROM pg_stat_user_indexes
+ORDER BY idx_scan DESC;
+
+-- Cache hit ratio
+SELECT
+    sum(blks_hit) * 100 / (sum(blks_hit) + sum(blks_read)) as cache_hit_ratio
+FROM pg_stat_database;</code></pre>
+
+  <h3>MongoDB Monitoring</h3>
+  <h4>Database Statistics</h4>
+  <pre><code>-- Database size
+db.stats()
+
+-- Collection sizes
+db.customers.stats()
+db.documents.stats()
+db.agent_results.stats()
+
+-- Index usage
+db.customers.aggregate([
+    {$indexStats: {}}
+])
+
+-- Connection status
+db.serverStatus().connections</code></pre>
+
+  <h4>Performance Metrics</h4>
+  <pre><code>-- Slow queries
+db.system.profile.find({
+    millis: {$gt: 1000}
+}).sort({ts: -1}).limit(10)
+
+-- Collection statistics
+db.runCommand({ collStats: "customers" })
+
+-- Replication status (if replica set)
+rs.status()
+
+-- Current operations
+db.currentOp()</code></pre>
+
+  <h2>10. Database Security</h2>
+  <h3>Access Control</h3>
+  <h4>PostgreSQL Roles</h4>
+  <pre><code>-- Create application user
+CREATE ROLE kyc_app WITH LOGIN PASSWORD 'secure_password';
+GRANT CONNECT ON DATABASE kyc_db TO kyc_app;
+GRANT USAGE ON SCHEMA regulatory TO kyc_app;
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA regulatory TO kyc_app;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA regulatory TO kyc_app;
+
+-- Create read-only user for reporting
+CREATE ROLE kyc_readonly WITH LOGIN PASSWORD 'readonly_password';
+GRANT CONNECT ON DATABASE kyc_db TO kyc_readonly;
+GRANT USAGE ON SCHEMA regulatory TO kyc_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA regulatory TO kyc_readonly;
+
+-- Create admin user
+CREATE ROLE kyc_admin WITH LOGIN PASSWORD 'admin_password';
+GRANT ALL PRIVILEGES ON DATABASE kyc_db TO kyc_admin;
+GRANT ALL PRIVILEGES ON SCHEMA regulatory TO kyc_admin;</code></pre>
+
+  <h4>MongoDB Users</h4>
+  <pre><code>-- Create application user
+db.createUser({
+    user: 'kyc_app',
+    pwd: 'secure_password',
+    roles: [
+        {
+            role: 'readWrite',
+            db: 'kyc_db'
+        }
+    ]
+})
+
+-- Create read-only user
+db.createUser({
+    user: 'kyc_readonly',
+    pwd: 'readonly_password',
+    roles: [
+        {
+            role: 'read',
+            db: 'kyc_db'
+        }
+    ]
+})</code></pre>
+
+  <h3>Data Encryption</h3>
+  <h4>PostgreSQL Encryption</h4>
+  <pre><code>-- Enable pgcrypto extension (already in schema.sql)
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+-- Encrypt sensitive data
+UPDATE customers
+SET encrypted_ssn = pgp_sym_encrypt(ssn, 'encryption_key')
+WHERE ssn IS NOT NULL;
+
+-- Decrypt for authorized access
+SELECT customer_id,
+       pgp_sym_decrypt(encrypted_ssn, 'encryption_key') as ssn
+FROM customers
+WHERE customer_id = 'customer_123';</code></pre>
+
+  <h4>MongoDB Encryption</h4>
+  <pre><code>// Enable MongoDB encryption at rest
+// mongod.conf
+security:
+  enableEncryption: true
+  encryptionCipherMode: AES256-CBC
+  encryptionKeyFile: /etc/mongodb/encryption.key
+
+// Field-level encryption
+const encryptedFieldConfig = {
+    keyId: keyId,
+    algorithm: "AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic"
+};
+
+db.customers.updateOne(
+    { customer_id: "customer_123" },
+    {
+        $set: {
+            "personal_info.ssn": {
+                $binary: {
+                    base64: encryptedSSN,
+                    subType: "06"
+                }
+            }
+        }
+    }
+);</code></pre>
+
+  <h2>11. Data Migration & ETL</h2>
+  <h3>Migration Patterns</h3>
+  <h4>Schema Evolution</h4>
+  <pre><code>-- Add new column with default
+ALTER TABLE customers ADD COLUMN last_login_at TIMESTAMP WITH TIME ZONE;
+
+-- Add check constraint
+ALTER TABLE kyc_results ADD CONSTRAINT chk_confidence_score
+    CHECK (confidence_score >= 0 AND confidence_score <= 1);
+
+-- Add foreign key relationship
+ALTER TABLE compliance_violations ADD CONSTRAINT fk_customer
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id);
+
+-- Create new index (concurrent for production)
+CREATE INDEX CONCURRENTLY idx_customers_last_login
+ON customers (last_login_at) WHERE last_login_at IS NOT NULL;</code></pre>
+
+  <h4>Data Migration Scripts</h4>
+  <pre><code>-- Migrate existing data to new format
+UPDATE customers
+SET risk_level = CASE
+    WHEN risk_score <= 0.3 THEN 'low'
+    WHEN risk_score <= 0.7 THEN 'medium'
+    ELSE 'high'
+END
+WHERE risk_level IS NULL;
+
+-- Transform JSON data structure
+UPDATE kyc_sessions
+SET session_data = jsonb_set(
+    session_data,
+    '{metadata,version}',
+    '"2.0"'::jsonb
+)
+WHERE session_data->'metadata'->>'version' = '1.0';</code></pre>
+
+  <h3>ETL Processes</h3>
+  <h4>Incremental Updates</h4>
+  <pre><code>-- Track last update timestamp
+CREATE TABLE sync_metadata (
+    table_name VARCHAR(100) PRIMARY KEY,
+    last_sync_timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    sync_status VARCHAR(50) DEFAULT 'idle',
+    records_processed BIGINT DEFAULT 0,
+    last_error_message TEXT
+);
+
+-- Incremental sync function
+CREATE OR REPLACE FUNCTION sync_regulatory_obligations()
+RETURNS INTEGER AS $$
+DECLARE
+    last_sync TIMESTAMP WITH TIME ZONE;
+    processed_count INTEGER := 0;
+BEGIN
+    -- Get last sync timestamp
+    SELECT last_sync_timestamp INTO last_sync
+    FROM sync_metadata
+    WHERE table_name = 'regulatory_obligations';
+
+    -- Update records modified since last sync
+    UPDATE regulatory_obligations
+    SET sync_status = 'processed'
+    WHERE updated_at > last_sync;
+
+    GET DIAGNOSTICS processed_count = ROW_COUNT;
+
+    -- Update sync metadata
+    UPDATE sync_metadata
+    SET last_sync_timestamp = CURRENT_TIMESTAMP,
+        records_processed = processed_count,
+        sync_status = 'completed'
+    WHERE table_name = 'regulatory_obligations';
+
+    RETURN processed_count;
+END;
+$$ LANGUAGE plpgsql;</code></pre>
+
+  <h2>12. Troubleshooting</h2>
+  <h3>Common PostgreSQL Issues</h3>
+  <dl>
+    <dt>Connection Pool Exhaustion</dt>
+    <dd>Increase connection pool size, monitor connection usage, implement connection reuse</dd>
+
+    <dt>Slow Queries</dt>
+    <dd>Add appropriate indexes, analyze query execution plans, optimize table structures</dd>
+
+    <dt>Lock Conflicts</dt>
+    <dd>Reduce transaction scope, use appropriate isolation levels, implement optimistic locking</dd>
+
+    <dt>Disk Space Issues</dt>
+    <dd>Implement table partitioning, archive old data, monitor table/index sizes</dd>
+  </dl>
+
+  <h3>Common MongoDB Issues</h3>
+  <dl>
+    <dt>Document Size Limits</dt>
+    <dd>Implement document chunking, use GridFS for large files, optimize document structure</dd>
+
+    <dt>Index Performance</dt>
+    <dd>Create appropriate indexes, monitor index usage, implement index maintenance</dd>
+
+    <dt>Replication Lag</dt>
+    <dd>Monitor replication status, optimize network bandwidth, adjust oplog size</dd>
+
+    <dt>Memory Pressure</dt>
+    <dd>Configure appropriate cache sizes, monitor memory usage, implement data archiving</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># PostgreSQL debugging
+# Check active connections
+psql -h localhost -U kyc_app -d kyc_db -c "SELECT * FROM pg_stat_activity;"
+
+# Analyze query performance
+psql -h localhost -U kyc_app -d kyc_db -c "EXPLAIN ANALYZE SELECT * FROM kyc_sessions WHERE status = 'completed';"
+
+# Check table sizes
+psql -h localhost -U kyc_app -d kyc_db -c "SELECT schemaname, tablename, pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) FROM pg_tables WHERE schemaname = 'regulatory' ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;"
+
+# MongoDB debugging
+# Check database status
+mongosh --eval "db.stats()"
+
+# Monitor slow queries
+mongosh --eval "db.system.profile.find({millis: {\$gt: 1000}}).sort({ts: -1}).limit(5)"
+
+# Check index usage
+mongosh --eval "db.customers.aggregate([{\$indexStats: {}}])"
+
+# Monitor connections
+mongosh --eval "db.serverStatus().connections"</code></pre>
+
+  <h2>13. Performance Benchmarks</h2>
+  <h3>PostgreSQL Benchmarks</h3>
+  <ul>
+    <li><strong>Read Performance:</strong> 10,000+ queries/second for simple selects</li>
+    <li><strong>Write Performance:</strong> 5,000+ inserts/second with proper indexing</li>
+    <li><strong>Complex Queries:</strong> Sub-second response for analytical queries</li>
+    <li><strong>Concurrent Users:</strong> 500+ concurrent connections with connection pooling</li>
+    <li><strong>Data Volume:</strong> Efficient handling of 100M+ records per table</li>
+  </ul>
+
+  <h3>MongoDB Benchmarks</h3>
+  <ul>
+    <li><strong>Document Reads:</strong> 50,000+ document reads/second</li>
+    <li><strong>Document Writes:</strong> 20,000+ document writes/second</li>
+    <li><strong>Aggregation Queries:</strong> Sub-second response for complex aggregations</li>
+    <li><strong>Index Performance:</strong> Sub-millisecond index lookups</li>
+    <li><strong>Data Volume:</strong> Efficient handling of 1TB+ data per collection</li>
+  </ul>
+
+  <h3>Cross-Database Performance</h3>
+  <ul>
+    <li><strong>Data Synchronization:</strong> Sub-second latency for real-time sync</li>
+    <li><strong>Consistency:</strong> 99.99% consistency across database operations</li>
+    <li><strong>Backup Performance:</strong> Sub-hour backup completion for 1TB databases</li>
+    <li><strong>Recovery Time:</strong> Sub-15-minute recovery for critical systems</li>
+  </ul>
+
+  <h2>14. Compliance & Audit</h2>
+  <h3>GDPR Compliance</h3>
+  <ul>
+    <li><strong>Data Minimization:</strong> Store only necessary data with retention policies</li>
+    <li><strong>Right to Access:</strong> Implement data export functionality</li>
+    <li><strong>Right to Deletion:</strong> Implement data deletion and anonymization</li>
+    <li><strong>Data Portability:</strong> Support data export in standard formats</li>
+    <li><strong>Audit Logging:</strong> Comprehensive audit trail for all data operations</li>
+  </ul>
+
+  <h3>SOX Compliance</h3>
+  <ul>
+    <li><strong>Access Controls:</strong> Role-based access with least privilege principle</li>
+    <li><strong>Change Management:</strong> Track all schema and data changes</li>
+    <li><strong>Backup & Recovery:</strong> Regular backups with integrity verification</li>
+    <li><strong>Monitoring & Alerting:</strong> Real-time monitoring of system activities</li>
+    <li><strong>Incident Response:</strong> Documented procedures for security incidents</li>
+  </ul>
+
+  <h3>Audit Trail Implementation</h3>
+  <pre><code>-- Enable audit logging for all tables
+CREATE OR REPLACE FUNCTION audit_trigger_function()
+RETURNS TRIGGER AS $$
+DECLARE
+    old_row jsonb;
+    new_row jsonb;
+    changes jsonb := '{}';
+    change_type text;
+BEGIN
+    -- Determine change type
+    IF TG_OP = 'INSERT' THEN
+        change_type := 'INSERT';
+        old_row := null;
+        new_row := row_to_json(NEW)::jsonb;
+    ELSIF TG_OP = 'UPDATE' THEN
+        change_type := 'UPDATE';
+        old_row := row_to_json(OLD)::jsonb;
+        new_row := row_to_json(NEW)::jsonb;
+
+        -- Calculate changes
+        changes := jsonb_object_agg(
+            key,
+            jsonb_build_object('old', old_value, 'new', new_value)
+        ) FROM (
+            SELECT key, old_value, new_value
+            FROM jsonb_object_keys(old_row) AS key
+            CROSS JOIN LATERAL jsonb_extract_path(old_row, key) AS old_value
+            CROSS JOIN LATERAL jsonb_extract_path(new_row, key) AS new_value
+            WHERE old_value != new_value
+        ) AS diff;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        change_type := 'DELETE';
+        old_row := row_to_json(OLD)::jsonb;
+        new_row := null;
+    END IF;
+
+    -- Insert audit record
+    INSERT INTO audit_trail (
+        customer_id,
+        session_id,
+        agent_name,
+        action,
+        resource_type,
+        resource_id,
+        old_values,
+        new_values,
+        user_id,
+        changes
+    ) VALUES (
+        COALESCE(NEW.customer_id, OLD.customer_id),
+        COALESCE(NEW.session_id, OLD.session_id),
+        'database',
+        change_type,
+        TG_TABLE_NAME,
+        COALESCE(NEW.customer_id, OLD.customer_id),
+        old_row,
+        new_row,
+        current_user,
+        changes
+    );
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;</code></pre>
+
+  <h2>15. Future Scaling Considerations</h2>
+  <h3>PostgreSQL Scaling</h3>
+  <ul>
+    <li><strong>Read Replicas:</strong> Implement streaming replication for read scaling</li>
+    <li><strong>Sharding:</strong> Implement table partitioning and sharding strategies</li>
+    <li><strong>Connection Pooling:</strong> Advanced connection pool management</li>
+    <li><strong>Query Optimization:</strong> Advanced query optimization and caching</li>
+  </ul>
+
+  <h3>MongoDB Scaling</h3>
+  <ul>
+    <li><strong>Sharding:</strong> Implement collection sharding across multiple nodes</li>
+    <li><strong>Replica Sets:</strong> Multi-node replica sets for high availability</li>
+    <li><strong>Change Streams:</strong> Real-time data synchronization and processing</li>
+    <li><strong>Aggregation Pipeline:</strong> Advanced data processing and analytics</li>
+  </ul>
+
+  <h3>Hybrid Architecture Scaling</h3>
+  <ul>
+    <li><strong>Data Synchronization:</strong> Advanced ETL pipelines for cross-database sync</li>
+    <li><strong>Event-Driven Architecture:</strong> Kafka-based event processing at scale</li>
+    <li><strong>Multi-Region Deployment:</strong> Global data distribution and synchronization</li>
+    <li><strong>Auto-Scaling:</strong> Automated scaling based on workload patterns</li>
+  </ul>
+
+</body>
+</html>

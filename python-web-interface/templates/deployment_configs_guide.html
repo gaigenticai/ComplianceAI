@@ -1,0 +1,4376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Deployment Configurations Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <h1>Deployment Configurations Guide</h1>
+  <p>This comprehensive guide covers all deployment configurations for the ComplianceAI platform, including Docker, Kubernetes, and monitoring setup for development, staging, and production environments.</p>
+
+  <h2>1. Overview</h2>
+  <p>The ComplianceAI platform supports multiple deployment strategies to meet different operational requirements, from development environments to production-grade enterprise deployments.</p>
+
+  <h2>2. Docker Deployment</h2>
+  <h3>Development Environment</h3>
+  <h4>docker-compose.yml</h4>
+  <pre><code>version: '3.8'
+
+networks:
+  kyc-network:
+    driver: bridge
+    ipam:
+      config:
+      - subnet: 172.20.0.0/16
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: kyc-postgres
+    environment:
+      POSTGRES_DB: kyc_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./schema.sql:/docker-entrypoint-initdb.d/02-schema.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kyc_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: kyc-redis
+    command: redis-server --appendonly yes --requirepass password
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB Document Store
+  mongo:
+    image: mongo:7-jammy
+    container_name: kyc-mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: kyc_db
+    volumes:
+      - mongo_data:/data/db
+      - ./database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    ports:
+      - "27017:27017"
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Kafka Message Broker
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: kyc-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - kyc-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kyc-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    networks:
+      - kyc-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Web Interface
+  kyc-web-interface:
+    build:
+      context: ./python-web-interface
+      dockerfile: Dockerfile
+    container_name: kyc-web-interface
+    ports:
+      - "8001:8000"
+    environment:
+      - REQUIRE_AUTH=false
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=kyc_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=password
+      - MONGO_HOST=mongo
+      - MONGO_PORT=27017
+      - MONGO_USER=admin
+      - MONGO_PASSWORD=password
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./python-web-interface/templates:/app/templates:ro
+      - ./python-web-interface/static:/app/static:ro
+    networks:
+      - kyc-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:</code></pre>
+
+  <h3>Production Environment</h3>
+  <h4>docker-compose.prod.yml</h4>
+  <pre><code>version: '3.8'
+
+# Production Docker Compose Configuration for ComplianceAI
+# This configuration is optimized for production deployments with:
+# - High availability and scalability
+# - Security hardening
+# - Monitoring and logging
+# - Backup and recovery
+# - Load balancing
+
+services:
+  # Load Balancer / Reverse Proxy
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: complianceai-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - web-interface
+      - regulatory-intelligence
+      - intelligence-compliance
+      - decision-orchestration
+      - intake-processing
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run
+
+  # PostgreSQL with High Availability
+  postgres:
+    image: postgres:15-alpine
+    container_name: complianceai-postgres
+    environment:
+      POSTGRES_DB: complianceai_prod
+      POSTGRES_USER: complianceai
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--data-checksums"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./schema.sql:/docker-entrypoint-initdb.d/02-schema.sql:ro
+      - ./scripts/postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - postgres_backup:/backups
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U complianceai -d complianceai_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # Redis Cluster
+  redis-master:
+    image: redis:7-alpine
+    container_name: complianceai-redis-master
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  redis-replica:
+    image: redis:7-alpine
+    container_name: complianceai-redis-replica
+    command: >
+      redis-server --slaveof redis-master 6379 --requirepass ${REDIS_PASSWORD}
+      --masterauth ${REDIS_PASSWORD} --appendonly yes
+    depends_on:
+      - redis-master
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # MongoDB Replica Set
+  mongo-primary:
+    image: mongo:7-jammy
+    container_name: complianceai-mongo-primary
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: complianceai_prod
+      MONGO_REPLICA_SET_NAME: complianceai-rs
+    volumes:
+      - mongo_data:/data/db
+      - ./database/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - mongo_backup:/backups
+    command: --replSet complianceai-rs --bind_ip_all
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "rs.status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  mongo-secondary:
+    image: mongo:7-jammy
+    container_name: complianceai-mongo-secondary
+    depends_on:
+      - mongo-primary
+    command: --replSet complianceai-rs --bind_ip_all
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Kafka Cluster
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: complianceai-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  kafka-broker-1:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: complianceai-kafka-1
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-1:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 3000
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_NUM_PARTITIONS: 6
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+      - kafka_logs:/var/lib/kafka/logs
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  kafka-broker-2:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: complianceai-kafka-2
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-2:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka_data_2:/var/lib/kafka/data
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  kafka-broker-3:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: complianceai-kafka-3
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-broker-3:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka_data_3:/var/lib/kafka/data
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # Schema Registry
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.4.0
+    container_name: complianceai-schema-registry
+    depends_on:
+      - kafka-broker-1
+      - kafka-broker-2
+      - kafka-broker-3
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/subjects"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Web Interface Service
+  web-interface:
+    image: complianceai/web-interface:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-web
+    environment:
+      - ENVIRONMENT=production
+      - REQUIRE_AUTH=true
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY}
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+      - HEALTH_CHECK_ENABLED=true
+    volumes:
+      - ./config/production.yaml:/app/config/production.yaml:ro
+      - web_static:/app/static
+      - web_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_healthy
+      kafka-broker-2:
+        condition: service_healthy
+      kafka-broker-3:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+
+  # Regulatory Intelligence Agent
+  regulatory-intelligence:
+    image: complianceai/regulatory-intelligence:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-regulatory-intel
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - MONGO_URL=mongodb://mongo-primary:27017,mongo-secondary-1:27017,mongo-secondary-2:27017/complianceai_prod?replicaSet=complianceai-rs
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+    volumes:
+      - regulatory_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo-primary:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # Intelligence & Compliance Agent
+  intelligence-compliance:
+    image: complianceai/intelligence-compliance:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-intelligence
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+    volumes:
+      - intelligence_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Decision Orchestration Agent
+  decision-orchestration:
+    image: complianceai/decision-orchestration:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-decision
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+    volumes:
+      - decision_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-master:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Intake Processing Agent
+  intake-processing:
+    image: complianceai/intake-processing:prod-${BUILD_NUMBER:-latest}
+    container_name: complianceai-intake
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://complianceai:${DB_PASSWORD}@postgres:5432/complianceai_prod
+      - REDIS_URL=redis://redis:6379/0
+      - MONGO_URL=mongodb://mongo-primary:27017,mongo-secondary-1:27017,mongo-secondary-2:27017/complianceai_prod?replicaSet=complianceai-rs
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-broker-1:29092,kafka-broker-2:29092,kafka-broker-3:29092
+      - LOG_LEVEL=INFO
+      - METRICS_ENABLED=true
+    volumes:
+      - intake_logs:/app/logs
+      - intake_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo-primary:
+        condition: service_healthy
+      kafka-broker-1:
+        condition: service_healthy
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      replicas: 3
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: complianceai-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: complianceai-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_INSTALL_PLUGINS: 'grafana-piechart-panel,grafana-worldmap-panel'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - grafana_logs:/var/log/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: complianceai-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    networks:
+      - complianceai-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 512M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+
+networks:
+  complianceai-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=10.0.0.1,rw
+      device: ":/exports/postgres"
+  redis_data:
+    driver: local
+  mongo_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=10.0.0.1,rw
+      device: ":/exports/mongo"
+  zookeeper_data:
+    driver: local
+  zookeeper_logs:
+    driver: local
+  kafka_data:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=10.0.0.1,rw
+      device: ":/exports/kafka-1"
+  kafka_data_2:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=10.0.0.1,rw
+      device: ":/exports/kafka-2"
+  kafka_data_3:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=10.0.0.1,rw
+      device: ":/exports/kafka-3"
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  grafana_logs:
+    driver: local
+  alertmanager_data:
+    driver: local
+  web_static:
+    driver: local
+  web_logs:
+    driver: local
+  regulatory_logs:
+    driver: local
+  intelligence_logs:
+    driver: local
+  decision_logs:
+    driver: local
+  intake_logs:
+    driver: local
+  intake_uploads:
+    driver: local
+  postgres_backup:
+    driver: local
+  mongo_backup:
+    driver: local</code></pre>
+
+  <h2>3. Kubernetes Deployment</h2>
+  <h3>Kubernetes Manifest Structure</h3>
+  <h4>Namespace and ConfigMaps</h4>
+  <pre><code>---
+# Kubernetes Production Deployment for ComplianceAI
+# This manifest deploys ComplianceAI to a Kubernetes cluster with:
+# - High availability and scalability
+# - Security policies
+# - Monitoring and logging
+# - Ingress and load balancing
+# - Persistent storage
+# - ConfigMaps and Secrets
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: complianceai-prod
+  labels:
+    name: complianceai-prod
+    environment: production
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: complianceai-config
+  namespace: complianceai-prod
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  METRICS_ENABLED: "true"
+  HEALTH_CHECK_ENABLED: "true"
+  KAFKA_NUM_PARTITIONS: "3"
+  KAFKA_DEFAULT_REPLICATION_FACTOR: "3"
+  REQUIRE_AUTH: "true"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: complianceai-secrets
+  namespace: complianceai-prod
+type: Opaque
+data:
+  # Base64 encoded secrets - replace with actual values
+  db-password: <base64-encoded-password>
+  mongo-password: <base64-encoded-password>
+  jwt-secret-key: <base64-encoded-jwt-secret>
+  encryption-key: <base64-encoded-encryption-key>
+  grafana-password: <base64-encoded-grafana-password></code></pre>
+
+  <h4>PostgreSQL StatefulSet</h4>
+  <pre><code>---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: complianceai-prod
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres
+  replicas: 2
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        env:
+        - name: POSTGRES_DB
+          value: "complianceai_prod"
+        - name: POSTGRES_USER
+          value: "complianceai"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: complianceai-secrets
+              key: db-password
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        ports:
+        - containerPort: 5432
+          name: postgres
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+        - name: postgres-config
+          mountPath: /etc/postgresql/postgresql.conf
+          subPath: postgresql.conf
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - complianceai
+            - -d
+            - complianceai_prod
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - complianceai
+            - -d
+            - complianceai_prod
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: "1"
+            memory: 2Gi
+      volumes:
+      - name: postgres-config
+        configMap:
+          name: postgres-config
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 100Gi</code></pre>
+
+  <h4>Redis Cluster Deployment</h4>
+  <pre><code>---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-master
+  namespace: complianceai-prod
+  labels:
+    app: redis
+    role: master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command:
+        - redis-server
+        - --appendonly
+        - yes
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: complianceai-secrets
+              key: redis-password
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - --raw
+            - incr
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - --raw
+            - incr
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          limits:
+            cpu: "1"
+            memory: 1Gi
+          requests:
+            cpu: "500m"
+            memory: 512Mi
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-data
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-slave
+  namespace: complianceai-prod
+  labels:
+    app: redis
+    role: slave
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: redis
+      role: slave
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: slave
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        command:
+        - redis-server
+        - --slaveof
+        - redis-master
+        - "6379"
+        - --requirepass
+        - $(REDIS_PASSWORD)
+        - --masterauth
+        - $(REDIS_PASSWORD)
+        - --appendonly
+        - yes
+        env:
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: complianceai-secrets
+              key: redis-password
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - name: redis-data
+          mountPath: /data
+        resources:
+          limits:
+            cpu: "500m"
+            memory: 512Mi
+          requests:
+            cpu: "250m"
+            memory: 256Mi
+      volumes:
+      - name: redis-data
+        persistentVolumeClaim:
+          claimName: redis-slave-data</code></pre>
+
+  <h4>Kafka Cluster StatefulSet</h4>
+  <pre><code>---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: complianceai-prod
+  labels:
+    app: kafka
+spec:
+  serviceName: kafka
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      securityContext:
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:7.4.0
+        ports:
+        - containerPort: 9092
+          name: kafka
+        env:
+        - name: KAFKA_BROKER_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: "zookeeper-0.zookeeper:2181,zookeeper-1.zookeeper:2181,zookeeper-2.zookeeper:2181"
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://$(hostname -f):9092,PLAINTEXT_HOST://$(hostname -f).kafka:9092"
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+          value: "2"
+        - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+          value: "3"
+        - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+          value: "3000"
+        - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+          value: "false"
+        - name: KAFKA_NUM_PARTITIONS
+          value: "6"
+        - name: KAFKA_DEFAULT_REPLICATION_FACTOR
+          value: "3"
+        volumeMounts:
+        - name: kafka-data
+          mountPath: /var/lib/kafka/data
+        - name: kafka-logs
+          mountPath: /var/lib/kafka/logs
+        livenessProbe:
+          exec:
+            command:
+            - kafka-broker-api-versions
+            - --bootstrap-server
+            - localhost:9092
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - kafka-broker-api-versions
+            - --bootstrap-server
+            - localhost:9092
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: "1"
+            memory: 2Gi
+  volumeClaimTemplates:
+  - metadata:
+      name: kafka-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 100Gi
+  - metadata:
+      name: kafka-logs
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      storageClassName: standard
+      resources:
+        requests:
+          storage: 50Gi</code></pre>
+
+  <h4>Ingress Configuration</h4>
+  <pre><code>---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: complianceai-ingress
+  namespace: complianceai-prod
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - complianceai.example.com
+    secretName: complianceai-tls
+  rules:
+  - host: complianceai.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-interface
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: web-interface
+            port:
+              number: 80
+      - path: /monitoring
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 3000</code></pre>
+
+  <h4>Network Policies</h4>
+  <pre><code>---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: complianceai-network-policy
+  namespace: complianceai-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: complianceai-prod
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 27017
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 8001
+    - protocol: TCP
+      port: 8002
+    - protocol: TCP
+      port: 8003
+    - protocol: TCP
+      port: 8004
+    - protocol: TCP
+      port: 8005
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: complianceai-prod
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 27017
+    - protocol: TCP
+      port: 9092
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 8001
+    - protocol: TCP
+      port: 8002
+    - protocol: TCP
+      port: 8003
+    - protocol: TCP
+      port: 8004
+    - protocol: TCP
+      port: 8005
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53</code></pre>
+
+  <h4>Pod Security Policies</h4>
+  <pre><code>---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: complianceai-psp
+  namespace: complianceai-prod
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  allowedCapabilities:
+    - NET_BIND_SERVICE
+  runAsUser:
+    rule: MustRunAsNonRoot
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: MustRunAs
+    ranges:
+    - min: 1
+      max: 65535
+  fsGroup:
+    rule: MustRunAs
+    ranges:
+    - min: 1
+      max: 65535
+  readOnlyRootFilesystem: true
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'persistentVolumeClaim'
+  - 'secret'
+  - 'projected'</code></pre>
+
+  <h2>4. Monitoring Setup</h2>
+  <h3>Prometheus Configuration</h3>
+  <h4>prometheus.yml</h4>
+  <pre><code>global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'complianceai-prod'
+    environment: 'production'
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # ComplianceAI Services
+  - job_name: 'web-interface'
+    static_configs:
+      - targets: ['web-interface:8000']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  - job_name: 'regulatory-intelligence'
+    static_configs:
+      - targets: ['regulatory-intelligence:8004']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  - job_name: 'intelligence-compliance'
+    static_configs:
+      - targets: ['intelligence-compliance:8002']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  - job_name: 'decision-orchestration'
+    static_configs:
+      - targets: ['decision-orchestration:8003']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  - job_name: 'intake-processing'
+    static_configs:
+      - targets: ['intake-processing:8005']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # Infrastructure Services
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  - job_name: 'mongodb'
+    static_configs:
+      - targets: ['mongodb-exporter:9216']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Node Exporter for system metrics
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets:
+        - 'node-exporter-1:9100'
+        - 'node-exporter-2:9100'
+        - 'node-exporter-3:9100'
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Kubernetes metrics
+  - job_name: 'kubernetes-apiservers'
+    kubernetes_sd_configs:
+    - role: endpoints
+    relabel_configs:
+    - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+      action: keep
+      regex: default;kubernetes;https
+
+  - job_name: 'kubernetes-nodes'
+    kubernetes_sd_configs:
+    - role: node
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_node_label_(.+)
+
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_pod_label_(.+)
+    - source_labels: [__meta_kubernetes_namespace]
+      action: replace
+      target_label: kubernetes_namespace
+    - source_labels: [__meta_kubernetes_pod_name]
+      action: replace
+      target_label: kubernetes_pod_name
+
+  - job_name: 'kubernetes-cadvisor'
+    kubernetes_sd_configs:
+    - role: pod
+    relabel_configs:
+    - action: labelmap
+      regex: __meta_kubernetes_pod_label_(.+)
+    - source_labels: [__meta_kubernetes_pod_name]
+      action: replace
+      target_label: kubernetes_pod_name
+    - source_labels: [__meta_kubernetes_pod_container_name]
+      action: replace
+      target_label: kubernetes_container_name</code></pre>
+
+  <h3>Grafana Configuration</h3>
+  <h4>grafana.ini</h4>
+  <pre><code>[server]
+http_addr = 0.0.0.0
+http_port = 3000
+domain = complianceai.example.com
+root_url = https://complianceai.example.com/monitoring/
+
+[security]
+admin_user = admin
+admin_password = ${GF_SECURITY_ADMIN_PASSWORD}
+secret_key = ${GF_SECURITY_SECRET_KEY}
+disable_gravatar = true
+allow_embedding = true
+
+[users]
+allow_sign_up = false
+allow_org_create = false
+auto_assign_org = true
+auto_assign_org_role = Viewer
+
+[auth.anonymous]
+enabled = false
+
+[auth.basic]
+enabled = true
+
+[auth.proxy]
+enabled = true
+header_name = X-WEBAUTH-USER
+header_property = username
+auto_sign_up = true
+
+[database]
+type = sqlite3
+path = /var/lib/grafana/grafana.db
+
+[session]
+provider = redis
+provider_config = addr=redis:6379,password=${REDIS_PASSWORD},db=1
+
+[log]
+level = info
+format = json
+
+[metrics]
+enabled = true
+interval_seconds = 10
+basic_auth_username = ${GF_SECURITY_ADMIN_USER}
+basic_auth_password = ${GF_SECURITY_ADMIN_PASSWORD}
+
+[alerting]
+enabled = true
+execute_alerts = true
+
+[unified_alerting]
+enabled = true
+
+[external_image_storage]
+provider = local
+
+[snapshots]
+external_enabled = false
+
+[annotations]
+api_url = http://prometheus:9090
+
+[explore]
+enabled = true
+
+[panels]
+disable_sanitize_html = false</code></pre>
+
+  <h4>Grafana Data Sources</h4>
+  <pre><code>apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+    secureJsonData:
+      basicAuthPassword: ${GF_SECURITY_ADMIN_PASSWORD}
+
+  - name: PostgreSQL
+    type: postgres
+    access: proxy
+    url: postgres:5432
+    user: complianceai_monitor
+    database: complianceai_prod
+    editable: true
+    jsonData:
+      sslmode: require
+      maxOpenConns: 100
+      maxIdleConns: 10
+      connMaxLifetime: 14400
+    secureJsonData:
+      password: ${DB_MONITOR_PASSWORD}
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - matcherRegex: "traceID=(\\w+)"
+          name: traceID
+          url: 'https://jaeger.example.com/trace/$${__value.raw}'
+          datasourceUid: jaeger</code></pre>
+
+  <h3>AlertManager Configuration</h3>
+  <h4>alertmanager.yml</h4>
+  <pre><code>global:
+  smtp_smarthost: 'smtp.company.com:587'
+  smtp_from: 'alerts@complianceai.example.com'
+  smtp_auth_username: 'alerts@complianceai.example.com'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+route:
+  group_by: ['alertname', 'service', 'severity']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  routes:
+  # Critical alerts - immediate notification
+  - match:
+      severity: critical
+    receiver: 'critical-alerts'
+    group_wait: 0s
+    repeat_interval: 5m
+    continue: true
+
+  # Service-specific routing
+  - match:
+      service: web-interface
+    receiver: 'web-team'
+    continue: true
+  - match:
+      service: regulatory-intelligence
+    receiver: 'compliance-team'
+    continue: true
+  - match:
+      service: ~'intake.*|decision.*'
+    receiver: 'processing-team'
+    continue: true
+
+  # Database alerts
+  - match:
+      component: database
+    receiver: 'database-team'
+    continue: true
+
+  # Infrastructure alerts
+  - match:
+      component: ~'kafka|redis|mongodb'
+    receiver: 'infrastructure-team'
+    continue: true
+
+receivers:
+- name: 'default'
+  email_configs:
+  - to: 'alerts@company.com'
+    subject: '[ComplianceAI] {{ .GroupLabels.alertname }}'
+    body: |
+      {{ range .Alerts }}
+      Alert: {{ .Annotations.summary }}
+      Description: {{ .Annotations.description }}
+      Value: {{ .Value }}
+      Labels: {{ .Labels }}
+      {{ end }}
+
+- name: 'critical-alerts'
+  pagerduty_configs:
+  - routing_key: '${PAGERDUTY_ROUTING_KEY}'
+    severity: 'critical'
+    details:
+      service: '{{ .GroupLabels.service }}'
+      component: '{{ .GroupLabels.component }}'
+  email_configs:
+  - to: 'oncall@company.com'
+    subject: '[CRITICAL] {{ .GroupLabels.alertname }}'
+  slack_configs:
+  - api_url: '${SLACK_WEBHOOK_URL}'
+    channel: '#alerts-critical'
+    title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+    text: '{{ .CommonAnnotations.summary }}'
+
+- name: 'web-team'
+  email_configs:
+  - to: 'web-team@company.com'
+    subject: '[Web] {{ .GroupLabels.alertname }}'
+  slack_configs:
+  - api_url: '${SLACK_WEBHOOK_URL}'
+    channel: '#web-alerts'
+    title: '{{ .GroupLabels.alertname }}'
+
+- name: 'compliance-team'
+  email_configs:
+  - to: 'compliance@company.com'
+    subject: '[Compliance] {{ .GroupLabels.alertname }}'
+
+- name: 'processing-team'
+  email_configs:
+  - to: 'processing@company.com'
+    subject: '[Processing] {{ .GroupLabels.alertname }}'
+
+- name: 'database-team'
+  email_configs:
+  - to: 'database@company.com'
+    subject: '[Database] {{ .GroupLabels.alertname }}'
+
+- name: 'infrastructure-team'
+  email_configs:
+  - to: 'infrastructure@company.com'
+    subject: '[Infrastructure] {{ .GroupLabels.alertname }}'
+
+inhibit_rules:
+  - source_match:
+      alertname: 'ServiceDown'
+    target_match:
+      alertname: 'HighErrorRate'
+    equal: ['service']
+
+  - source_match:
+      alertname: 'DatabaseDown'
+    target_match:
+      alertname: 'QueryTimeout'
+    equal: ['database']</code></pre>
+
+  <h2>5. Deployment Scripts</h2>
+  <h3>Docker Deployment Scripts</h3>
+  <h4>deploy.sh</h4>
+  <pre><code>#!/bin/bash
+
+# ComplianceAI Production Deployment Script
+# This script handles the complete deployment of the ComplianceAI system
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Logging functions
+log() {
+    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+}
+
+success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+    exit 1
+}
+
+# Configuration
+ENVIRONMENT=${ENVIRONMENT:-production}
+BUILD_NUMBER=${BUILD_NUMBER:-latest}
+DOCKER_REGISTRY=${DOCKER_REGISTRY:-complianceai}
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.."
+
+# Pre-deployment checks
+check_prerequisites() {
+    log "Checking prerequisites..."
+
+    # Check Docker
+    if ! command -v docker &> /dev/null; then
+        error "Docker is not installed"
+    fi
+
+    # Check Docker Compose
+    if ! command -v docker-compose &> /dev/null; then
+        error "Docker Compose is not installed"
+    fi
+
+    # Check environment file
+    if [ ! -f ".env" ]; then
+        error ".env file not found. Please create it from .env.example"
+    fi
+
+    success "Prerequisites check passed"
+}
+
+# Build and push images
+build_images() {
+    log "Building and pushing Docker images..."
+
+    services=(
+        "web-interface"
+        "regulatory-intelligence"
+        "intelligence-compliance"
+        "decision-orchestration"
+        "intake-processing"
+    )
+
+    for service in "${services[@]}"; do
+        log "Building ${service}..."
+        docker build -t ${DOCKER_REGISTRY}/${service}:${BUILD_NUMBER} \
+                    -f ${PROJECT_ROOT}/python-agents/${service}/Dockerfile \
+                    ${PROJECT_ROOT}/python-agents/${service}
+
+        log "Pushing ${service}..."
+        docker push ${DOCKER_REGISTRY}/${service}:${BUILD_NUMBER}
+    done
+
+    success "All images built and pushed"
+}
+
+# Deploy services
+deploy_services() {
+    log "Deploying services..."
+
+    # Set build number in environment
+    export BUILD_NUMBER=${BUILD_NUMBER}
+
+    # Deploy with Docker Compose
+    docker-compose -f docker-compose.prod.yml up -d
+
+    success "Services deployed successfully"
+}
+
+# Health checks
+wait_for_services() {
+    log "Waiting for services to be healthy..."
+
+    services=(
+        "http://localhost:8000/health:Web Interface"
+        "http://localhost:8004/health:Regulatory Intelligence"
+        "http://localhost:8002/health:Intelligence Compliance"
+        "http://localhost:8003/health:Decision Orchestration"
+        "http://localhost:8005/health:Intake Processing"
+        "http://localhost:9090/-/healthy:Prometheus"
+        "http://localhost:3000/api/health:Grafana"
+    )
+
+    max_attempts=60
+    attempt=0
+
+    for service in "${services[@]}"; do
+        url=$(echo $service | cut -d: -f1-2)
+        name=$(echo $service | cut -d: -f3)
+
+        log "Waiting for $name..."
+
+        while [ $attempt -lt $max_attempts ]; do
+            if curl -s -f "$url" > /dev/null 2>&1; then
+                success "$name is healthy"
+                break
+            fi
+
+            attempt=$((attempt + 1))
+            if [ $attempt -eq $max_attempts ]; then
+                error "$name failed to become healthy within timeout"
+            fi
+
+            sleep 10
+        done
+
+        attempt=0
+    done
+
+    success "All services are healthy"
+}
+
+# Run database migrations
+run_migrations() {
+    log "Running database migrations..."
+
+    # PostgreSQL migrations
+    docker-compose exec -T postgres psql -U complianceai -d complianceai_prod -f /docker-entrypoint-initdb.d/02-schema.sql
+
+    # MongoDB migrations
+    docker-compose exec -T mongo mongosh complianceai_prod --eval "
+        // MongoDB migration scripts here
+        print('MongoDB migrations completed');
+    "
+
+    success "Database migrations completed"
+}
+
+# Configure monitoring
+configure_monitoring() {
+    log "Configuring monitoring..."
+
+    # Wait for Grafana to be ready
+    sleep 30
+
+    # Import dashboards
+    curl -X POST -H "Content-Type: application/json" \
+         -d @monitoring/grafana/dashboards/complianceai-overview.json \
+         http://admin:${GRAFANA_PASSWORD}@localhost:3000/api/dashboards/db
+
+    success "Monitoring configured"
+}
+
+# Main deployment function
+main() {
+    echo "🚀 ComplianceAI Production Deployment"
+    echo "===================================="
+    echo ""
+
+    log "Environment: $ENVIRONMENT"
+    log "Build Number: $BUILD_NUMBER"
+    log "Docker Registry: $DOCKER_REGISTRY"
+
+    check_prerequisites
+    build_images
+    deploy_services
+    wait_for_services
+    run_migrations
+    configure_monitoring
+
+    echo ""
+    echo "🎉 Deployment Complete!"
+    echo "======================"
+    echo ""
+    echo "🌐 Web Interface: https://complianceai.example.com"
+    echo "📊 Grafana: https://complianceai.example.com/monitoring"
+    echo "📈 Prometheus: https://complianceai.example.com/prometheus"
+    echo "📋 API Documentation: https://complianceai.example.com/api/docs"
+    echo ""
+    echo "🔧 Management Commands:"
+    echo "  docker-compose logs -f [service-name]"
+    echo "  docker-compose restart [service-name]"
+    echo "  docker-compose exec [service-name] bash"
+    echo ""
+
+    success "Deployment completed successfully!"
+}
+
+# Handle command line arguments
+case "${1:-}" in
+    "build")
+        check_prerequisites
+        build_images
+        ;;
+    "deploy")
+        deploy_services
+        ;;
+    "health")
+        wait_for_services
+        ;;
+    "migrate")
+        run_migrations
+        ;;
+    "monitor")
+        configure_monitoring
+        ;;
+    "stop")
+        log "Stopping all services..."
+        docker-compose down
+        success "All services stopped"
+        ;;
+    "restart")
+        log "Restarting all services..."
+        docker-compose restart
+        success "All services restarted"
+        ;;
+    "logs")
+        docker-compose logs -f "${2:-}"
+        ;;
+    "status")
+        docker-compose ps
+        echo ""
+        curl -s http://localhost:8000/health | jq . 2>/dev/null || curl -s http://localhost:8000/health
+        ;;
+    "clean")
+        log "Cleaning up containers and volumes..."
+        docker-compose down -v --remove-orphans
+        docker system prune -f
+        success "Cleanup completed"
+        ;;
+    "help"|"-h"|"--help")
+        echo "Usage: $0 [command] [service]"
+        echo ""
+        echo "Commands:"
+        echo "  (no args)  - Full deployment"
+        echo "  build      - Build and push images only"
+        echo "  deploy     - Deploy services only"
+        echo "  health     - Health check only"
+        echo "  migrate    - Database migrations only"
+        echo "  monitor    - Monitoring setup only"
+        echo "  stop       - Stop all services"
+        echo "  restart    - Restart all services"
+        echo "  logs [svc] - Show logs (optionally for specific service)"
+        echo "  status     - Show system status"
+        echo "  clean      - Clean up containers and volumes"
+        echo "  help       - Show this help message"
+        ;;
+    "")
+        main
+        ;;
+    *)
+        error "Unknown command: $1"
+        echo "Use '$0 help' for usage information"
+        exit 1
+        ;;
+esac</code></pre>
+
+  <h3>Kubernetes Deployment Scripts</h3>
+  <h4>deploy-k8s.sh</h4>
+  <pre><code>#!/bin/bash
+
+# ComplianceAI Kubernetes Production Deployment Script
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Configuration
+NAMESPACE=${NAMESPACE:-complianceai-prod}
+BUILD_NUMBER=${BUILD_NUMBER:-latest}
+DOCKER_REGISTRY=${DOCKER_REGISTRY:-complianceai}
+CLUSTER_NAME=${CLUSTER_NAME:-complianceai-cluster}
+
+# Logging functions
+log() {
+    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+}
+
+success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1"
+}
+
+warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+    exit 1
+}
+
+# Pre-deployment checks
+check_prerequisites() {
+    log "Checking prerequisites..."
+
+    # Check kubectl
+    if ! command -v kubectl &> /dev/null; then
+        error "kubectl is not installed"
+    fi
+
+    # Check helm
+    if ! command -v helm &> /dev/null; then
+        error "Helm is not installed"
+    fi
+
+    # Check cluster access
+    if ! kubectl cluster-info &> /dev/null; then
+        error "Cannot access Kubernetes cluster"
+    fi
+
+    # Check namespace
+    if ! kubectl get namespace $NAMESPACE &> /dev/null; then
+        log "Creating namespace $NAMESPACE..."
+        kubectl create namespace $NAMESPACE
+    fi
+
+    success "Prerequisites check passed"
+}
+
+# Build and push images
+build_and_push_images() {
+    log "Building and pushing Docker images..."
+
+    services=(
+        "web-interface"
+        "regulatory-intelligence"
+        "intelligence-compliance"
+        "decision-orchestration"
+        "intake-processing"
+    )
+
+    for service in "${services[@]}"; do
+        log "Building and pushing ${service}..."
+
+        # Build multi-architecture images
+        docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            -t ${DOCKER_REGISTRY}/${service}:${BUILD_NUMBER} \
+            -t ${DOCKER_REGISTRY}/${service}:latest \
+            --push \
+            -f python-agents/${service}/Dockerfile \
+            python-agents/${service}
+    done
+
+    success "All images built and pushed"
+}
+
+# Deploy infrastructure
+deploy_infrastructure() {
+    log "Deploying infrastructure..."
+
+    # Create ConfigMaps and Secrets
+    kubectl apply -f k8s/configmaps.yaml
+    kubectl apply -f k8s/secrets.yaml
+
+    # Deploy PostgreSQL
+    kubectl apply -f k8s/postgres-statefulset.yaml
+    kubectl apply -f k8s/postgres-service.yaml
+
+    # Deploy Redis
+    kubectl apply -f k8s/redis-deployment.yaml
+    kubectl apply -f k8s/redis-service.yaml
+
+    # Deploy MongoDB
+    kubectl apply -f k8s/mongodb-statefulset.yaml
+    kubectl apply -f k8s/mongodb-service.yaml
+
+    # Deploy Kafka
+    kubectl apply -f k8s/zookeeper-statefulset.yaml
+    kubectl apply -f k8s/zookeeper-service.yaml
+    kubectl apply -f k8s/kafka-statefulset.yaml
+    kubectl apply -f k8s/kafka-service.yaml
+
+    # Deploy Schema Registry
+    kubectl apply -f k8s/schema-registry-deployment.yaml
+    kubectl apply -f k8s/schema-registry-service.yaml
+
+    success "Infrastructure deployed"
+}
+
+# Deploy application services
+deploy_application() {
+    log "Deploying application services..."
+
+    # Update image tags in manifests
+    sed -i "s|image:.*|image: ${DOCKER_REGISTRY}/web-interface:${BUILD_NUMBER}|g" k8s/web-interface-deployment.yaml
+    sed -i "s|image:.*|image: ${DOCKER_REGISTRY}/regulatory-intelligence:${BUILD_NUMBER}|g" k8s/regulatory-intelligence-deployment.yaml
+    sed -i "s|image:.*|image: ${DOCKER_REGISTRY}/intelligence-compliance-deployment.yaml" k8s/
+    sed -i "s|image:.*|image: ${DOCKER_REGISTRY}/decision-orchestration:${BUILD_NUMBER}|g" k8s/decision-orchestration-deployment.yaml
+    sed -i "s|image:.*|image: ${DOCKER_REGISTRY}/intake-processing:${BUILD_NUMBER}|g" k8s/intake-processing-deployment.yaml
+
+    # Deploy services
+    kubectl apply -f k8s/web-interface-deployment.yaml
+    kubectl apply -f k8s/web-interface-service.yaml
+    kubectl apply -f k8s/regulatory-intelligence-deployment.yaml
+    kubectl apply -f k8s/regulatory-intelligence-service.yaml
+    kubectl apply -f k8s/intelligence-compliance-deployment.yaml
+    kubectl apply -f k8s/intelligence-compliance-service.yaml
+    kubectl apply -f k8s/decision-orchestration-deployment.yaml
+    kubectl apply -f k8s/decision-orchestration-service.yaml
+    kubectl apply -f k8s/intake-processing-deployment.yaml
+    kubectl apply -f k8s/intake-processing-service.yaml
+
+    success "Application services deployed"
+}
+
+# Deploy monitoring stack
+deploy_monitoring() {
+    log "Deploying monitoring stack..."
+
+    # Add Helm repositories
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo add grafana https://grafana.github.io/helm-charts
+    helm repo update
+
+    # Deploy Prometheus
+    helm upgrade --install prometheus prometheus-community/prometheus \
+        --namespace $NAMESPACE \
+        --set server.persistentVolume.enabled=true \
+        --set server.persistentVolume.size=50Gi \
+        --set alertmanager.persistentVolume.enabled=true \
+        --set alertmanager.persistentVolume.size=10Gi
+
+    # Deploy Grafana
+    helm upgrade --install grafana grafana/grafana \
+        --namespace $NAMESPACE \
+        --set persistence.enabled=true \
+        --set persistence.size=10Gi \
+        --set adminPassword=${GRAFANA_PASSWORD}
+
+    # Deploy monitoring ConfigMaps
+    kubectl apply -f k8s/monitoring-config.yaml
+
+    success "Monitoring stack deployed"
+}
+
+# Deploy ingress
+deploy_ingress() {
+    log "Deploying ingress..."
+
+    # Deploy NGINX Ingress Controller
+    kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.1/deploy/static/provider/cloud/deploy.yaml
+
+    # Wait for ingress controller
+    kubectl wait --for=condition=available --timeout=300s deployment/ingress-nginx-controller -n ingress-nginx
+
+    # Deploy application ingress
+    kubectl apply -f k8s/ingress.yaml
+
+    # Deploy cert-manager for SSL
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+
+    # Deploy SSL certificates
+    kubectl apply -f k8s/certificates.yaml
+
+    success "Ingress deployed"
+}
+
+# Wait for services to be ready
+wait_for_services() {
+    log "Waiting for services to be ready..."
+
+    # Wait for deployments
+    kubectl wait --for=condition=available --timeout=600s deployment/web-interface -n $NAMESPACE
+    kubectl wait --for=condition=available --timeout=600s deployment/regulatory-intelligence -n $NAMESPACE
+    kubectl wait --for=condition=available --timeout=600s deployment/intelligence-compliance -n $NAMESPACE
+    kubectl wait --for=condition=available --timeout=600s deployment/decision-orchestration -n $NAMESPACE
+    kubectl wait --for=condition=available --timeout=600s deployment/intake-processing -n $NAMESPACE
+
+    # Wait for statefulsets
+    kubectl wait --for=condition=ready --timeout=600s pod/postgres-0 -n $NAMESPACE
+    kubectl wait --for=condition=ready --timeout=600s pod/redis-master-0 -n $NAMESPACE
+    kubectl wait --for=condition=ready --timeout=600s pod/mongodb-0 -n $NAMESPACE
+    kubectl rollout status statefulset/kafka -n $NAMESPACE
+
+    success "All services are ready"
+}
+
+# Run database migrations
+run_migrations() {
+    log "Running database migrations..."
+
+    # PostgreSQL migrations
+    kubectl exec -n $NAMESPACE postgres-0 -- psql -U complianceai -d complianceai_prod -f /docker-entrypoint-initdb.d/02-schema.sql
+
+    # MongoDB migrations
+    kubectl exec -n $NAMESPACE mongodb-0 -- mongosh complianceai_prod --eval "
+        // MongoDB migration scripts
+        db.createCollection('system_migrations');
+        db.system_migrations.insertOne({
+            version: '1.0.0',
+            applied_at: new Date(),
+            description: 'Initial schema setup'
+        });
+    "
+
+    success "Database migrations completed"
+}
+
+# Configure monitoring
+configure_monitoring() {
+    log "Configuring monitoring..."
+
+    # Get Grafana admin password
+    GRAFANA_ADMIN_PASSWORD=$(kubectl get secret -n $NAMESPACE grafana -o jsonpath="{.data.admin-password}" | base64 --decode)
+
+    # Import dashboards
+    kubectl apply -f k8s/grafana-dashboards.yaml
+
+    # Configure alert rules
+    kubectl apply -f k8s/prometheus-rules.yaml
+
+    success "Monitoring configured"
+}
+
+# Post-deployment validation
+validate_deployment() {
+    log "Validating deployment..."
+
+    # Check pod status
+    kubectl get pods -n $NAMESPACE
+
+    # Check service endpoints
+    kubectl get services -n $NAMESPACE
+
+    # Test application health
+    WEB_INTERFACE_IP=$(kubectl get svc web-interface -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+    curl -f http://$WEB_INTERFACE_IP/health
+
+    success "Deployment validation completed"
+}
+
+# Main deployment function
+main() {
+    echo "🚀 ComplianceAI Kubernetes Production Deployment"
+    echo "=============================================="
+    echo ""
+
+    log "Namespace: $NAMESPACE"
+    log "Build Number: $BUILD_NUMBER"
+    log "Docker Registry: $DOCKER_REGISTRY"
+
+    check_prerequisites
+    build_and_push_images
+    deploy_infrastructure
+    deploy_application
+    deploy_monitoring
+    deploy_ingress
+    wait_for_services
+    run_migrations
+    configure_monitoring
+    validate_deployment
+
+    echo ""
+    echo "🎉 Kubernetes Deployment Complete!"
+    echo "=================================="
+    echo ""
+    echo "🌐 Web Interface: https://complianceai.example.com"
+    echo "📊 Grafana: https://complianceai.example.com/monitoring"
+    echo "📈 Prometheus: https://complianceai.example.com/prometheus"
+    echo "📋 API Documentation: https://complianceai.example.com/api/docs"
+    echo ""
+    echo "🔧 Management Commands:"
+    echo "  kubectl get pods -n $NAMESPACE"
+    echo "  kubectl logs -n $NAMESPACE deployment/web-interface"
+    echo "  kubectl exec -n $NAMESPACE -it deployment/web-interface -- bash"
+    echo ""
+
+    success "Kubernetes deployment completed successfully!"
+}
+
+# Handle command line arguments
+case "${1:-}" in
+    "build")
+        check_prerequisites
+        build_and_push_images
+        ;;
+    "infra")
+        deploy_infrastructure
+        ;;
+    "app")
+        deploy_application
+        ;;
+    "monitoring")
+        deploy_monitoring
+        ;;
+    "ingress")
+        deploy_ingress
+        ;;
+    "migrate")
+        run_migrations
+        ;;
+    "validate")
+        validate_deployment
+        ;;
+    "stop")
+        log "Stopping all services..."
+        kubectl delete namespace $NAMESPACE
+        success "All services stopped and cleaned up"
+        ;;
+    "restart")
+        log "Restarting all services..."
+        kubectl rollout restart deployment -n $NAMESPACE
+        kubectl rollout restart statefulset -n $NAMESPACE
+        success "All services restarted"
+        ;;
+    "logs")
+        kubectl logs -n $NAMESPACE -f deployment/${2:-web-interface}
+        ;;
+    "status")
+        kubectl get pods -n $NAMESPACE
+        kubectl get services -n $NAMESPACE
+        kubectl get ingress -n $NAMESPACE
+        ;;
+    "help"|"-h"|"--help")
+        echo "Usage: $0 [command] [service]"
+        echo ""
+        echo "Commands:"
+        echo "  (no args)    - Full deployment"
+        echo "  build        - Build and push images only"
+        echo "  infra        - Deploy infrastructure only"
+        echo "  app          - Deploy application only"
+        echo "  monitoring   - Deploy monitoring only"
+        echo "  ingress      - Deploy ingress only"
+        echo "  migrate      - Database migrations only"
+        echo "  validate     - Deployment validation only"
+        echo "  stop         - Stop all services and cleanup"
+        echo "  restart      - Restart all services"
+        echo "  logs [svc]   - Show logs (optionally for specific service)"
+        echo "  status       - Show system status"
+        echo "  help         - Show this help message"
+        ;;
+    "")
+        main
+        ;;
+    *)
+        error "Unknown command: $1"
+        echo "Use '$0 help' for usage information"
+        exit 1
+        ;;
+esac</code></pre>
+
+  <h4>Helm Charts</h4>
+  <pre><code># ComplianceAI Helm Chart Structure
+complianceai/
+├── Chart.yaml
+├── values.yaml
+├── templates/
+│   ├── configmap.yaml
+│   ├── secret.yaml
+│   ├── postgres-statefulset.yaml
+│   ├── redis-deployment.yaml
+│   ├── kafka-statefulset.yaml
+│   ├── web-interface-deployment.yaml
+│   ├── regulatory-intelligence-deployment.yaml
+│   ├── intelligence-compliance-deployment.yaml
+│   ├── decision-orchestration-deployment.yaml
+│   ├── intake-processing-deployment.yaml
+│   ├── ingress.yaml
+│   ├── serviceaccount.yaml
+│   ├── role.yaml
+│   ├── rolebinding.yaml
+│   ├── networkpolicy.yaml
+│   ├── podsecuritypolicy.yaml
+│   ├── prometheus-rules.yaml
+│   └── grafana-dashboards.yaml
+├── charts/
+│   ├── postgresql/
+│   ├── redis/
+│   ├── kafka/
+│   ├── prometheus/
+│   └── grafana/
+└── ci/
+    ├── pipelines/
+    └── scripts/</code></pre>
+
+  <h2>6. Environment Configuration</h2>
+  <h3>.env Template</h3>
+  <h4>.env.example</h4>
+  <pre><code># ComplianceAI Environment Configuration Template
+# Copy this file to .env and update the values for your environment
+
+# =============================================================================
+# APPLICATION SETTINGS
+# =============================================================================
+
+# Environment (development/staging/production)
+ENVIRONMENT=development
+
+# Authentication (true for production, false for development)
+REQUIRE_AUTH=false
+
+# Build information
+BUILD_NUMBER=latest
+DOCKER_REGISTRY=complianceai
+
+# =============================================================================
+# DATABASE CONFIGURATION
+# =============================================================================
+
+# PostgreSQL Configuration
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=kyc_db
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=password
+POSTGRES_SSL_MODE=disable
+
+# MongoDB Configuration
+MONGO_HOST=mongo
+MONGO_PORT=27017
+MONGO_USER=admin
+MONGO_PASSWORD=password
+MONGO_DB=kyc_db
+MONGO_SSL=false
+
+# Redis Configuration
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_PASSWORD=password
+REDIS_DB=0
+REDIS_SSL=false
+
+# =============================================================================
+# MESSAGE QUEUE CONFIGURATION
+# =============================================================================
+
+# Kafka Configuration
+KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+KAFKA_SECURITY_PROTOCOL=PLAINTEXT
+KAFKA_SASL_MECHANISM=PLAIN
+KAFKA_USERNAME=
+KAFKA_PASSWORD=
+KAFKA_GROUP_ID=complianceai-consumer
+KAFKA_AUTO_OFFSET_RESET=latest
+KAFKA_ENABLE_AUTO_COMMIT=false
+
+# Schema Registry
+SCHEMA_REGISTRY_URL=http://schema-registry:8081
+SCHEMA_REGISTRY_SSL=false
+
+# =============================================================================
+# EXTERNAL API CONFIGURATION
+# =============================================================================
+
+# OpenAI Configuration
+OPENAI_API_KEY=your-openai-api-key-here
+OPENAI_MODEL=gpt-4
+OPENAI_MAX_TOKENS=2000
+OPENAI_TEMPERATURE=0.7
+
+# Regulatory Feed Sources
+EUR_LEX_API_KEY=
+EBA_API_KEY=
+BAFIN_API_KEY=
+CBI_API_KEY=
+FCA_API_KEY=
+
+# Document Processing
+VISION_MODEL=gpt-4-vision-preview
+OCR_ENGINE=tesseract
+DOCUMENT_MAX_SIZE_MB=10
+
+# =============================================================================
+# SECURITY CONFIGURATION
+# =============================================================================
+
+# JWT Configuration
+JWT_SECRET_KEY=your-256-bit-secret-key-here
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
+
+# Encryption
+ENCRYPTION_KEY=your-32-byte-encryption-key-here
+ENCRYPTION_ALGORITHM=AES256
+
+# SSL/TLS
+SSL_CERT_PATH=/etc/ssl/certs/complianceai.crt
+SSL_KEY_PATH=/etc/ssl/private/complianceai.key
+SSL_CA_PATH=/etc/ssl/certs/ca.crt
+
+# CORS
+CORS_ORIGINS=http://localhost:3000,http://localhost:8001
+CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS
+CORS_HEADERS=Content-Type,Authorization,X-Requested-With
+
+# =============================================================================
+# MONITORING & LOGGING
+# =============================================================================
+
+# Prometheus
+PROMETHEUS_ENABLED=true
+METRICS_PORT=8000
+METRICS_PATH=/metrics
+
+# Grafana
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=admin
+GRAFANA_DASHBOARD_UPDATE_INTERVAL=30s
+
+# AlertManager
+ALERTMANAGER_SMTP_HOST=smtp.company.com
+ALERTMANAGER_SMTP_PORT=587
+ALERTMANAGER_SMTP_USER=alerts@company.com
+ALERTMANAGER_SMTP_PASSWORD=
+ALERTMANAGER_FROM_EMAIL=alerts@company.com
+
+# Logging
+LOG_LEVEL=INFO
+LOG_FORMAT=json
+LOG_FILE=/app/logs/complianceai.log
+LOG_MAX_SIZE=100MB
+LOG_BACKUP_COUNT=5
+
+# =============================================================================
+# PERFORMANCE TUNING
+# =============================================================================
+
+# Connection Pools
+DB_MAX_CONNECTIONS=20
+DB_MIN_CONNECTIONS=5
+DB_CONNECTION_TIMEOUT=30
+REDIS_MAX_CONNECTIONS=20
+KAFKA_MAX_CONNECTIONS=10
+
+# Caching
+CACHE_TTL_SECONDS=300
+CACHE_MAX_SIZE_MB=512
+CACHE_STRATEGY=LRU
+
+# Processing Limits
+MAX_CONCURRENT_REQUESTS=100
+REQUEST_TIMEOUT_SECONDS=60
+UPLOAD_TIMEOUT_SECONDS=300
+PROCESSING_TIMEOUT_SECONDS=600
+
+# Batch Processing
+BATCH_SIZE=100
+BATCH_TIMEOUT_SECONDS=30
+MAX_BATCH_SIZE=1000
+
+# =============================================================================
+# BACKUP & RECOVERY
+# =============================================================================
+
+# Database Backup
+DB_BACKUP_SCHEDULE=0 2 * * *  # Daily at 2 AM
+DB_BACKUP_RETENTION_DAYS=30
+DB_BACKUP_COMPRESSION=gzip
+
+# Application Backup
+APP_BACKUP_SCHEDULE=0 3 * * *  # Daily at 3 AM
+APP_BACKUP_RETENTION_DAYS=7
+APP_BACKUP_ENCRYPTION=true
+
+# Recovery Settings
+RECOVERY_TIMEOUT_SECONDS=3600
+RECOVERY_RETRIES=3
+RECOVERY_BACKOFF_MULTIPLIER=2
+
+# =============================================================================
+# FEATURE FLAGS
+# =============================================================================
+
+# Enable/disable features
+FEATURE_ADVANCED_ANALYTICS=true
+FEATURE_REAL_TIME_PROCESSING=true
+FEATURE_ML_MODEL_SERVING=true
+FEATURE_DOCUMENT_PROCESSING=true
+FEATURE_REGULATORY_FEEDS=true
+FEATURE_AUDIT_LOGGING=true
+FEATURE_BACKUP_RECOVERY=true
+
+# Experimental features
+EXPERIMENTAL_PARALLEL_PROCESSING=false
+EXPERIMENTAL_AI_INSIGHTS=true
+EXPERIMENTAL_AUTO_SCALING=false
+
+# =============================================================================
+# INTEGRATION SETTINGS
+# =============================================================================
+
+# External Systems
+EXTERNAL_API_TIMEOUT=30
+EXTERNAL_API_RETRIES=3
+EXTERNAL_API_RATE_LIMIT=100
+
+# Webhook Configuration
+WEBHOOK_TIMEOUT=10
+WEBHOOK_RETRIES=3
+WEBHOOK_SIGNATURE_ALGORITHM=sha256
+
+# File Storage
+STORAGE_TYPE=local
+STORAGE_BUCKET=
+STORAGE_REGION=
+STORAGE_ACCESS_KEY=
+STORAGE_SECRET_KEY=
+
+# =============================================================================
+# DEVELOPMENT SETTINGS
+# =============================================================================
+
+# Debug mode
+DEBUG=false
+DEBUG_SQL=false
+DEBUG_KAFKA=false
+DEBUG_CACHE=false
+
+# Development tools
+ENABLE_SWAGGER=true
+ENABLE_METRICS_ENDPOINT=true
+ENABLE_HEALTH_ENDPOINT=true
+ENABLE_DEBUG_ENDPOINT=false
+
+# Hot reload
+HOT_RELOAD=false
+RELOAD_DELAY=1
+
+# =============================================================================
+# PRODUCTION OVERRIDES
+# =============================================================================
+
+# These settings are automatically applied in production
+PRODUCTION_SSL_REDIRECT=true
+PRODUCTION_SECURE_HEADERS=true
+PRODUCTION_RATE_LIMITING=true
+PRODUCTION_CORS_RESTRICTIVE=true
+PRODUCTION_AUDIT_ALL_ACTIONS=true</code></pre>
+
+  <h3>Configuration Validation</h3>
+  <h4>validate-config.py</h4>
+  <pre><code>#!/usr/bin/env python3
+"""
+Configuration Validation Script
+Validates environment variables and configuration files
+"""
+
+import os
+import sys
+import json
+from typing import Dict, List, Any
+from pathlib import Path
+import dotenv
+from cerberus import Validator
+
+class ConfigValidator:
+    def __init__(self):
+        self.errors = []
+        self.warnings = []
+
+    def validate_environment(self) -> bool:
+        """Validate environment variables"""
+        print("🔍 Validating environment configuration...")
+
+        # Load environment file
+        env_file = Path('.env')
+        if not env_file.exists():
+            self.errors.append(".env file not found")
+            return False
+
+        # Load environment variables
+        dotenv.load_dotenv()
+
+        # Define validation schema
+        schema = {
+            'ENVIRONMENT': {
+                'type': 'string',
+                'allowed': ['development', 'staging', 'production'],
+                'required': True
+            },
+            'REQUIRE_AUTH': {
+                'type': 'boolean',
+                'required': True
+            },
+            'POSTGRES_HOST': {
+                'type': 'string',
+                'required': True
+            },
+            'POSTGRES_PORT': {
+                'type': 'integer',
+                'min': 1,
+                'max': 65535,
+                'required': True
+            },
+            'POSTGRES_DB': {
+                'type': 'string',
+                'required': True
+            },
+            'POSTGRES_USER': {
+                'type': 'string',
+                'required': True
+            },
+            'POSTGRES_PASSWORD': {
+                'type': 'string',
+                'required': True,
+                'minlength': 8
+            },
+            'REDIS_HOST': {
+                'type': 'string',
+                'required': True
+            },
+            'REDIS_PORT': {
+                'type': 'integer',
+                'min': 1,
+                'max': 65535,
+                'required': True
+            },
+            'REDIS_PASSWORD': {
+                'type': 'string',
+                'minlength': 8
+            },
+            'KAFKA_BOOTSTRAP_SERVERS': {
+                'type': 'string',
+                'required': True
+            },
+            'OPENAI_API_KEY': {
+                'type': 'string',
+                'required': True,
+                'minlength': 20
+            },
+            'JWT_SECRET_KEY': {
+                'type': 'string',
+                'minlength': 32
+            }
+        }
+
+        # Validate configuration
+        validator = Validator(schema)
+        config = dict(os.environ)
+
+        if not validator.validate(config):
+            for field, messages in validator.errors.items():
+                for message in messages:
+                    self.errors.append(f"{field}: {message}")
+            return False
+
+        print("✅ Environment configuration is valid")
+        return True
+
+    def validate_services(self) -> bool:
+        """Validate service connectivity"""
+        print("🔍 Validating service connectivity...")
+
+        # Test database connectivity
+        try:
+            import psycopg2
+            conn = psycopg2.connect(
+                host=os.getenv('POSTGRES_HOST'),
+                port=os.getenv('POSTGRES_PORT'),
+                dbname=os.getenv('POSTGRES_DB'),
+                user=os.getenv('POSTGRES_USER'),
+                password=os.getenv('POSTGRES_PASSWORD')
+            )
+            conn.close()
+            print("✅ PostgreSQL connection successful")
+        except Exception as e:
+            self.errors.append(f"PostgreSQL connection failed: {e}")
+            return False
+
+        # Test Redis connectivity
+        try:
+            import redis
+            r = redis.Redis(
+                host=os.getenv('REDIS_HOST'),
+                port=int(os.getenv('REDIS_PORT', 6379)),
+                password=os.getenv('REDIS_PASSWORD'),
+                decode_responses=True
+            )
+            r.ping()
+            print("✅ Redis connection successful")
+        except Exception as e:
+            self.errors.append(f"Redis connection failed: {e}")
+            return False
+
+        # Test Kafka connectivity
+        try:
+            from kafka import KafkaProducer
+            producer = KafkaProducer(
+                bootstrap_servers=os.getenv('KAFKA_BOOTSTRAP_SERVERS').split(','),
+                security_protocol=os.getenv('KAFKA_SECURITY_PROTOCOL', 'PLAINTEXT')
+            )
+            producer.close()
+            print("✅ Kafka connection successful")
+        except Exception as e:
+            self.errors.append(f"Kafka connection failed: {e}")
+            return False
+
+        return True
+
+    def validate_files(self) -> bool:
+        """Validate configuration files"""
+        print("🔍 Validating configuration files...")
+
+        required_files = [
+            'docker-compose.yml',
+            'schema.sql',
+            'monitoring/prometheus.yml',
+            'monitoring/grafana/dashboards/kyc-system-overview.json'
+        ]
+
+        for file_path in required_files:
+            if not Path(file_path).exists():
+                self.errors.append(f"Required file not found: {file_path}")
+                return False
+
+        print("✅ Configuration files are present")
+        return True
+
+    def generate_report(self) -> Dict[str, Any]:
+        """Generate validation report"""
+        return {
+            'valid': len(self.errors) == 0,
+            'errors': self.errors,
+            'warnings': self.warnings,
+            'timestamp': datetime.now().isoformat()
+        }
+
+def main():
+    validator = ConfigValidator()
+
+    # Run validations
+    env_valid = validator.validate_environment()
+    services_valid = validator.validate_services()
+    files_valid = validator.validate_files()
+
+    # Generate report
+    report = validator.generate_report()
+
+    # Print results
+    if report['valid']:
+        print("🎉 Configuration validation successful!")
+        sys.exit(0)
+    else:
+        print("❌ Configuration validation failed:")
+        for error in report['errors']:
+            print(f"  - {error}")
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main()</code></pre>
+
+  <h2>7. CI/CD Pipeline</h2>
+  <h3>GitHub Actions Workflow</h3>
+  <h4>.github/workflows/ci-cd.yml</h4>
+  <pre><code>name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOCKER_REGISTRY: complianceai
+  KUBECONFIG: /tmp/kubeconfig
+
+jobs:
+  # Quality Assurance
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov black flake8 mypy
+
+      - name: Run linting
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run type checking
+        run: mypy . --ignore-missing-imports
+
+      - name: Run tests
+        run: |
+          pytest --cov=./ --cov-report=xml
+          coverage report --fail-under=80
+
+  # Security Scanning
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/python@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --file=requirements.txt
+
+  # Build and Test
+  build:
+    runs-on: ubuntu-latest
+    needs: [quality, security]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/web-interface
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push web-interface
+        uses: docker/build-push-action@v4
+        with:
+          context: ./python-web-interface
+          file: ./python-web-interface/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push regulatory-intelligence
+        uses: docker/build-push-action@v4
+        with:
+          context: ./python-agents/regulatory-intelligence
+          file: ./python-agents/regulatory-intelligence/Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/regulatory-intelligence:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push intelligence-compliance
+        uses: docker/build-push-action@v4
+        with:
+          context: ./python-agents/intelligence-compliance
+          file: ./python-agents/intelligence-compliance/Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/intelligence-compliance:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push decision-orchestration
+        uses: docker/build-push-action@v4
+        with:
+          context: ./python-agents/decision-orchestration
+          file: ./python-agents/decision-orchestration/Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/decision-orchestration:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build and push intake-processing
+        uses: docker/build-push-action@v4
+        with:
+          context: ./python-agents/intake-processing
+          file: ./python-agents/intake-processing/Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_REGISTRY }}/intake-processing:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Deploy to Staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_STAGING }}
+
+      - name: Deploy to staging
+        run: |
+          sed -i "s|BUILD_NUMBER|${{ github.sha }}|g" k8s/staging/*.yaml
+          kubectl apply -f k8s/staging/
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/web-interface -n complianceai-staging
+          kubectl rollout status deployment/regulatory-intelligence -n complianceai-staging
+          kubectl rollout status deployment/intelligence-compliance -n complianceai-staging
+          kubectl rollout status deployment/decision-orchestration -n complianceai-staging
+          kubectl rollout status deployment/intake-processing -n complianceai-staging
+
+      - name: Run integration tests
+        run: |
+          kubectl exec -n complianceai-staging deployment/web-interface -- python -m pytest tests/integration/ -v
+
+  # Deploy to Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [build, deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure kubectl
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBE_CONFIG_PRODUCTION }}
+
+      - name: Deploy to production
+        run: |
+          sed -i "s|BUILD_NUMBER|${{ github.sha }}|g" k8s/production/*.yaml
+          kubectl apply -f k8s/production/
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/web-interface -n complianceai-prod
+          kubectl rollout status deployment/regulatory-intelligence -n complianceai-prod
+          kubectl rollout status deployment/intelligence-compliance -n complianceai-prod
+          kubectl rollout status deployment/decision-orchestration -n complianceai-prod
+          kubectl rollout status deployment/intake-processing -n complianceai-prod
+
+      - name: Run smoke tests
+        run: |
+          curl -f https://complianceai.example.com/health
+          curl -f https://complianceai.example.com/api/v1/status
+
+      - name: Notify deployment
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          text: 'ComplianceAI deployed to production'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: success()
+
+      - name: Notify deployment failure
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: 'ComplianceAI deployment to production failed'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: failure()</code></pre>
+
+  <h3>Jenkins Pipeline</h3>
+  <h4>Jenkinsfile</h4>
+  <pre><code>pipeline {
+    agent any
+
+    environment {
+        DOCKER_REGISTRY = 'complianceai'
+        KUBECONFIG = credentials('kubeconfig')
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: env.BRANCH_NAME,
+                    credentialsId: 'git-credentials',
+                    url: 'https://github.com/company/complianceai.git'
+            }
+        }
+
+        stage('Quality Assurance') {
+            parallel {
+                stage('Linting') {
+                    steps {
+                        sh '''
+                            python -m pip install flake8 black
+                            flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+                            black --check --diff .
+                        '''
+                    }
+                }
+
+                stage('Type Checking') {
+                    steps {
+                        sh '''
+                            python -m pip install mypy
+                            mypy . --ignore-missing-imports
+                        '''
+                    }
+                }
+
+                stage('Unit Tests') {
+                    steps {
+                        sh '''
+                            python -m pip install -r requirements.txt
+                            python -m pip install pytest pytest-cov
+                            pytest --cov=./ --cov-report=xml --cov-report=html
+                        '''
+                        publishCoverage adapters: [coberturaAdapter('coverage.xml')]
+                    }
+                }
+
+                stage('Security Scan') {
+                    steps {
+                        sh '''
+                            docker run --rm -v $(pwd):/app aquasecurity/trivy fs /app
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                script {
+                    def services = ['web-interface', 'regulatory-intelligence', 'intelligence-compliance', 'decision-orchestration', 'intake-processing']
+
+                    parallel services.collectEntries { service ->
+                        ["Build ${service}": {
+                            sh """
+                                docker build -t ${DOCKER_REGISTRY}/${service}:${BUILD_NUMBER} -f python-agents/${service}/Dockerfile python-agents/${service}
+                                docker push ${DOCKER_REGISTRY}/${service}:${BUILD_NUMBER}
+                            """
+                        }]
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Staging') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                script {
+                    sh """
+                        kubectl config use-context staging
+                        sed -i 's/BUILD_NUMBER/${BUILD_NUMBER}/g' k8s/staging/*.yaml
+                        kubectl apply -f k8s/staging/
+                    """
+
+                    // Wait for rollout
+                    sh '''
+                        kubectl rollout status deployment/web-interface -n complianceai-staging --timeout=600s
+                        kubectl rollout status deployment/regulatory-intelligence -n complianceai-staging --timeout=600s
+                        kubectl rollout status deployment/intelligence-compliance -n complianceai-staging --timeout=600s
+                        kubectl rollout status deployment/decision-orchestration -n complianceai-staging --timeout=600s
+                        kubectl rollout status deployment/intake-processing -n complianceai-staging --timeout=600s
+                    '''
+                }
+            }
+        }
+
+        stage('Integration Tests') {
+            when {
+                branch 'develop'
+            }
+            steps {
+                sh '''
+                    kubectl config use-context staging
+                    kubectl exec -n complianceai-staging deployment/web-interface -- python -m pytest tests/integration/ -v --tb=short
+                '''
+            }
+        }
+
+        stage('Deploy to Production') {
+            when {
+                branch 'main'
+            }
+            steps {
+                timeout(time: 15, unit: 'MINUTES') {
+                    input message: 'Deploy to Production?', ok: 'Deploy'
+                }
+
+                script {
+                    sh """
+                        kubectl config use-context production
+                        sed -i 's/BUILD_NUMBER/${BUILD_NUMBER}/g' k8s/production/*.yaml
+                        kubectl apply -f k8s/production/
+                    """
+
+                    // Blue-green deployment
+                    sh '''
+                        kubectl rollout status deployment/web-interface -n complianceai-prod --timeout=600s
+                        kubectl rollout status deployment/regulatory-intelligence -n complianceai-prod --timeout=600s
+                        kubectl rollout status deployment/intelligence-compliance -n complianceai-prod --timeout=600s
+                        kubectl rollout status deployment/decision-orchestration -n complianceai-prod --timeout=600s
+                        kubectl rollout status deployment/intake-processing -n complianceai-prod --timeout=600s
+                    '''
+                }
+            }
+        }
+
+        stage('Smoke Tests') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh '''
+                    curl -f https://complianceai.example.com/health
+                    curl -f https://complianceai.example.com/api/v1/status
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            script {
+                if (env.BRANCH_NAME == 'main') {
+                    slackSend color: 'good', message: "ComplianceAI deployed to production successfully - Build #${BUILD_NUMBER}"
+                }
+            }
+        }
+
+        failure {
+            script {
+                slackSend color: 'danger', message: "ComplianceAI deployment failed - Build #${BUILD_NUMBER}"
+            }
+        }
+
+        always {
+            sh '''
+                docker system prune -f
+                docker image prune -f
+            '''
+            publishHTML target: [
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: 'htmlcov',
+                reportFiles: 'index.html',
+                reportName: 'Coverage Report'
+            ]
+        }
+    }
+}</code></pre>
+
+  <h2>8. Backup & Disaster Recovery</h2>
+  <h3>Automated Backup Strategy</h3>
+  <h4>backup.sh</h4>
+  <pre><code>#!/bin/bash
+
+# ComplianceAI Automated Backup Script
+# Performs comprehensive backups of all system components
+
+set -e
+
+# Configuration
+BACKUP_ROOT="/backups"
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+BACKUP_DIR="${BACKUP_ROOT}/${TIMESTAMP}"
+LOG_FILE="${BACKUP_ROOT}/backup_${TIMESTAMP}.log"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+# Logging functions
+log() {
+    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
+success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1" | tee -a "$LOG_FILE"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE"
+    exit 1
+}
+
+warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1" | tee -a "$LOG_FILE"
+}
+
+# Create backup directory
+create_backup_dir() {
+    log "Creating backup directory: $BACKUP_DIR"
+    mkdir -p "$BACKUP_DIR"
+    mkdir -p "${BACKUP_DIR}/database"
+    mkdir -p "${BACKUP_DIR}/application"
+    mkdir -p "${BACKUP_DIR}/configuration"
+    success "Backup directory created"
+}
+
+# Backup PostgreSQL database
+backup_postgresql() {
+    log "Starting PostgreSQL backup..."
+
+    # Configuration
+    PG_HOST=${POSTGRES_HOST:-localhost}
+    PG_PORT=${POSTGRES_PORT:-5432}
+    PG_USER=${POSTGRES_USER:-postgres}
+    PG_DB=${POSTGRES_DB:-complianceai_prod}
+    PG_PASSWORD=${POSTGRES_PASSWORD}
+
+    # Export password for pg_dump
+    export PGPASSWORD="$PG_PASSWORD"
+
+    # Full database backup
+    BACKUP_FILE="${BACKUP_DIR}/database/postgresql_${TIMESTAMP}.sql.gz"
+
+    pg_dump \
+        -h "$PG_HOST" \
+        -p "$PG_PORT" \
+        -U "$PG_USER" \
+        -d "$PG_DB" \
+        --format=custom \
+        --compress=9 \
+        --verbose \
+        --file="$BACKUP_FILE"
+
+    # Verify backup
+    if [ -f "$BACKUP_FILE" ] && [ -s "$BACKUP_FILE" ]; then
+        FILE_SIZE=$(stat -f%z "$BACKUP_FILE" 2>/dev/null || stat -c%s "$BACKUP_FILE")
+        success "PostgreSQL backup completed: $(numfmt --to=iec-i --suffix=B $FILE_SIZE)"
+    else
+        error "PostgreSQL backup failed"
+    fi
+}
+
+# Backup MongoDB database
+backup_mongodb() {
+    log "Starting MongoDB backup..."
+
+    # Configuration
+    MONGO_HOST=${MONGO_HOST:-localhost}
+    MONGO_PORT=${MONGO_PORT:-27017}
+    MONGO_USER=${MONGO_USER}
+    MONGO_PASSWORD=${MONGO_PASSWORD}
+    MONGO_DB=${MONGO_DB:-complianceai_prod}
+
+    # Create backup
+    BACKUP_FILE="${BACKUP_DIR}/database/mongodb_${TIMESTAMP}"
+
+    if [ -n "$MONGO_USER" ] && [ -n "$MONGO_PASSWORD" ]; then
+        mongodump \
+            --host "$MONGO_HOST" \
+            --port "$MONGO_PORT" \
+            --username "$MONGO_USER" \
+            --password "$MONGO_PASSWORD" \
+            --db "$MONGO_DB" \
+            --out "$BACKUP_FILE" \
+            --gzip
+    else
+        mongodump \
+            --host "$MONGO_HOST" \
+            --port "$MONGO_PORT" \
+            --db "$MONGO_DB" \
+            --out "$BACKUP_FILE" \
+            --gzip
+    fi
+
+    # Verify backup
+    if [ -d "$BACKUP_FILE" ] && [ "$(ls -A "$BACKUP_FILE" 2>/dev/null)" ]; then
+        DIR_SIZE=$(du -sh "$BACKUP_FILE" | cut -f1)
+        success "MongoDB backup completed: $DIR_SIZE"
+    else
+        error "MongoDB backup failed"
+    fi
+}
+
+# Backup Redis data
+backup_redis() {
+    log "Starting Redis backup..."
+
+    # Configuration
+    REDIS_HOST=${REDIS_HOST:-localhost}
+    REDIS_PORT=${REDIS_PORT:-6379}
+    REDIS_PASSWORD=${REDIS_PASSWORD}
+
+    # Create backup using BGSAVE
+    if [ -n "$REDIS_PASSWORD" ]; then
+        redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -a "$REDIS_PASSWORD" BGSAVE
+    else
+        redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" BGSAVE
+    fi
+
+    # Wait for save to complete
+    sleep 10
+
+    # Copy dump file
+    DUMP_FILE="${BACKUP_DIR}/database/redis_${TIMESTAMP}.rdb"
+
+    if [ -n "$REDIS_PASSWORD" ]; then
+        redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" -a "$REDIS_PASSWORD" --rdb "$DUMP_FILE"
+    else
+        redis-cli -h "$REDIS_HOST" -p "$REDIS_PORT" --rdb "$DUMP_FILE"
+    fi
+
+    if [ -f "$DUMP_FILE" ] && [ -s "$DUMP_FILE" ]; then
+        FILE_SIZE=$(stat -f%z "$DUMP_FILE" 2>/dev/null || stat -c%s "$DUMP_FILE")
+        success "Redis backup completed: $(numfmt --to=iec-i --suffix=B $FILE_SIZE)"
+    else
+        warning "Redis backup may have failed or dump file not accessible"
+    fi
+}
+
+# Backup application data
+backup_application() {
+    log "Starting application data backup..."
+
+    # Configuration files
+    CONFIG_DIR="${BACKUP_DIR}/configuration"
+    cp -r /app/config "$CONFIG_DIR/" 2>/dev/null || warning "Config directory not found"
+    cp /app/.env "$CONFIG_DIR/" 2>/dev/null || warning ".env file not found"
+
+    # Static files
+    cp -r /app/static "${BACKUP_DIR}/application/" 2>/dev/null || warning "Static files not found"
+
+    # Templates
+    cp -r /app/templates "${BACKUP_DIR}/application/" 2>/dev/null || warning "Templates not found"
+
+    # Logs
+    cp -r /app/logs "${BACKUP_DIR}/application/" 2>/dev/null || warning "Logs not found"
+
+    success "Application data backup completed"
+}
+
+# Backup Kafka topics (schema and configuration)
+backup_kafka() {
+    log "Starting Kafka configuration backup..."
+
+    # Configuration
+    KAFKA_SERVERS=${KAFKA_BOOTSTRAP_SERVERS:-localhost:9092}
+
+    # List topics
+    kafka-topics --bootstrap-server "$KAFKA_SERVERS" --list > "${BACKUP_DIR}/kafka_topics.txt"
+
+    # Describe topics
+    kafka-topics --bootstrap-server "$KAFKA_SERVERS" --describe > "${BACKUP_DIR}/kafka_topics_describe.txt"
+
+    # Consumer groups
+    kafka-consumer-groups --bootstrap-server "$KAFKA_SERVERS" --list > "${BACKUP_DIR}/kafka_consumer_groups.txt"
+
+    success "Kafka configuration backup completed"
+}
+
+# Compress backup
+compress_backup() {
+    log "Compressing backup..."
+
+    ARCHIVE_FILE="${BACKUP_ROOT}/complianceai_backup_${TIMESTAMP}.tar.gz"
+
+    tar -czf "$ARCHIVE_FILE" -C "$BACKUP_ROOT" "$TIMESTAMP"
+
+    if [ -f "$ARCHIVE_FILE" ]; then
+        ARCHIVE_SIZE=$(stat -f%z "$ARCHIVE_FILE" 2>/dev/null || stat -c%s "$ARCHIVE_FILE")
+        success "Backup compressed: $(numfmt --to=iec-i --suffix=B $ARCHIVE_SIZE)"
+    else
+        error "Backup compression failed"
+    fi
+}
+
+# Cleanup old backups
+cleanup_old_backups() {
+    log "Cleaning up old backups..."
+
+    # Keep last 30 days of backups
+    find "$BACKUP_ROOT" -name "complianceai_backup_*.tar.gz" -mtime +30 -delete
+
+    # Keep last 7 days of uncompressed backups
+    find "$BACKUP_ROOT" -name "20*" -type d -mtime +7 -exec rm -rf {} + 2>/dev/null || true
+
+    success "Old backup cleanup completed"
+}
+
+# Calculate backup size
+calculate_backup_size() {
+    if [ -d "$BACKUP_DIR" ]; then
+        BACKUP_SIZE=$(du -sh "$BACKUP_DIR" | cut -f1)
+        log "Backup size: $BACKUP_SIZE"
+    fi
+}
+
+# Send notification
+send_notification() {
+    log "Sending backup notification..."
+
+    # This would integrate with your notification system
+    # Example: Slack, email, PagerDuty, etc.
+
+    BACKUP_STATUS="SUCCESS"
+    if [ $? -ne 0 ]; then
+        BACKUP_STATUS="FAILED"
+    fi
+
+    # Example Slack notification
+    curl -X POST -H 'Content-type: application/json' \
+        --data "{\"text\":\"ComplianceAI Backup $BACKUP_STATUS - Size: $BACKUP_SIZE\"}" \
+        "$SLACK_WEBHOOK_URL" 2>/dev/null || true
+}
+
+# Main backup function
+main() {
+    echo "🗄️  ComplianceAI Automated Backup"
+    echo "================================="
+    echo ""
+
+    log "Backup started at $(date)"
+    log "Backup directory: $BACKUP_DIR"
+
+    create_backup_dir
+
+    # Run backup components
+    backup_postgresql
+    backup_mongodb
+    backup_redis
+    backup_application
+    backup_kafka
+
+    calculate_backup_size
+    compress_backup
+    cleanup_old_backups
+
+    log "Backup completed at $(date)"
+    success "All backup operations completed successfully"
+
+    send_notification
+}
+
+# Error handling
+trap 'error "Backup failed with exit code $?"' ERR
+
+# Run main function
+main "$@"</code></pre>
+
+  <h3>Disaster Recovery</h3>
+  <h4>recovery.sh</h4>
+  <pre><code>#!/bin/bash
+
+# ComplianceAI Disaster Recovery Script
+# Performs comprehensive system recovery from backups
+
+set -e
+
+# Configuration
+BACKUP_ROOT="/backups"
+RECOVERY_LOG="/var/log/complianceai_recovery.log"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Logging functions
+log() {
+    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1" | tee -a "$RECOVERY_LOG"
+}
+
+success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1" | tee -a "$RECOVERY_LOG"
+}
+
+error() {
+    echo -e "${RED}[ERROR]${NC} $1" | tee -a "$RECOVERY_LOG"
+    exit 1
+}
+
+warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1" | tee -a "$RECOVERY_LOG"
+}
+
+# Validate recovery prerequisites
+validate_prerequisites() {
+    log "Validating recovery prerequisites..."
+
+    # Check if we're running as root or appropriate user
+    if [ "$EUID" -ne 0 ] && [ "$EUID" -ne 1001 ]; then
+        warning "Not running as root or complianceai user"
+    fi
+
+    # Check available disk space
+    AVAILABLE_SPACE=$(df / | tail -1 | awk '{print $4}')
+    if [ "$AVAILABLE_SPACE" -lt 10485760 ]; then  # 10GB in KB
+        error "Insufficient disk space for recovery"
+    fi
+
+    # Check backup integrity
+    if [ ! -d "$BACKUP_ROOT" ]; then
+        error "Backup directory not found: $BACKUP_ROOT"
+    fi
+
+    success "Prerequisites validation completed"
+}
+
+# Select backup for recovery
+select_backup() {
+    log "Selecting backup for recovery..."
+
+    # List available backups
+    BACKUPS=($(ls -t "$BACKUP_ROOT"/complianceai_backup_*.tar.gz 2>/dev/null))
+
+    if [ ${#BACKUPS[@]} -eq 0 ]; then
+        error "No backups found in $BACKUP_ROOT"
+    fi
+
+    # Use most recent backup by default
+    LATEST_BACKUP="${BACKUPS[0]}"
+
+    # Allow manual selection if multiple backups exist
+    if [ ${#BACKUPS[@]} -gt 1 ]; then
+        echo "Available backups:"
+        for i in "${!BACKUPS[@]}"; do
+            BACKUP_DATE=$(basename "${BACKUPS[$i]}" | sed 's/complianceai_backup_\(.*\)\.tar\.gz/\1/')
+            echo "  $i: $BACKUP_DATE"
+        done
+
+        read -p "Select backup to restore (0-${#BACKUPS[@]}-1) [0]: " BACKUP_INDEX
+        BACKUP_INDEX=${BACKUP_INDEX:-0}
+
+        if [[ ! $BACKUP_INDEX =~ ^[0-9]+$ ]] || [ "$BACKUP_INDEX" -ge ${#BACKUPS[@]} ]; then
+            error "Invalid backup selection"
+        fi
+
+        LATEST_BACKUP="${BACKUPS[$BACKUP_INDEX]}"
+    fi
+
+    BACKUP_TIMESTAMP=$(basename "$LATEST_BACKUP" | sed 's/complianceai_backup_\(.*\)\.tar\.gz/\1/')
+    RECOVERY_DIR="${BACKUP_ROOT}/recovery_${BACKUP_TIMESTAMP}"
+
+    log "Selected backup: $LATEST_BACKUP"
+    log "Recovery directory: $RECOVERY_DIR"
+
+    # Extract backup
+    mkdir -p "$RECOVERY_DIR"
+    tar -xzf "$LATEST_BACKUP" -C "$BACKUP_ROOT"
+
+    success "Backup selected and extracted"
+}
+
+# Stop services for recovery
+stop_services() {
+    log "Stopping services for recovery..."
+
+    # Docker Compose
+    if [ -f "docker-compose.yml" ]; then
+        docker-compose down
+    fi
+
+    # Kubernetes
+    if command -v kubectl &> /dev/null; then
+        kubectl scale deployment --all --replicas=0 -n complianceai-prod 2>/dev/null || true
+    fi
+
+    success "Services stopped"
+}
+
+# Recover PostgreSQL database
+recover_postgresql() {
+    log "Recovering PostgreSQL database..."
+
+    PG_HOST=${POSTGRES_HOST:-localhost}
+    PG_PORT=${POSTGRES_PORT:-5432}
+    PG_USER=${POSTGRES_USER:-postgres}
+    PG_DB=${POSTGRES_DB:-complianceai_prod}
+    PG_PASSWORD=${POSTGRES_PASSWORD}
+
+    BACKUP_FILE="${RECOVERY_DIR}/database/postgresql_*.sql.gz"
+
+    if [ -f "$BACKUP_FILE" ]; then
+        export PGPASSWORD="$PG_PASSWORD"
+
+        # Drop and recreate database
+        psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d postgres \
+            -c "DROP DATABASE IF EXISTS ${PG_DB};"
+
+        psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d postgres \
+            -c "CREATE DATABASE ${PG_DB};"
+
+        # Restore from backup
+        gunzip -c "$BACKUP_FILE" | pg_restore \
+            -h "$PG_HOST" \
+            -p "$PG_PORT" \
+            -U "$PG_USER" \
+            -d "$PG_DB" \
+            --verbose \
+            --clean \
+            --if-exists \
+            --create
+
+        success "PostgreSQL database recovered"
+    else
+        warning "PostgreSQL backup not found"
+    fi
+}
+
+# Recover MongoDB database
+recover_mongodb() {
+    log "Recovering MongoDB database..."
+
+    MONGO_HOST=${MONGO_HOST:-localhost}
+    MONGO_PORT=${MONGO_PORT:-27017}
+    MONGO_USER=${MONGO_USER}
+    MONGO_PASSWORD=${MONGO_PASSWORD}
+    MONGO_DB=${MONGO_DB:-complianceai_prod}
+
+    BACKUP_DIR="${RECOVERY_DIR}/database/mongodb_*"
+
+    if [ -d "$BACKUP_DIR" ]; then
+        # Drop existing database
+        if [ -n "$MONGO_USER" ] && [ -n "$MONGO_PASSWORD" ]; then
+            mongosh --host "$MONGO_HOST" --port "$MONGO_PORT" \
+                --username "$MONGO_USER" --password "$MONGO_PASSWORD" \
+                --eval "db.dropDatabase()"
+        else
+            mongosh --host "$MONGO_HOST" --port "$MONGO_PORT" \
+                --eval "use $MONGO_DB; db.dropDatabase()"
+        fi
+
+        # Restore from backup
+        if [ -n "$MONGO_USER" ] && [ -n "$MONGO_PASSWORD" ]; then
+            mongorestore \
+                --host "$MONGO_HOST" \
+                --port "$MONGO_PORT" \
+                --username "$MONGO_USER" \
+                --password "$MONGO_PASSWORD" \
+                --db "$MONGO_DB" \
+                "$BACKUP_DIR"
+        else
+            mongorestore \
+                --host "$MONGO_HOST" \
+                --port "$MONGO_PORT" \
+                --db "$MONGO_DB" \
+                "$BACKUP_DIR"
+        fi
+
+        success "MongoDB database recovered"
+    else
+        warning "MongoDB backup not found"
+    fi
+}
+
+# Recover Redis data
+recover_redis() {
+    log "Recovering Redis data..."
+
+    REDIS_HOST=${REDIS_HOST:-localhost}
+    REDIS_PORT=${REDIS_PORT:-6379}
+    REDIS_PASSWORD=${REDIS_PASSWORD}
+
+    BACKUP_FILE="${RECOVERY_DIR}/database/redis_*.rdb"
+
+    if [ -f "$BACKUP_FILE" ]; then
+        # Stop Redis
+        systemctl stop redis 2>/dev/null || true
+
+        # Copy backup file
+        cp "$BACKUP_FILE" /var/lib/redis/dump.rdb
+        chown redis:redis /var/lib/redis/dump.rdb
+
+        # Start Redis
+        systemctl start redis 2>/dev/null || true
+
+        success "Redis data recovered"
+    else
+        warning "Redis backup not found"
+    fi
+}
+
+# Recover application data
+recover_application() {
+    log "Recovering application data..."
+
+    # Configuration files
+    if [ -d "${RECOVERY_DIR}/configuration" ]; then
+        cp -r "${RECOVERY_DIR}/configuration"/* /app/ 2>/dev/null || true
+        success "Configuration files recovered"
+    fi
+
+    # Static files
+    if [ -d "${RECOVERY_DIR}/application/static" ]; then
+        cp -r "${RECOVERY_DIR}/application/static" /app/ 2>/dev/null || true
+        success "Static files recovered"
+    fi
+
+    # Templates
+    if [ -d "${RECOVERY_DIR}/application/templates" ]; then
+        cp -r "${RECOVERY_DIR}/application/templates" /app/ 2>/dev/null || true
+        success "Templates recovered"
+    fi
+}
+
+# Start services after recovery
+start_services() {
+    log "Starting services after recovery..."
+
+    # Docker Compose
+    if [ -f "docker-compose.yml" ]; then
+        docker-compose up -d
+    fi
+
+    # Kubernetes
+    if command -v kubectl &> /dev/null; then
+        kubectl scale deployment --all --replicas=1 -n complianceai-prod 2>/dev/null || true
+    fi
+
+    success "Services started"
+}
+
+# Validate recovery
+validate_recovery() {
+    log "Validating recovery..."
+
+    # Wait for services to be ready
+    sleep 30
+
+    # Test database connections
+    if command -v psql &> /dev/null; then
+        psql -h "${POSTGRES_HOST:-localhost}" -p "${POSTGRES_PORT:-5432}" \
+            -U "${POSTGRES_USER:-postgres}" -d "${POSTGRES_DB:-complianceai_prod}" \
+            -c "SELECT COUNT(*) FROM customers;" > /dev/null 2>&1
+
+        if [ $? -eq 0 ]; then
+            success "PostgreSQL connection validated"
+        else
+            warning "PostgreSQL connection validation failed"
+        fi
+    fi
+
+    # Test application health
+    if curl -f http://localhost:8000/health > /dev/null 2>&1; then
+        success "Application health check passed"
+    else
+        warning "Application health check failed"
+    fi
+
+    success "Recovery validation completed"
+}
+
+# Cleanup recovery artifacts
+cleanup_recovery() {
+    log "Cleaning up recovery artifacts..."
+
+    # Remove extracted backup
+    rm -rf "$RECOVERY_DIR" 2>/dev/null || true
+
+    success "Recovery cleanup completed"
+}
+
+# Send recovery notification
+send_recovery_notification() {
+    log "Sending recovery notification..."
+
+    RECOVERY_STATUS="SUCCESS"
+    if [ $? -ne 0 ]; then
+        RECOVERY_STATUS="FAILED"
+    fi
+
+    # Example Slack notification
+    curl -X POST -H 'Content-type: application/json' \
+        --data "{\"text\":\"ComplianceAI Recovery $RECOVERY_STATUS - Backup: $BACKUP_TIMESTAMP\"}" \
+        "$SLACK_WEBHOOK_URL" 2>/dev/null || true
+}
+
+# Main recovery function
+main() {
+    echo "🔄 ComplianceAI Disaster Recovery"
+    echo "================================"
+    echo ""
+
+    log "Recovery started at $(date)"
+
+    validate_prerequisites
+    select_backup
+    stop_services
+    recover_postgresql
+    recover_mongodb
+    recover_redis
+    recover_application
+    start_services
+    validate_recovery
+    cleanup_recovery
+
+    log "Recovery completed at $(date)"
+    success "Disaster recovery completed successfully"
+
+    send_recovery_notification
+}
+
+# Error handling
+trap 'error "Recovery failed with exit code $?"' ERR
+
+# Run main function
+main "$@"</code></pre>
+
+  <h2>9. Performance Optimization</h2>
+  <h3>Resource Optimization</h3>
+  <h4>Docker Resource Limits</h4>
+  <pre><code># Production resource limits
+services:
+  web-interface:
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  regulatory-intelligence:
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  intelligence-compliance:
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    scale: 2
+
+  decision-orchestration:
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    scale: 2
+
+  intake-processing:
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+    scale: 3</code></pre>
+
+  <h4>Kubernetes Resource Management</h4>
+  <pre><code>apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: complianceai-quota
+  namespace: complianceai-prod
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+    persistentvolumeclaims: "10"
+    pods: "50"
+    services: "20"
+    secrets: "20"
+    configmaps: "50"
+
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: complianceai-limits
+  namespace: complianceai-prod
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: 512Mi
+    defaultRequest:
+      cpu: "250m"
+      memory: 256Mi
+    type: Container</code></pre>
+
+  <h3>Horizontal Pod Autoscaling</h3>
+  <h4>CPU-based Autoscaling</h4>
+  <pre><code>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-interface-hpa
+  namespace: complianceai-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web-interface
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 60</code></pre>
+
+  <h4>Custom Metrics Autoscaling</h4>
+  <pre><code>apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: intake-processing-hpa
+  namespace: complianceai-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: intake-processing
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  - type: External
+    external:
+      metric:
+        name: kafka_consumer_lag
+        selector:
+          matchLabels:
+            topic: "intelligence_compliance_input"
+      target:
+        type: Value
+        value: 100
+  - type: Pods
+    pods:
+      metric:
+        name: processing_queue_size
+      target:
+        type: AverageValue
+        averageValue: 50
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 600
+      policies:
+      - type: Percent
+        value: 20
+        periodSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 120
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60</code></pre>
+
+  <h3>Database Optimization</h3>
+  <h4>PostgreSQL Performance Tuning</h4>
+  <pre><code># postgresql.conf optimizations
+max_connections = 200
+shared_buffers = 2GB
+effective_cache_size = 6GB
+maintenance_work_mem = 512MB
+checkpoint_completion_target = 0.9
+wal_buffers = 16MB
+default_statistics_target = 100
+
+# Connection pooling with PgBouncer
+[databases]
+complianceai_prod = host=postgres port=5432 dbname=complianceai_prod
+
+[pgbouncer]
+listen_port = 6432
+listen_addr = 0.0.0.0
+auth_type = md5
+auth_file = /etc/pgbouncer/userlist.txt
+pool_mode = transaction
+max_client_conn = 1000
+default_pool_size = 50
+reserve_pool_size = 25
+max_db_connections = 100
+max_user_connections = 100</code></pre>
+
+  <h4>MongoDB Performance Tuning</h4>
+  <pre><code># mongod.conf optimizations
+storage:
+  wiredTiger:
+    engineConfig:
+      cacheSizeGB: 4
+    maxCacheOverflowSizeGB: 0.5
+
+operationProfiling:
+  mode: slowOp
+  slowOpThresholdMs: 100
+
+replication:
+  oplogSizeMB: 1024
+
+net:
+  maxIncomingConnections: 1000
+  compression:
+    compressors: snappy,zlib
+
+setParameter:
+  wiredTigerMaxCacheOverflowSizeGB: 0.5
+  wiredTigerCacheSizeCheckDelaySecs: 5</code></pre>
+
+  <h2>10. Troubleshooting</h2>
+  <h3>Common Deployment Issues</h3>
+  <dl>
+    <dt>Container Startup Failures</dt>
+    <dd>Check Docker logs, verify environment variables, ensure dependencies are available</dd>
+
+    <dt>Service Discovery Issues</dt>
+    <dd>Verify network configuration, check DNS resolution, validate service names</dd>
+
+    <dt>Resource Exhaustion</dt>
+    <dd>Monitor resource usage, adjust resource limits, optimize application performance</dd>
+
+    <dt>Database Connection Issues</dt>
+    <dd>Check connection strings, verify credentials, monitor connection pools</dd>
+  </dl>
+
+  <h3>Kubernetes Troubleshooting</h3>
+  <dl>
+    <dt>Pod Pending Status</dt>
+    <dd>Check resource availability, verify node capacity, review scheduling constraints</dd>
+
+    <dt>Pod CrashLoopBackOff</dt>
+    <dd>Review container logs, check health probes, verify environment configuration</dd>
+
+    <dt>Service Unavailable</dt>
+    <dd>Check service endpoints, verify network policies, validate ingress configuration</dd>
+
+    <dt>Persistent Volume Issues</dt>
+    <dd>Verify storage class, check PVC status, validate mount points</dd>
+  </dl>
+
+  <h3>Monitoring & Alerting Issues</h3>
+  <dl>
+    <dt>Missing Metrics</dt>
+    <dd>Check service discovery, verify scrape configurations, validate metric endpoints</dd>
+
+    <dt>Alert Storm</dt>
+    <dd>Review alert rules, adjust thresholds, implement alert grouping</dd>
+
+    <dt>Dashboard Not Loading</dt>
+    <dd>Check Grafana configuration, verify data sources, validate permissions</dd>
+
+    <dt>Log Aggregation Issues</dt>
+    <dd>Verify log shipping configuration, check log volume, validate parsing rules</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Docker debugging
+docker ps -a
+docker logs [container_name]
+docker exec -it [container_name] /bin/bash
+docker stats
+
+# Kubernetes debugging
+kubectl get pods -n complianceai-prod
+kubectl describe pod [pod_name] -n complianceai-prod
+kubectl logs [pod_name] -n complianceai-prod
+kubectl exec -it [pod_name] -n complianceai-prod -- /bin/bash
+kubectl get events -n complianceai-prod --sort-by=.metadata.creationTimestamp
+
+# Prometheus debugging
+curl http://prometheus:9090/api/v1/targets
+curl http://prometheus:9090/api/v1/alerts
+curl http://prometheus:9090/api/v1/query?query=up
+
+# Grafana debugging
+curl http://grafana:3000/api/health
+curl http://grafana:3000/api/datasources
+
+# Network debugging
+kubectl run debug --image=busybox --rm -it --restart=Never -- nslookup [service_name]
+kubectl run debug --image=busybox --rm -it --restart=Never -- wget [service_url]
+
+# Database debugging
+kubectl exec -it postgres-0 -n complianceai-prod -- psql -U complianceai -d complianceai_prod
+kubectl exec -it mongodb-0 -n complianceai-prod -- mongosh complianceai_prod</code></pre>
+
+</body>
+</html>

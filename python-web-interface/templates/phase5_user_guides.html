@@ -8,18 +8,332 @@
   <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
 </head>
 <body>
-  <h1>Decisioning & Reporting Guide</h1>
-  <p>Phase 5: Decision automation, human review workflows and regulator reporting.</p>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
 
-  <h2>Decision Workflow</h2>
+  
+  <h1>Decisioning & Reporting Guide</h1>
+  <p>This comprehensive guide covers Phase 5: Automated decision workflows, human review processes, regulatory reporting, and compliance monitoring in the ComplianceAI system.</p>
+
+  <h2>1. Overview</h2>
+  <p>Phase 5 focuses on the final stages of the compliance process, including automated decision-making, human review workflows, escalation procedures, and comprehensive regulatory reporting. This phase integrates all previous compliance checks into final approve/reject decisions while maintaining full audit trails.</p>
+
+  <h2>2. Key Features</h2>
+  <ul>
+    <li><strong>Automated Decision Engine:</strong> Rule-based approval/rejection workflows</li>
+    <li><strong>Human Review Workflows:</strong> Escalation and manual review processes</li>
+    <li><strong>Regulatory Reporting:</strong> FINREP, COREP, and DORA report generation</li>
+    <li><strong>Audit Trail Management:</strong> Complete compliance decision logging</li>
+    <li><strong>Case Escalation:</strong> Multi-level approval processes</li>
+    <li><strong>Performance Analytics:</strong> Decision quality and efficiency metrics</li>
+  </ul>
+
+  <h2>3. Decision Engine Architecture</h2>
+  <h3>Decision Types</h3>
+  <ul>
+    <li><strong>Auto-Approve:</strong> Low-risk cases meeting all compliance criteria</li>
+    <li><strong>Auto-Reject:</strong> Cases with critical compliance violations</li>
+    <li><strong>Manual Review:</strong> Medium-risk cases requiring human assessment</li>
+    <li><strong>Escalation:</strong> High-risk or complex cases needing senior approval</li>
+    <li><strong>Hold:</strong> Cases requiring additional information or investigation</li>
+  </ul>
+
+  <h3>Decision Workflow States</h3>
   <ol>
-    <li>Automated rule checks </li>
-    <li>Flag for manual review where needed</li>
-    <li>Final decision recorded with audit trail</li>
+    <li><strong>Initial Assessment:</strong> Risk scoring and preliminary checks</li>
+    <li><strong>Automated Rules:</strong> Application of compliance rule engine</li>
+    <li><strong>Threshold Evaluation:</strong> Risk score vs. approval thresholds</li>
+    <li><strong>Human Review Queue:</strong> Cases flagged for manual review</li>
+    <li><strong>Final Decision:</strong> Approve, reject, or escalate</li>
+    <li><strong>Post-Decision Processing:</strong> Documentation and reporting</li>
   </ol>
 
-  <h2>Reporting</h2>
-  <p>Scheduled and ad-hoc reporting APIs expose FINREP/COREP/DORA outputs.</p>
+  <h2>4. Rule-Based Decision Engine</h2>
+  <h3>Decision Rules Configuration</h3>
+  <pre><code># Approval Rules
+AUTO_APPROVE_RULES = {
+    'risk_score_max': 25,
+    'no_sanctions_match': True,
+    'identity_verified': True,
+    'documents_complete': True,
+    'transaction_limits_ok': True
+}
+
+# Rejection Rules
+AUTO_REJECT_RULES = {
+    'sanctions_match': True,
+    'risk_score_min': 85,
+    'fraud_indicators': True,
+    'false_identity': True
+}
+
+# Manual Review Triggers
+MANUAL_REVIEW_RULES = {
+    'risk_score_range': (31, 70),
+    'pep_match': True,
+    'unusual_patterns': True,
+    'high_value_transaction': True
+}</code></pre>
+
+  <h3>Business Rules Engine</h3>
+  <ul>
+    <li><strong>Customer Type Rules:</strong> Different thresholds for retail vs. corporate clients</li>
+    <li><strong>Jurisdiction Rules:</strong> Country-specific compliance requirements</li>
+    <li><strong>Product Rules:</strong> Risk-based rules for different financial products</li>
+    <li><strong>Transaction Rules:</strong> Velocity and amount-based decision rules</li>
+  </ul>
+
+  <h2>5. Human Review Workflows</h2>
+  <h3>Review Queue Management</h3>
+  <ul>
+    <li><strong>Priority Classification:</strong> High, medium, low priority based on risk and SLA</li>
+    <li><strong>Case Assignment:</strong> Automatic assignment based on reviewer expertise</li>
+    <li><strong>SLA Management:</strong> Service level agreement tracking and alerts</li>
+    <li><strong>Workload Balancing:</strong> Even distribution of review cases</li>
+  </ul>
+
+  <h3>Review Process</h3>
+  <ol>
+    <li><strong>Case Review:</strong> Complete case documentation and risk assessment</li>
+    <li><strong>Document Verification:</strong> Manual verification of automated checks</li>
+    <li><strong>Risk Override:</strong> Ability to adjust risk scores with justification</li>
+    <li><strong>Decision Documentation:</strong> Detailed reasoning for approval/rejection</li>
+    <li><strong>Escalation Criteria:</strong> Rules for escalating to senior reviewers</li>
+  </ol>
+
+  <h3>Review Dashboard</h3>
+  <ul>
+    <li><strong>Case Queue:</strong> Real-time view of pending reviews</li>
+    <li><strong>Review History:</strong> Past decisions and patterns</li>
+    <li><strong>Performance Metrics:</strong> Review speed and accuracy statistics</li>
+    <li><strong>Collaboration Tools:</strong> Notes and discussion threads</li>
+  </ul>
+
+  <h2>6. Regulatory Reporting</h2>
+  <h3>Report Types</h3>
+  <ul>
+    <li><strong>FINREP:</strong> Financial reporting for prudential supervision</li>
+    <li><strong>COREP:</strong> Common Reporting for supervisory authorities</li>
+    <li><strong>DORA:</strong> Digital Operational Resilience Act reporting</li>
+    <li><strong>AML Reports:</strong> Anti-money laundering compliance reports</li>
+    <li><strong>Transaction Reports:</strong> Suspicious activity and transaction monitoring</li>
+  </ul>
+
+  <h3>Report Generation Process</h3>
+  <ol>
+    <li><strong>Data Aggregation:</strong> Collection of relevant transaction and customer data</li>
+    <li><strong>Report Formatting:</strong> XBRL, CSV, or JSON format generation</li>
+    <li><strong>Validation:</strong> Schema validation and business rule checks</li>
+    <li><strong>Encryption:</strong> Secure report packaging and transmission</li>
+    <li><strong>Delivery:</strong> Automated submission to regulatory authorities</li>
+  </ol>
+
+  <h2>7. Audit Trail Management</h2>
+  <h3>Audit Components</h3>
+  <ul>
+    <li><strong>Decision Audit:</strong> Complete record of approval/rejection decisions</li>
+    <li><strong>Review Audit:</strong> Documentation of manual review processes</li>
+    <li><strong>Override Audit:</strong> Tracking of risk score adjustments</li>
+    <li><strong>System Audit:</strong> Automated system actions and rule applications</li>
+  </ul>
+
+  <h3>Audit Trail Features</h3>
+  <ul>
+    <li><strong>Immutable Records:</strong> Tamper-proof audit entries</li>
+    <li><strong>Chain of Custody:</strong> Complete ownership trail for each case</li>
+    <li><strong>Regulatory Compliance:</strong> Meets FINRA, FCA, and other audit requirements</li>
+    <li><strong>Search and Retrieval:</strong> Fast audit trail querying and reporting</li>
+  </ul>
+
+  <h2>8. API Endpoints</h2>
+  <h3>Decision Management</h3>
+  <pre><code>POST /api/decision/process
+{
+  "case_id": "CASE_001",
+  "decision_type": "auto_approve",
+  "justification": "Low risk score, all checks passed"
+}
+
+GET /api/decision/status/{case_id}
+Returns current decision status and history</code></pre>
+
+  <h3>Review Queue Management</h3>
+  <pre><code>GET /api/review/queue
+Returns pending review cases with priority
+
+POST /api/review/assign
+{
+  "case_id": "CASE_001",
+  "reviewer_id": "REVIEWER_001",
+  "priority": "high"
+}</code></pre>
+
+  <h3>Report Generation</h3>
+  <pre><code>POST /api/reports/generate
+{
+  "report_type": "FINREP",
+  "period": "2024-Q1",
+  "format": "XBRL",
+  "jurisdiction": "EU"
+}
+
+GET /api/reports/status/{report_id}
+Returns report generation status and download link</code></pre>
+
+  <h3>Audit Trail Queries</h3>
+  <pre><code>GET /api/audit/decisions?date_from=2024-01-01&date_to=2024-01-31
+Returns decision audit trail for specified period
+
+GET /api/audit/reviews/{reviewer_id}
+Returns audit trail for specific reviewer</code></pre>
+
+  <h2>9. Performance Analytics</h2>
+  <h3>Decision Metrics</h3>
+  <ul>
+    <li><strong>Approval Rate:</strong> Percentage of applications approved</li>
+    <li><strong>Auto-Decision Rate:</strong> Percentage handled by automated rules</li>
+    <li><strong>Review Time:</strong> Average time for manual reviews</li>
+    <li><strong>Decision Accuracy:</strong> Quality of automated vs. manual decisions</li>
+  </ul>
+
+  <h3>Process Efficiency</h3>
+  <ul>
+    <li><strong>Throughput:</strong> Cases processed per hour/day</li>
+    <li><strong>SLA Compliance:</strong> Percentage meeting service level agreements</li>
+    <li><strong>Cost per Case:</strong> Processing cost analysis</li>
+    <li><strong>Error Rates:</strong> Decision reversal and correction rates</li>
+  </ul>
+
+  <h2>10. Escalation Procedures</h2>
+  <h3>Escalation Triggers</h3>
+  <ul>
+    <li><strong>Risk Threshold:</strong> Cases exceeding risk tolerance levels</li>
+    <li><strong>Exception Cases:</strong> Unusual patterns requiring senior review</li>
+    <li><strong>Regulatory Flags:</strong> Cases with potential regulatory implications</li>
+    <li><strong>High-Value Transactions:</strong> Large transaction amounts</li>
+  </ul>
+
+  <h3>Escalation Levels</h3>
+  <ul>
+    <li><strong>Level 1:</strong> Senior compliance officer review</li>
+    <li><strong>Level 2:</strong> Compliance manager approval</li>
+    <li><strong>Level 3:</strong> Chief compliance officer review</li>
+    <li><strong>Level 4:</strong> Board-level escalation for critical cases</li>
+  </ul>
+
+  <h2>11. Configuration</h2>
+  <h3>Decision Engine Configuration</h3>
+  <pre><code># Decision thresholds
+AUTO_APPROVE_THRESHOLD = 25
+AUTO_REJECT_THRESHOLD = 85
+MANUAL_REVIEW_MIN = 31
+ESCALATION_THRESHOLD = 75
+
+# SLA configurations
+REVIEW_SLA_HOURS = 24
+ESCALATION_SLA_HOURS = 4
+REPORT_GENERATION_SLA_HOURS = 2
+
+# Risk weightings
+RISK_SCORE_WEIGHT = 0.6
+COMPLIANCE_WEIGHT = 0.3
+BUSINESS_WEIGHT = 0.1</code></pre>
+
+  <h3>Workflow Configuration</h3>
+  <ul>
+    <li><strong>Queue Priorities:</strong> High, medium, low priority routing</li>
+    <li><strong>Reviewer Assignment:</strong> Skill-based case routing</li>
+    <li><strong>Notification Rules:</strong> Email and dashboard alerts</li>
+    <li><strong>Approval Chains:</strong> Multi-level approval workflows</li>
+  </ul>
+
+  <h2>12. Integration Points</h2>
+  <h3>External Systems</h3>
+  <ul>
+    <li><strong>Regulatory Portals:</strong> Direct submission to FCA, BaFin, EBA</li>
+    <li><strong>Case Management:</strong> Integration with CRM and case management systems</li>
+    <li><strong>Document Management:</strong> Secure document storage and retrieval</li>
+    <li><strong>Notification Systems:</strong> Email and SMS alert systems</li>
+  </ul>
+
+  <h3>Internal Systems</h3>
+  <ul>
+    <li><strong>PostgreSQL:</strong> Structured case and decision data storage</li>
+    <li><strong>MongoDB:</strong> Flexible audit trail and document storage</li>
+    <li><strong>Kafka:</strong> Real-time decision and review messaging</li>
+    <li><strong>Redis:</strong> Session management and cache for review queues</li>
+  </ul>
+
+  <h2>13. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>Decision Engine Performance</dt>
+    <dd>Optimize rule evaluation order and implement rule caching. Monitor database query performance.</dd>
+
+    <dt>Report Generation Failures</dt>
+    <dd>Check data completeness and schema validation. Verify XBRL templates are up to date.</dd>
+
+    <dt>Audit Trail Corruption</dt>
+    <dd>Implement database integrity checks and regular backups. Use immutable audit tables.</dd>
+
+    <dt>Review Queue Bottlenecks</dt>
+    <dd>Implement workload balancing and priority-based routing. Add more reviewers during peak periods.</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Check decision status
+curl http://localhost:8000/api/decision/status/{case_id}
+
+# View review queue
+curl http://localhost:8000/api/review/queue
+
+# Monitor report generation
+curl http://localhost:8000/api/reports/status/{report_id}
+
+# Query audit trail
+curl http://localhost:8000/api/audit/decisions?limit=10</code></pre>
+
+  <h2>14. Regulatory Compliance</h2>
+  <h3>Reporting Standards</h3>
+  <ul>
+    <li><strong>FINREP:</strong> IFRS 9 compliant financial reporting</li>
+    <li><strong>COREP:</strong> CRR/CRD IV capital adequacy reporting</li>
+    <li><strong>DORA:</strong> ICT and digital operational resilience reporting</li>
+    <li><strong>AML Reporting:</strong> Suspicious activity and transaction reporting</li>
+  </ul>
+
+  <h3>Audit Requirements</h3>
+  <ul>
+    <li><strong>FINRA Rule 3110:</strong> Supervisory control procedures</li>
+    <li><strong>FCA Handbook:</strong> Record-keeping and audit trail requirements</li>
+    <li><strong>SOX Compliance:</strong> Financial reporting controls</li>
+  </ul>
+
+  <h2>15. Best Practices</h2>
+  <ul>
+    <li><strong>Decision Quality:</strong> Regular review and validation of decision rules</li>
+    <li><strong>Process Efficiency:</strong> Continuous improvement of review workflows</li>
+    <li><strong>Risk Management:</strong> Proactive identification of decision patterns</li>
+    <li><strong>Staff Training:</strong> Regular training on regulatory requirements</li>
+    <li><strong>Technology Integration:</strong> Seamless integration with existing systems</li>
+  </ul>
+
+  <h2>16. Security Considerations</h2>
+  <ul>
+    <li><strong>Decision Authorization:</strong> Multi-factor authentication for sensitive decisions</li>
+    <li><strong>Audit Trail Protection:</strong> Immutable and tamper-proof audit records</li>
+    <li><strong>Data Classification:</strong> Appropriate handling of sensitive decision data</li>
+    <li><strong>Access Controls:</strong> Role-based permissions for decision and review functions</li>
+  </ul>
 
 </body>
 </html>

@@ -442,10 +442,14 @@ class WebInterfaceService:
         @self.app.get("/user-guides")
         async def user_guides(request: Request):
             """Web-based user guides (Rule 9 compliance - comprehensive documentation)
-            Always serve the centralized professional user guides HTML to ensure
-            consistent UI across deployments (do not fall back to on-disk templates).
+            Serve comprehensive user guides with detailed API documentation and technical guides.
             """
-            return HTMLResponse(content=self._get_user_guides_html(), status_code=200)
+            try:
+                with open('templates/user_guides.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                # Fallback to embedded HTML if template file is not found
+                return HTMLResponse(content=self._get_user_guides_html(), status_code=200)
         
         @self.app.post("/api/user-guides/track-access")
         async def track_user_guide_access(request: Request):
@@ -466,15 +470,15 @@ class WebInterfaceService:
                 logger.error("Failed to track user guide access", error=str(e))
                 return {"status": "error"}
 
-        # PHASE 3 DASHBOARD (Rule 6 & 7 compliance)
-        @self.app.get("/phase3")
-        async def phase3_dashboard(request: Request):
-            """Phase 3 Intelligence & Compliance Agent Dashboard"""
+        # INTELLIGENCE DASHBOARD (Rule 6 & 7 compliance)
+        @self.app.get("/intelligence")
+        async def intelligence_dashboard(request: Request):
+            """Intelligence & Compliance Agent Dashboard"""
             try:
                 with open('templates/phase3_dashboard.html', 'r') as f:
                     return HTMLResponse(content=f.read(), status_code=200)
             except FileNotFoundError:
-                return HTMLResponse(content="<h1>Phase 3 Dashboard Not Found</h1><p>Please ensure phase3_dashboard.html exists in templates/</p>", status_code=404)
+                return HTMLResponse(content="<h1>Intelligence Dashboard Not Found</h1><p>Please ensure phase3_dashboard.html exists in templates/</p>", status_code=404)
 
         # PHASE 3 USER GUIDES (Rule 9 compliance)
         @self.app.get("/phase3/guides")
@@ -486,15 +490,15 @@ class WebInterfaceService:
             except FileNotFoundError:
                 return HTMLResponse(content="<h1>Phase 3 User Guides Not Found</h1><p>Please ensure phase3_user_guides.html exists in templates/</p>", status_code=404)
         
-        # PHASE 4 DASHBOARD (Rule 6 & 7 compliance)
-        @self.app.get("/phase4")
-        async def phase4_dashboard(request: Request):
-            """Phase 4 Compliance Report Generation Dashboard"""
+        # REPORTS DASHBOARD (Rule 6 & 7 compliance)
+        @self.app.get("/reports")
+        async def reports_dashboard(request: Request):
+            """Compliance Report Generation Dashboard"""
             try:
                 with open('templates/phase4_dashboard.html', 'r') as f:
                     return HTMLResponse(content=f.read(), status_code=200)
             except FileNotFoundError:
-                return HTMLResponse(content="<h1>Phase 4 Dashboard Not Found</h1><p>Please ensure phase4_dashboard.html exists in templates/</p>", status_code=404)
+                return HTMLResponse(content="<h1>Reports Dashboard Not Found</h1><p>Please ensure phase4_dashboard.html exists in templates/</p>", status_code=404)
         
         # PHASE 4 USER GUIDES (Rule 9 compliance)
         @self.app.get("/phase4/guides")
@@ -506,15 +510,15 @@ class WebInterfaceService:
             except FileNotFoundError:
                 return HTMLResponse(content="<h1>Phase 4 User Guides Not Found</h1><p>Please ensure phase4_user_guides.html exists in templates/</p>", status_code=404)
 
-        # PHASE 6 DASHBOARD (Rule 6 & 7 compliance)
-        @self.app.get("/phase6")
-        async def phase6_dashboard(request: Request):
-            """Phase 6 Documentation & Production Readiness Dashboard"""
+        # MONITORING DASHBOARD (Rule 6 & 7 compliance)
+        @self.app.get("/monitoring")
+        async def monitoring_dashboard(request: Request):
+            """System Monitoring & Production Readiness Dashboard"""
             try:
                 with open('templates/phase6_dashboard.html', 'r') as f:
                     return HTMLResponse(content=f.read(), status_code=200)
             except FileNotFoundError:
-                return HTMLResponse(content="<h1>Phase 6 Dashboard Not Found</h1><p>Please ensure phase6_dashboard.html exists in templates/</p>", status_code=404)
+                return HTMLResponse(content="<h1>Monitoring Dashboard Not Found</h1><p>Please ensure phase6_dashboard.html exists in templates/</p>", status_code=404)
 
         # PHASE 6 USER GUIDES (Rule 9 compliance)
         @self.app.get("/phase6/guides")
@@ -578,6 +582,171 @@ class WebInterfaceService:
                     return HTMLResponse(content=f.read(), status_code=200)
             except FileNotFoundError:
                 return HTMLResponse(content=self._get_phase5_user_guides_html(), status_code=200)
+
+        @self.app.get("/regulatory-intelligence-guide")
+        async def regulatory_intelligence_guide(request: Request):
+            """Regulatory Intelligence Agent comprehensive guide"""
+            try:
+                with open('templates/regulatory_intelligence_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Regulatory Intelligence Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/phase3-components-guide")
+        async def phase3_components_guide(request: Request):
+            """Phase 3 Components comprehensive guide"""
+            try:
+                with open('templates/phase3_components_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Phase 3 Components Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/intake-processing-agent-guide")
+        async def intake_processing_agent_guide(request: Request):
+            """Intake Processing Agent comprehensive guide"""
+            try:
+                with open('templates/intake_processing_agent_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Intake Processing Agent Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/intelligence-compliance-agent-guide")
+        async def intelligence_compliance_agent_guide(request: Request):
+            """Intelligence & Compliance Agent comprehensive guide"""
+            try:
+                with open('templates/intelligence_compliance_agent_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Intelligence & Compliance Agent Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/decision-orchestration-agent-guide")
+        async def decision_orchestration_agent_guide(request: Request):
+            """Decision Orchestration Agent comprehensive guide"""
+            try:
+                with open('templates/decision_orchestration_agent_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Decision Orchestration Agent Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/web-interface-api-guide")
+        async def web_interface_api_guide(request: Request):
+            """Web Interface API comprehensive guide"""
+            try:
+                with open('templates/web_interface_api_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Web Interface API Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/monitoring-metrics-guide")
+        async def monitoring_metrics_guide(request: Request):
+            """Monitoring & Metrics comprehensive guide"""
+            try:
+                with open('templates/monitoring_metrics_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Monitoring & Metrics Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/api-reference")
+        async def api_reference(request: Request):
+            """Compatibility endpoint for legacy API Reference links - serve API guide or redirect to OpenAPI UIs"""
+            try:
+                with open('templates/web_interface_api_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                # Fallback to a small page with links to Swagger/ReDoc/raw spec
+                html = """
+                <html><body style='font-family:Inter,Arial,Helvetica,sans-serif;padding:24px'>
+                <h1>API Reference</h1>
+                <p>The API reference is available via the running OpenAPI UIs:</p>
+                <ul>
+                  <li><a href='/docs'>Swagger UI</a></li>
+                  <li><a href='/redoc'>ReDoc</a></li>
+                  <li><a href='/openapi.json'>Raw OpenAPI JSON</a></li>
+                </ul>
+                <p>If you expect a full page, please create <code>templates/web_interface_api_guide.html</code>.</p>
+                </body></html>
+                """
+                return HTMLResponse(content=html, status_code=200)
+        # Accept alternate legacy paths for API reference
+        @self.app.get("/api-reference/")
+        async def api_reference_slash(request: Request):
+            return await api_reference(request)
+
+        @self.app.get("/api-reference.html")
+        async def api_reference_html(request: Request):
+            return await api_reference(request)
+
+        @self.app.get("/kafka-messaging-guide")
+        async def kafka_messaging_guide(request: Request):
+            """Kafka Messaging comprehensive guide"""
+            try:
+                with open('templates/kafka_messaging_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Kafka Messaging Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/database-schemas-guide")
+        async def database_schemas_guide(request: Request):
+            """Database Schemas comprehensive guide"""
+            try:
+                with open('templates/database_schemas_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Database Schemas Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/deployment-configs-guide")
+        async def deployment_configs_guide(request: Request):
+            """Deployment Configurations comprehensive guide"""
+            try:
+                with open('templates/deployment_configs_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Deployment Configurations Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/system-overview-guide")
+        async def system_overview_guide(request: Request):
+            """System Overview comprehensive guide"""
+            try:
+                with open('templates/system_overview_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>System Overview Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/troubleshooting-guide")
+        async def troubleshooting_guide(request: Request):
+            """Troubleshooting comprehensive guide"""
+            try:
+                with open('templates/troubleshooting_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Troubleshooting Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/getting-started-guide")
+        async def getting_started_guide(request: Request):
+            """Getting Started comprehensive guide"""
+            try:
+                with open('templates/getting_started_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Getting Started Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/phase4-components-guide")
+        async def phase4_components_guide(request: Request):
+            """Phase 4 Components comprehensive guide"""
+            try:
+                with open('templates/phase4_components_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Phase 4 Components Guide</h1><p>Guide template not found.</p>", status_code=404)
+
+        @self.app.get("/phase6-components-guide")
+        async def phase6_components_guide(request: Request):
+            """Phase 6 Components comprehensive guide"""
+            try:
+                with open('templates/phase6_components_guide.html', 'r') as f:
+                    return HTMLResponse(content=f.read(), status_code=200)
+            except FileNotFoundError:
+                return HTMLResponse(content="<h1>Phase 6 Components Guide</h1><p>Guide template not found.</p>", status_code=404)
 
         # REGULATORY INTELLIGENCE ENDPOINTS (Rule 6 & 7 compliance)
         @self.app.get("/regulatory")

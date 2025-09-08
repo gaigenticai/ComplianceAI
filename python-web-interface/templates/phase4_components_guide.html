@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Phase 4 Components Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <h1>Phase 4 Components Guide</h1>
+  <p>This comprehensive guide covers the Phase 4 regulatory report generation system, including FINREP, COREP, and DORA compliance reporting with full EBA taxonomy support.</p>
+
+  <h2>1. Overview</h2>
+  <p>Phase 4 represents the reporting layer of the ComplianceAI platform, providing comprehensive regulatory report generation capabilities for European banking compliance. The system generates FINREP (Financial Reporting), COREP (Common Reporting), and DORA (Digital Operational Resilience Act) reports with full EBA taxonomy compliance.</p>
+
+  <h2>2. Core Architecture</h2>
+  <h3>Report Generation Pipeline</h3>
+  <pre><code>Data Collection → Template Processing → XBRL/JSON Generation → Validation → Delivery
+                          ↓
+                 Compliance Monitoring
+                          ↓
+                Audit Trail & Reporting</code></pre>
+
+  <h3>Key Components</h3>
+  <ul>
+    <li><strong>ComplianceReportGenerator:</strong> Main orchestrator for all regulatory reports</li>
+    <li><strong>FINREPGenerator:</strong> Financial reporting with XBRL taxonomy compliance</li>
+    <li><strong>COREPGenerator:</strong> Capital requirements reporting with risk calculations</li>
+    <li><strong>DORAGenerator:</strong> ICT risk reporting with JSON schema validation</li>
+    <li><strong>ReportScheduler:</strong> Automated report generation and delivery</li>
+    <li><strong>ValidationEngine:</strong> Multi-level data validation and quality checks</li>
+  </ul>
+
+  <h2>3. FINREP Report Generation</h2>
+  <h3>Overview</h3>
+  <p>FINREP (Financial Reporting) provides comprehensive financial statement reporting according to EBA Implementing Technical Standards (ITS 2020/534). The system generates XBRL instance documents with full taxonomy compliance for European banking supervision.</p>
+
+  <h3>Supported FINREP Templates</h3>
+  <h4>F 01.01 - Statement of Financial Position</h4>
+  <ul>
+    <li><strong>Cash and Cash Equivalents:</strong> Central bank deposits, cash on hand</li>
+    <li><strong>Financial Assets:</strong> HFT, FVPL, FVOCI, amortised cost classifications</li>
+    <li><strong>Derivatives:</strong> Hedge accounting and trading derivatives</li>
+    <li><strong>Investments:</strong> Subsidiaries, associates, joint ventures</li>
+    <li><strong>Tangible Assets:</strong> Property, plant, equipment</li>
+    <li><strong>Intangible Assets:</strong> Goodwill, software, patents</li>
+    <li><strong>Liabilities:</strong> Financial and non-financial obligations</li>
+    <li><strong>Equity:</strong> Capital, retained earnings, reserves</li>
+  </ul>
+
+  <h4>F 02.00 - Statement of Profit or Loss</h4>
+  <ul>
+    <li><strong>Interest Income:</strong> Loans, securities, deposits</li>
+    <li><strong>Interest Expense:</strong> Deposits, debt securities, subordinated debt</li>
+    <li><strong>Net Interest Income:</strong> Interest income minus interest expense</li>
+    <li><strong>Fee and Commission Income:</strong> Payment services, investment banking</li>
+    <li><strong>Trading Income:</strong> Financial instruments, foreign exchange</li>
+    <li><strong>Operating Expenses:</strong> Staff costs, administrative expenses</li>
+    <li><strong>Impairment Losses:</strong> Credit losses, asset impairments</li>
+    <li><strong>Tax Expense:</strong> Current and deferred tax</li>
+  </ul>
+
+  <h4>F 04.00 - Breakdown of Financial Assets</h4>
+  <ul>
+    <li><strong>By Instrument Type:</strong> Loans, debt securities, equity instruments</li>
+    <li><strong>By Counterparty Sector:</strong> Sovereign, banks, corporates, retail</li>
+    <li><strong>Risk Weight Bands:</strong> 0%, 20%, 50%, 75%, 100%, 150%</li>
+    <li><strong>Geographic Distribution:</strong> EU, EEA, third countries</li>
+  </ul>
+
+  <h4>F 18.00 - Geographical Breakdown of Assets</h4>
+  <ul>
+    <li><strong>European Union:</strong> Member state breakdown</li>
+    <li><strong>European Economic Area:</strong> EEA country classification</li>
+    <li><strong>Third Countries:</strong> Geographic risk assessment</li>
+    <li><strong>Offshore Centers:</strong> Tax haven classification</li>
+  </ul>
+
+  <h4>F 32.01 - Forbearance and Non-Performing Exposures</h4>
+  <ul>
+    <li><strong>Forborne Exposures:</strong> Modified terms, concessions granted</li>
+    <li><strong>Non-Performing Loans:</strong> 90+ days past due</li>
+    <li><strong>Stage 3 Assets:</strong> Lifetime expected credit losses</li>
+    <li><strong>Collateral Valuation:</strong> Real estate, securities, guarantees</li>
+  </ul>
+
+  <h3>XBRL Generation Process</h3>
+  <h4>Data Mapping</h4>
+  <pre><code>// FINREP XBRL instance document structure
+<xbrli:xbrl xmlns:xbrli="http://www.xbrl.org/2003/instance">
+  <xbrli:context id="I-2023">
+    <xbrli:entity>
+      <xbrli:identifier scheme="http://www.eba.europa.eu/xbrl/lei">BANK_LEI_CODE</xbrli:identifier>
+    </xbrli:entity>
+    <xbrli:period>
+      <xbrli:instant>2023-12-31</xbrli:instant>
+    </xbrli:period>
+    <xbrli:scenario>
+      <eba_dim:CS xmlns:eba_dim="http://www.eba.europa.eu/xbrl/dict/dim">S</eba_dim:CS>
+    </xbrli:scenario>
+  </xbrli:context>
+
+  <eba_met:fi164 xmlns:eba_met="http://www.eba.europa.eu/xbrl/dict/met">
+    <eba_typ:dec xmlns:eba_typ="http://www.eba.europa.eu/xbrl/dict/typ" contextRef="I-2023" unitRef="U-EUR" decimals="2">1000000</eba_typ:dec>
+  </eba_met:fi164>
+</xbrli:xbrl></code></pre>
+
+  <h4>Taxonomy Validation</h4>
+  <ul>
+    <li><strong>Schema Validation:</strong> EBA taxonomy compliance checking</li>
+    <li><strong>Context Validation:</strong> Entity, period, scenario correctness</li>
+    <li><strong>Unit Validation:</strong> Currency and unit consistency</li>
+    <li><strong>Reference Validation:</strong> Cross-reference integrity</li>
+  </ul>
+
+  <h2>4. COREP Report Generation</h2>
+  <h3>Overview</h3>
+  <p>COREP (Common Reporting) provides capital adequacy and prudential reporting according to EBA Implementing Technical Standards. The system generates both XBRL and CSV formats for comprehensive regulatory capital reporting.</p>
+
+  <h3>Supported COREP Templates</h3>
+  <h4>C 01.00 - Own Funds</h4>
+  <ul>
+    <li><strong>Common Equity Tier 1 (CET1):</strong> Common shares, retained earnings</li>
+    <li><strong>Additional Tier 1 (AT1):</strong> Perpetual instruments, contingent convertible bonds</li>
+    <li><strong>Tier 2 Capital:</strong> Subordinated debt, collective impairment provisions</li>
+    <li><strong>Total Own Funds:</strong> Sum of all regulatory capital elements</li>
+  </ul>
+
+  <h4>C 02.00 - Own Funds Requirements</h4>
+  <ul>
+    <li><strong>Credit Risk Requirements:</strong> Standardised and IRB approaches</li>
+    <li><strong>Market Risk Requirements:</strong> Trading book and banking book</li>
+    <li><strong>Operational Risk Requirements:</strong> Basic indicator, standardised, AMA</li>
+    <li><strong>Credit Valuation Risk:</strong> CVA capital requirements</li>
+    <li><strong>Total Risk Exposure Amount:</strong> Aggregated risk measures</li>
+  </ul>
+
+  <h4>C 03.00 - Capital Ratios</h4>
+  <ul>
+    <li><strong>CET1 Ratio:</strong> CET1 capital / Risk-weighted assets ≥ 4.5%</li>
+    <li><strong>Tier 1 Ratio:</strong> Tier 1 capital / Risk-weighted assets ≥ 6.0%</li>
+    <li><strong>Total Capital Ratio:</strong> Total capital / Risk-weighted assets ≥ 8.0%</li>
+    <li><strong>Leverage Ratio:</strong> Tier 1 capital / Leverage exposure ≥ 3.0%</li>
+  </ul>
+
+  <h4>C 05.01 - Credit Risk Standard Approach</h4>
+  <ul>
+    <li><strong>Risk-Weighted Assets by Exposure Class:</strong> Sovereigns, banks, corporates</li>
+    <li><strong>Credit Risk Mitigation:</strong> Collateral, guarantees, credit derivatives</li>
+    <li><strong>Large Exposures:</strong> Single counterparty limits</li>
+    <li><strong>Concentration Risk:</strong> Sector and geographic concentrations</li>
+  </ul>
+
+  <h4>C 08.01 - Market Risk</h4>
+  <ul>
+    <li><strong>Trading Book Positions:</strong> Interest rate, equity, foreign exchange, commodities</li>
+    <li><strong>Value at Risk (VaR):</strong> 10-day, 99% confidence level</li>
+    <li><strong>Stressed VaR:</strong> Historical stress period analysis</li>
+    <li><strong>Incremental Risk Charge:</strong> Credit spread risk for bonds</li>
+    <li><strong>Comprehensive Risk Measure:</strong> Non-securitisation and securitisation</li>
+  </ul>
+
+  <h4>C 16.00 - Liquidity Coverage Ratio</h4>
+  <ul>
+    <li><strong>High-Quality Liquid Assets (HQLA):</strong> Level 1 and Level 2 assets</li>
+    <li><strong>Net Cash Outflows:</strong> 30-day stress scenario outflows</li>
+    <li><strong>LCR Calculation:</strong> HQLA / Net cash outflows ≥ 100%</li>
+    <li><strong>Currency Mismatch:</strong> Multi-currency liquidity positions</li>
+  </ul>
+
+  <h4>C 18.00 - Leverage Ratio</h4>
+  <ul>
+    <li><strong>Leverage Ratio Exposure:</strong> On-balance sheet and off-balance sheet</li>
+    <li><strong>Tier 1 Capital:</strong> CET1 and Additional Tier 1 capital</li>
+    <li><strong>Leverage Ratio Calculation:</strong> Tier 1 / Leverage exposure</li>
+    <li><strong>Supplementary Leverage Ratio:</strong> US banking requirements</li>
+  </ul>
+
+  <h4>C 24.00 - Large Exposures</h4>
+  <ul>
+    <li><strong>Large Exposure Definition:</strong> >10% of eligible capital</li>
+    <li><strong>Connected Clients:</strong> Group and affiliate relationships</li>
+    <li><strong>Exposures by Counterparty:</strong> Individual and group aggregations</li>
+    <li><strong>Concentration Limits:</strong> Single counterparty and group limits</li>
+  </ul>
+
+  <h3>Risk-Weighted Asset Calculations</h3>
+  <h4>Credit Risk Weightings</h4>
+  <table>
+    <tr>
+      <th>Exposure Class</th>
+      <th>Risk Weight</th>
+      <th>Example</th>
+    </tr>
+    <tr>
+      <td>Sovereigns (EU)</td>
+      <td>0%</td>
+      <td>Government bonds</td>
+    </tr>
+    <tr>
+      <td>Sovereigns (Third Country)</td>
+      <td>0-100%</td>
+      <td>US Treasury bonds</td>
+    </tr>
+    <tr>
+      <td>Banks (OECD)</td>
+      <td>20%</td>
+      <td>Major international banks</td>
+    </tr>
+    <tr>
+      <td>Corporates (Investment Grade)</td>
+      <td>20-50%</td>
+      <td>AAA/AA rated companies</td>
+    </tr>
+    <tr>
+      <td>Corporates (Unrated)</td>
+      <td>100%</td>
+      <td>Small and medium enterprises</td>
+    </tr>
+    <tr>
+      <td>Retail</td>
+      <td>75%</td>
+      <td>Mortgage loans</td>
+    </tr>
+    <tr>
+      <td>Equity</td>
+      <td>100-400%</td>
+      <td>Stock holdings</td>
+    </tr>
+  </table>
+
+  <h2>5. DORA ICT-Risk Report Generation</h2>
+  <h3>Overview</h3>
+  <p>DORA (Digital Operational Resilience Act) reporting provides comprehensive ICT risk management and incident reporting according to EU regulatory requirements. The system generates JSON format reports with full schema validation.</p>
+
+  <h3>Supported DORA Report Types</h3>
+  <h4>ICT Risk Management Framework</h4>
+  <ul>
+    <li><strong>Board Oversight:</strong> ICT risk governance structure</li>
+    <li><strong>Risk Committee:</strong> Dedicated ICT risk committee existence</li>
+    <li><strong>ICT Risk Policy:</strong> Policy update frequency and coverage</li>
+    <li><strong>Staff Training:</strong> Annual ICT risk training hours per employee</li>
+    <li><strong>Risk Tolerance:</strong> Maximum acceptable downtime and data loss</li>
+    <li><strong>Recovery Objectives:</strong> RTO (Recovery Time Objective) and RPO (Recovery Point Objective)</li>
+  </ul>
+
+  <h4>ICT Incident Reporting</h4>
+  <ul>
+    <li><strong>Incident Classification:</strong> Severity levels (Low, Medium, High, Critical)</li>
+    <li><strong>Incident Categories:</strong> Cybersecurity, system failure, data breach, third-party failure</li>
+    <li><strong>Response Times:</strong> Detection, assessment, and resolution times</li>
+    <li><strong>Impact Assessment:</strong> Financial, operational, and reputational impact</li>
+    <li><strong>Root Cause Analysis:</strong> Technical and procedural root causes</li>
+    <li><strong>Lessons Learned:</strong> Preventative measures and improvements</li>
+  </ul>
+
+  <h4>Third-Party Risk Assessment</h4>
+  <ul>
+    <li><strong>Critical ICT Service Providers:</strong> Cloud services, payment processors, data centers</li>
+    <li><strong>Risk Assessment Scores:</strong> Contractual, concentration, and operational risks</li>
+    <li><strong>Contractual Protections:</strong> SLA terms, liability limits, termination rights</li>
+    <li><strong>Subcontractor Management:</strong> Fourth-party risk management</li>
+    <li><strong>Exit Strategies:</strong> Contingency planning and transition procedures</li>
+  </ul>
+
+  <h4>Business Continuity Testing</h4>
+  <ul>
+    <li><strong>Test Frequency:</strong> Annual or more frequent testing requirements</li>
+    <li><strong>Test Scenarios:</strong> Cyber attacks, system failures, natural disasters</li>
+    <li><strong>Recovery Success Rates:</strong> Percentage of successful recoveries within RTO</li>
+    <li><strong>Gap Analysis:</strong> Identified weaknesses and remediation plans</li>
+    <li><strong>Test Results:</strong> Pass/fail status and detailed findings</li>
+  </ul>
+
+  <h4>Digital Resilience Testing</h4>
+  <ul>
+    <li><strong>TLPT Testing:</strong> Threat-Led Penetration Testing requirements</li>
+    <li><strong>Vulnerability Assessments:</strong> Regular security scanning and assessments</li>
+    <li><strong>Advanced Persistent Threats:</strong> APT detection and response capabilities</li>
+    <li><strong>Supply Chain Security:</strong> Third-party and vendor risk management</li>
+    <li><strong>Incident Response Testing:</strong> Simulated cyber attack scenarios</li>
+  </ul>
+
+  <h4>Regulatory Compliance Status</h4>
+  <ul>
+    <li><strong>DORA Implementation:</strong> Percentage completion of DORA requirements</li>
+    <li><strong>Compliance Milestones:</strong> Key dates and deliverables</li>
+    <li><strong>Gap Analysis:</strong> Areas requiring additional controls or processes</li>
+    <li><strong>Remediation Plans:</strong> Action plans for identified gaps</li>
+    <li><strong>Compliance Monitoring:</strong> Ongoing compliance assessment</li>
+  </ul>
+
+  <h3>DORA JSON Schema Structure</h3>
+  <pre><code>{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "institution_code": {"type": "string"},
+      "institution_name": {"type": "string"},
+      "reporting_period_start": {"type": "string", "format": "date"},
+      "reporting_period_end": {"type": "string", "format": "date"},
+      "jurisdiction": {"type": "string"},
+
+      "ict_risk_management": {
+        "type": "object",
+        "properties": {
+          "board_oversight": {"type": "boolean"},
+          "risk_committee_exists": {"type": "boolean"},
+          "ict_risk_policy_updated": {"type": "string", "format": "date"},
+          "staff_training_hours": {"type": "integer", "minimum": 0},
+          "risk_tolerance_level": {"enum": ["LOW", "MEDIUM", "HIGH"]},
+          "maximum_downtime_hours": {"type": "number", "minimum": 0},
+          "data_loss_tolerance": {"enum": ["MINIMAL", "MODERATE", "SIGNIFICANT"]}
+        }
+      },
+
+      "ict_incidents": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "incident_id": {"type": "string"},
+            "severity": {"enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"]},
+            "category": {"enum": ["CYBERSECURITY", "SYSTEM_FAILURE", "DATA_BREACH", "THIRD_PARTY"]},
+            "detection_time": {"type": "string", "format": "date-time"},
+            "resolution_time": {"type": "string", "format": "date-time"},
+            "impact": {"enum": ["FINANCIAL", "OPERATIONAL", "REPUTATIONAL"]},
+            "financial_loss": {"type": "number", "minimum": 0}
+          }
+        }
+      }
+    },
+    "required": ["institution_code", "institution_name", "reporting_period_start", "reporting_period_end"]
+  }</code></pre>
+
+  <h2>6. Report Generation API</h2>
+  <h3>Report Generation Endpoint</h3>
+  <pre><code>POST /api/phase4/generate-report
+Content-Type: application/json
+
+{
+  "report_type": "FINREP|COREP|DORA_ICT",
+  "format": "XBRL|CSV|JSON",
+  "reporting_period": "2023-Q4",
+  "institution_id": "BANK001",
+  "jurisdiction": "EU",
+  "template_version": "v1.0",
+  "data_sources": ["database"],
+  "delivery_method": "sftp",
+  "deadline": "2024-01-31T23:59:59Z"
+}
+
+Response:
+{
+  "success": true,
+  "report_id": "REP_20240115_001",
+  "status": "COMPLETED",
+  "message": "FINREP report generated successfully",
+  "file_path": "/reports/finrep_bank001_2023q4.xbrl",
+  "file_size": 2457600,
+  "generation_time": 45.2,
+  "validation_results": {
+    "schema_valid": true,
+    "taxonomy_compliant": true,
+    "data_quality_score": 0.98,
+    "warnings": []
+  }
+}</code></pre>
+
+  <h3>Data Validation Endpoint</h3>
+  <pre><code>POST /api/phase4/validate-data
+Content-Type: application/json
+
+{
+  "report_type": "COREP",
+  "data": {
+    "cet1_ratio": 0.125,
+    "tier1_ratio": 0.145,
+    "total_capital_ratio": 0.165,
+    "leverage_ratio": 0.045
+  },
+  "institution_id": "BANK001",
+  "reporting_period": "2023-Q4"
+}
+
+Response:
+{
+  "valid": true,
+  "validation_results": {
+    "schema_validation": "PASSED",
+    "business_rules": "PASSED",
+    "regulatory_limits": "PASSED",
+    "data_quality": "PASSED"
+  },
+  "warnings": [
+    "CET1 ratio below regulatory minimum of 4.5%"
+  ],
+  "recommendations": [
+    "Review capital planning strategy",
+    "Consider additional Tier 1 issuance"
+  ]
+}</code></pre>
+
+  <h3>Report Status and History</h3>
+  <pre><code>GET /api/phase4/reports/{report_id}
+Response:
+{
+  "report_id": "REP_20240115_001",
+  "status": "DELIVERED",
+  "report_type": "FINREP",
+  "format": "XBRL",
+  "reporting_period": "2023-Q4",
+  "created_at": "2024-01-15T10:30:00Z",
+  "completed_at": "2024-01-15T10:31:45Z",
+  "file_path": "/reports/finrep_bank001_2023q4.xbrl",
+  "file_size": 2457600,
+  "delivery_status": "DELIVERED",
+  "validation_results": {...},
+  "audit_trail": [...]
+}
+
+GET /api/phase4/reports/institution/{institution_id}?period=2023
+Response:
+[
+  {
+    "report_id": "REP_20240115_001",
+    "report_type": "FINREP",
+    "status": "DELIVERED",
+    "reporting_period": "2023-Q4"
+  },
+  {
+    "report_id": "REP_20231215_002",
+    "report_type": "COREP",
+    "status": "DELIVERED",
+    "reporting_period": "2023-Q3"
+  }
+]</code></pre>
+
+  <h3>Report Templates</h3>
+  <pre><code>GET /api/phase4/templates/{report_type}
+Response:
+{
+  "report_type": "FINREP",
+  "templates": [
+    {
+      "template_id": "F_01_01",
+      "name": "Statement of Financial Position",
+      "description": "Balance sheet reporting template",
+      "version": "v1.0",
+      "mandatory": true,
+      "frequency": "QUARTERLY"
+    },
+    {
+      "template_id": "F_02_00",
+      "name": "Statement of Profit or Loss",
+      "description": "Income statement reporting template",
+      "version": "v1.0",
+      "mandatory": true,
+      "frequency": "QUARTERLY"
+    }
+  ]
+}</code></pre>
+
+  <h2>7. Validation and Quality Assurance</h2>
+  <h3>Data Validation Layers</h3>
+  <h4>Schema Validation</h4>
+  <ul>
+    <li><strong>XBRL Schema:</strong> EBA taxonomy compliance checking</li>
+    <li><strong>JSON Schema:</strong> DORA report structure validation</li>
+    <li><strong>CSV Format:</strong> Column structure and data type validation</li>
+  </ul>
+
+  <h4>Business Rules Validation</h4>
+  <ul>
+    <li><strong>Mathematical Consistency:</strong> Balance sheet and P&L reconciliation</li>
+    <li><strong>Regulatory Limits:</strong> Capital ratio and liquidity requirements</li>
+    <li><strong>Cross-Field Validation:</strong> Related field consistency checking</li>
+    <li><strong>Temporal Consistency:</strong> Period-over-period data validation</li>
+  </ul>
+
+  <h4>Data Quality Checks</h4>
+  <ul>
+    <li><strong>Completeness:</strong> Required field presence and population</li>
+    <li><strong>Accuracy:</strong> Data format and range validation</li>
+    <li><strong>Consistency:</strong> Internal data relationship validation</li>
+    <li><strong>Timeliness:</strong> Reporting deadline compliance</li>
+  </ul>
+
+  <h3>Validation Results Structure</h3>
+  <pre><code>{
+    "validation_status": "PASSED|FAILED|WARNING",
+    "schema_validation": {
+      "status": "PASSED",
+      "errors": [],
+      "warnings": []
+    },
+    "business_rules": {
+      "status": "PASSED",
+      "errors": [],
+      "warnings": [
+        "CET1 ratio below regulatory minimum"
+      ]
+    },
+    "data_quality": {
+      "completeness_score": 0.98,
+      "accuracy_score": 0.95,
+      "consistency_score": 0.97,
+      "overall_score": 0.97
+    },
+    "regulatory_compliance": {
+      "capital_adequacy": "COMPLIANT",
+      "liquidity_coverage": "COMPLIANT",
+      "leverage_ratio": "WARNING"
+    },
+    "recommendations": [
+      "Review capital planning strategy",
+      "Consider additional CET1 capital issuance",
+      "Monitor leverage ratio closely"
+    ]
+  }</code></pre>
+
+  <h2>8. Report Scheduling and Delivery</h2>
+  <h3>Automated Scheduling</h3>
+  <ul>
+    <li><strong>Quarterly Reporting:</strong> FINREP and COREP quarterly submissions</li>
+    <li><strong>Annual Reporting:</strong> Comprehensive annual regulatory reporting</li>
+    <li><strong>Ad-hoc Reporting:</strong> On-demand regulatory requests</li>
+    <li><strong>Event-Driven:</strong> Triggered by significant changes or events</li>
+  </ul>
+
+  <h3>Delivery Methods</h3>
+  <h4>SFTP Delivery</h4>
+  <ul>
+    <li><strong>EBA Gateway:</strong> Direct submission to European Banking Authority</li>
+    <li><strong>National Regulators:</strong> Country-specific regulatory portals</li>
+    <li><strong>Secure Transmission:</strong> Encrypted file transfer with integrity checks</li>
+    <li><strong>Delivery Confirmation:</strong> Acknowledgment and receipt verification</li>
+  </ul>
+
+  <h4>API Integration</h4>
+  <ul>
+    <li><strong>RESTful APIs:</strong> Direct integration with regulatory systems</li>
+    <li><strong>Webhook Notifications:</strong> Real-time delivery status updates</li>
+    <li><strong>Batch Processing:</strong> Bulk report submissions</li>
+    <li><strong>Status Tracking:</strong> End-to-end delivery monitoring</li>
+  </ul>
+
+  <h3>Delivery Tracking</h3>
+  <pre><code>{
+    "delivery_id": "DEL_20240115_001",
+    "report_id": "REP_20240115_001",
+    "delivery_method": "SFTP",
+    "destination": "eba.europa.eu",
+    "status": "DELIVERED",
+    "initiated_at": "2024-01-15T12:00:00Z",
+    "completed_at": "2024-01-15T12:05:30Z",
+    "file_size_bytes": 2457600,
+    "checksum_sha256": "a1b2c3d4...",
+    "acknowledgment_received": true,
+    "acknowledgment_details": {
+      "reference_number": "EBA_ACK_20240115_001",
+      "validation_status": "ACCEPTED",
+      "processing_status": "QUEUED_FOR_REVIEW"
+    }
+  }</code></pre>
+
+  <h2>9. Configuration</h2>
+  <h3>Report Generation Configuration</h3>
+  <pre><code># Report generation settings
+REPORT_TIMEOUT_SECONDS = 300  # 5 minute timeout
+MAX_CONCURRENT_REPORTS = 5
+REPORT_CACHE_TTL_HOURS = 24
+
+# XBRL generation settings
+XBRL_SCHEMA_VERSION = "2.1"
+XBRL_TAXONOMY_VERSION = "3.0"
+XBRL_DECIMALS = 2
+XBRL_UNIT_CURRENCY = "EUR"
+
+# Data source settings
+PRIMARY_DATA_SOURCE = "POSTGRESQL"
+SECONDARY_DATA_SOURCES = ["REDIS_CACHE", "EXTERNAL_API"]
+DATA_VALIDATION_STRICT = True
+
+# Validation settings
+VALIDATION_TIMEOUT_SECONDS = 60
+VALIDATION_MAX_ERRORS = 100
+VALIDATION_SEVERITY_LEVEL = "WARNING"  # ERROR, WARNING, INFO
+
+# Delivery settings
+DELIVERY_RETRY_ATTEMPTS = 3
+DELIVERY_RETRY_DELAY_SECONDS = 300
+DELIVERY_TIMEOUT_HOURS = 24</code></pre>
+
+  <h3>Regulatory Compliance Configuration</h3>
+  <pre><code># FINREP settings
+FINREP_TEMPLATES_ENABLED = ["F_01_01", "F_02_00", "F_04_00", "F_18_00", "F_32_01"]
+FINREP_FREQUENCY = "QUARTERLY"
+FINREP_DEADLINE_DAYS = 30
+
+# COREP settings
+COREP_TEMPLATES_ENABLED = ["C_01_00", "C_02_00", "C_03_00", "C_05_01", "C_08_01", "C_16_00", "C_18_00", "C_24_00"]
+COREP_FREQUENCY = "QUARTERLY"
+COREP_DEADLINE_DAYS = 20
+
+# DORA settings
+DORA_REPORT_TYPES_ENABLED = ["ICT_RISK_MANAGEMENT", "INCIDENT_REPORTING", "THIRD_PARTY_RISK", "BUSINESS_CONTINUITY"]
+DORA_FREQUENCY = "ANNUAL"
+DORA_DEADLINE_DAYS = 90
+
+# Regulatory thresholds
+CET1_MINIMUM_RATIO = 0.045  # 4.5%
+TIER1_MINIMUM_RATIO = 0.06  # 6.0%
+TOTAL_MINIMUM_RATIO = 0.08  # 8.0%
+LEVERAGE_MINIMUM_RATIO = 0.03  # 3.0%
+LCR_MINIMUM_RATIO = 1.0  # 100%</code></pre>
+
+  <h3>Monitoring and Alerting</h3>
+  <pre><code># Prometheus metrics
+REPORT_GENERATION_DURATION = Histogram('report_generation_duration_seconds', 'Report generation time')
+REPORT_GENERATION_SUCCESS = Counter('report_generation_success_total', 'Successful report generations')
+REPORT_GENERATION_FAILURES = Counter('report_generation_failures_total', 'Report generation failures')
+REPORT_DELIVERY_SUCCESS = Counter('report_delivery_success_total', 'Successful deliveries')
+REPORT_DELIVERY_FAILURES = Counter('report_delivery_failures_total', 'Delivery failures')
+
+# Alert thresholds
+REPORT_GENERATION_TIMEOUT_ALERT = 300  # 5 minutes
+REPORT_DELIVERY_TIMEOUT_ALERT = 3600  # 1 hour
+VALIDATION_ERROR_THRESHOLD = 10
+DELIVERY_RETRY_THRESHOLD = 3</code></pre>
+
+  <h2>10. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>Report Generation Failures</dt>
+    <dd>Check data completeness, validate schema compliance, review error logs</dd>
+
+    <dt>XBRL Validation Errors</dt>
+    <dd>Verify taxonomy compliance, check context definitions, validate unit references</dd>
+
+    <dt>Data Quality Issues</dt>
+    <dd>Review data sources, check ETL processes, validate business rules</dd>
+
+    <dt>Delivery Timeouts</dt>
+    <dd>Check network connectivity, verify SFTP credentials, monitor queue status</dd>
+
+    <dt>Memory Issues</dt>
+    <dd>Optimize batch processing, implement streaming for large reports, monitor resource usage</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Generate test report
+curl -X POST http://localhost:8004/api/phase4/generate-report \
+  -H "Content-Type: application/json" \
+  -d '{"report_type": "FINREP", "reporting_period": "2023-Q4", "institution_id": "TEST001"}'
+
+# Validate report data
+curl -X POST http://localhost:8004/api/phase4/validate-data \
+  -H "Content-Type: application/json" \
+  -d '{"report_type": "COREP", "data": {"cet1_ratio": 0.12}}'
+
+# Check report status
+curl http://localhost:8004/api/phase4/reports/REP_20240115_001
+
+# View available templates
+curl http://localhost:8004/api/phase4/templates/FINREP
+
+# Monitor system health
+curl http://localhost:8004/health
+
+# View validation logs
+curl http://localhost:8004/logs?component=phase4&level=ERROR</code></pre>
+
+  <h2>11. Regulatory Compliance</h2>
+  <h3>EBA Reporting Requirements</h3>
+  <ul>
+    <li><strong>ITS 2020/534:</strong> Implementing Technical Standards for reporting</li>
+    <li><strong>EBA Taxonomy:</strong> XBRL taxonomy compliance and validation</li>
+    <li><strong>Reporting Deadlines:</strong> Regulatory submission timeframes</li>
+    <li><strong>Data Quality:</strong> Accuracy and completeness requirements</li>
+    <li><strong>Validation Rules:</strong> Business rule and schema compliance</li>
+  </ul>
+
+  <h3>National Implementation</h3>
+  <ul>
+    <li><strong>BaFin (Germany):</strong> National supervisory reporting requirements</li>
+    <li><strong>CBI (Ireland):</strong> Central Bank of Ireland specific templates</li>
+    <li><strong>FCA (UK):</strong> Financial Conduct Authority reporting standards</li>
+    <li><strong>Local Variations:</strong> Country-specific regulatory adaptations</li>
+  </ul>
+
+  <h3>Data Protection and Security</h3>
+  <ul>
+    <li><strong>GDPR Compliance:</strong> Personal data handling in reports</li>
+    <li><strong>Data Encryption:</strong> Secure transmission and storage</li>
+    <li><strong>Access Controls:</strong> Role-based access to sensitive reports</li>
+    <li><strong>Audit Trails:</strong> Complete reporting activity logging</li>
+    <li><strong>Data Retention:</strong> Regulatory record keeping requirements</li>
+  </ul>
+
+  <h2>12. Best Practices</h2>
+  <ul>
+    <li><strong>Data Quality:</strong> Implement comprehensive data validation and cleansing</li>
+    <li><strong>Schema Compliance:</strong> Regular taxonomy updates and compliance monitoring</li>
+    <li><strong>Performance Optimization:</strong> Implement caching and parallel processing</li>
+    <li><strong>Monitoring:</strong> Comprehensive monitoring and alerting for report generation</li>
+    <li><strong>Testing:</strong> Regular testing of report generation and validation processes</li>
+    <li><strong>Documentation:</strong> Maintain detailed documentation of report structures and logic</li>
+    <li><strong>Change Management:</strong> Controlled processes for regulatory requirement changes</li>
+    <li><strong>Stakeholder Communication:</strong> Clear communication of reporting requirements and changes</li>
+    <li><strong>Scalability:</strong> Design for increasing reporting volumes and complexity</li>
+    <li><strong>Disaster Recovery:</strong> Backup and recovery procedures for reporting systems</li>
+  </ul>
+
+</body>
+</html>

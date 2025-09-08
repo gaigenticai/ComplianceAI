@@ -20,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     libjpeg-dev \
     libpng-dev \
+    liblz4-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better Docker layer caching

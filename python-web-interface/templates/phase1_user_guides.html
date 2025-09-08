@@ -8,31 +8,215 @@
   <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
 </head>
 <body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
   <h1>Customer Onboarding Guide</h1>
-  <p>This guide documents Phase 1: intake and customer onboarding workflows.</p>
+  <p>This comprehensive guide covers Phase 1: Customer onboarding, document intake, and initial processing workflows in the ComplianceAI system.</p>
 
-  <h2>1. Purpose</h2>
-  <p>Collect required identity and proof-of-address documentation, validate formats and extract metadata.</p>
+  <h2>1. Overview</h2>
+  <p>Phase 1 focuses on the initial customer onboarding process, including secure document collection, automated processing, and initial compliance validation. This phase combines the functionality of traditional data ingestion and data quality agents with cost-optimized AI processing.</p>
 
-  <h2>2. Supported Document Types</h2>
+  <h2>2. Key Features</h2>
   <ul>
-    <li>Passport, National ID, Driver's License (PDF, JPG, PNG)</li>
-    <li>Utility bill, Bank statement (proof of address)</li>
-    <li>Corporate registrations and incorporation docs (for businesses)</li>
+    <li><strong>Cost-Optimized OCR:</strong> Local Tesseract OCR for 80% of standard documents, GPT-4V only for complex cases</li>
+    <li><strong>Multi-Format Support:</strong> PDF, images, Word, Excel, CSV, and JSON processing</li>
+    <li><strong>Schema Detection:</strong> Automatic data structure identification and normalization</li>
+    <li><strong>Quality Scoring:</strong> ML-based anomaly detection and document quality assessment</li>
+    <li><strong>External Data Integration:</strong> API connections to third-party data sources</li>
   </ul>
 
-  <h2>3. Processing Steps</h2>
+  <h2>3. Supported Document Types</h2>
+  <h3>Identity Documents</h3>
+  <ul>
+    <li>Passports (PDF, JPG, PNG) - MRZ parsing and biometric validation</li>
+    <li>National ID cards and driver's licenses</li>
+    <li>Residence permits and visas</li>
+  </ul>
+
+  <h3>Proof of Address Documents</h3>
+  <ul>
+    <li>Utility bills (electricity, water, gas)</li>
+    <li>Bank statements and financial documents</li>
+    <li>Government-issued correspondence</li>
+  </ul>
+
+  <h3>Business Documents</h3>
+  <ul>
+    <li>Corporate registrations and incorporation docs</li>
+    <li>Articles of association and bylaws</li>
+    <li>Financial statements and tax records</li>
+  </ul>
+
+  <h2>4. Processing Architecture</h2>
+  <h3>Document Processing Pipeline</h3>
   <ol>
-    <li>Secure upload (multipart/form-data to <code>/api/documents/upload</code>)</li>
-    <li>Automatic OCR & text extraction</li>
-    <li>Metadata validation (dates, MRZ parsing where applicable)</li>
-    <li>Initial document classification and case creation</li>
+    <li><strong>File Upload:</strong> Secure multipart/form-data upload via <code>/api/kyc/process</code></li>
+    <li><strong>Type Detection:</strong> Automatic file type identification using magic numbers</li>
+    <li><strong>Preprocessing:</strong> Image enhancement, noise reduction, and format conversion</li>
+    <li><strong>OCR Processing:</strong> Tesseract OCR with fallback to GPT-4V for complex documents</li>
+    <li><strong>Text Extraction:</strong> Structured data extraction from various document formats</li>
+    <li><strong>Schema Detection:</strong> ML-based identification of data structures and relationships</li>
+    <li><strong>Quality Scoring:</strong> Document quality assessment and anomaly detection</li>
+    <li><strong>Data Normalization:</strong> Standardization of extracted information</li>
+    <li><strong>Case Creation:</strong> Generation of structured case records in database</li>
   </ol>
 
-  <h2>4. Troubleshooting</h2>
-  <p>If OCR fails, ensure image DPI & lighting are sufficient. For PDF issues, confirm embedded fonts are not encrypted.</p>
+  <h3>Cost Optimization Features</h3>
+  <ul>
+    <li><strong>Local Processing:</strong> Tesseract OCR handles 80% of standard documents</li>
+    <li><strong>Intelligent Fallback:</strong> GPT-4V only used for damaged or complex documents</li>
+    <li><strong>Batch Processing:</strong> Efficient processing of multiple documents per case</li>
+    <li><strong>Target Cost:</strong> $0.10-0.15 per case through optimized AI usage</li>
+  </ul>
+
+  <h2>5. API Endpoints</h2>
+  <h3>Document Upload</h3>
+  <pre><code>POST /api/kyc/process
+Content-Type: multipart/form-data
+
+Form fields:
+- customer_id: Customer identifier
+- document: File upload (PDF, JPG, PNG)
+- document_type: Type classification</code></pre>
+
+  <h3>Processing Status</h3>
+  <pre><code>GET /api/processing/queue
+Returns current processing queue status and metrics</code></pre>
+
+  <h3>Case Management</h3>
+  <pre><code>GET /api/cases
+GET /api/cases/{case_id}
+Returns case details and processing status</code></pre>
+
+  <h2>6. Quality Assurance</h2>
+  <h3>Document Quality Metrics</h3>
+  <ul>
+    <li><strong>OCR Confidence:</strong> Text recognition accuracy scoring</li>
+    <li><strong>Image Quality:</strong> DPI, contrast, and noise assessment</li>
+    <li><strong>Data Completeness:</strong> Required field validation</li>
+    <li><strong>Format Consistency:</strong> Standardization checking</li>
+  </ul>
+
+  <h3>Anomaly Detection</h3>
+  <ul>
+    <li><strong>ML-based Outlier Detection:</strong> Isolation Forest algorithms</li>
+    <li><strong>Pattern Recognition:</strong> Document structure validation</li>
+    <li><strong>Data Consistency:</strong> Cross-field validation</li>
+  </ul>
+
+  <h2>7. Integration Points</h2>
+  <h3>External Data Sources</h3>
+  <ul>
+    <li><strong>Government Databases:</strong> Identity verification APIs</li>
+    <li><strong>Credit Bureaus:</strong> Financial history validation</li>
+    <li><strong>Watchlist Services:</strong> Sanctions screening data</li>
+  </ul>
+
+  <h3>Internal System Integration</h3>
+  <ul>
+    <li><strong>PostgreSQL:</strong> Structured case data storage</li>
+    <li><strong>MongoDB:</strong> Flexible document metadata storage</li>
+    <li><strong>Kafka:</strong> Processing status and result messaging</li>
+    <li><strong>Redis:</strong> Temporary processing state management</li>
+  </ul>
+
+  <h2>8. Monitoring and Metrics</h2>
+  <h3>Performance Metrics</h3>
+  <ul>
+    <li><strong>Processing Time:</strong> Average document processing duration</li>
+    <li><strong>Success Rate:</strong> Document processing completion percentage</li>
+    <li><strong>Cost per Case:</strong> AI usage and processing costs</li>
+    <li><strong>Queue Depth:</strong> Current processing backlog</li>
+  </ul>
+
+  <h3>Quality Metrics</h3>
+  <ul>
+    <li><strong>OCR Accuracy:</strong> Text extraction confidence scores</li>
+    <li><strong>Data Completeness:</strong> Required field extraction rates</li>
+    <li><strong>Error Rates:</strong> Processing failure percentages</li>
+  </ul>
+
+  <h2>9. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>OCR Quality Issues</dt>
+    <dd>Ensure minimum 300 DPI, good contrast, and clear text. Check for document damage or poor scanning quality.</dd>
+
+    <dt>PDF Processing Errors</dt>
+    <dd>Verify PDF is not password-protected or contains embedded fonts. Use PDF repair tools if corrupted.</dd>
+
+    <dt>Schema Detection Failures</dt>
+    <dd>Ensure document follows standard formats. Custom documents may require manual schema configuration.</dd>
+
+    <dt>Memory Issues</dt>
+    <dd>Large documents may exceed memory limits. Consider document splitting or format conversion.</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Check processing queue status
+curl http://localhost:8000/api/processing/queue
+
+# View specific case details
+curl http://localhost:8000/api/cases/{case_id}
+
+# Monitor OCR confidence scores
+curl http://localhost:8000/api/performance/metrics</code></pre>
+
+  <h2>10. Configuration</h2>
+  <h3>Environment Variables</h3>
+  <pre><code># OCR Configuration
+TESSERACT_CONFIG=--oem 3 --psm 6
+OCR_FALLBACK_THRESHOLD=0.7
+
+# Processing Limits
+MAX_DOCUMENT_SIZE=50MB
+MAX_PAGES_PER_DOCUMENT=100
+PROCESSING_TIMEOUT=300
+
+# Cost Optimization
+LOCAL_OCR_RATIO=0.8
+GPT4V_COST_LIMIT=0.15</code></pre>
+
+  <h3>Docker Configuration</h3>
+  <pre><code>services:
+  intake-processing-agent:
+    image: complianceai/intake-processing:latest
+    environment:
+      - TESSERACT_CONFIG=--oem 3 --psm 6
+      - MAX_DOCUMENT_SIZE=50MB
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8001:8000"</code></pre>
+
+  <h2>11. Best Practices</h2>
+  <ul>
+    <li><strong>Document Preparation:</strong> Ensure high-quality scans with adequate resolution</li>
+    <li><strong>Batch Processing:</strong> Process related documents together for efficiency</li>
+    <li><strong>Quality Monitoring:</strong> Regularly review OCR accuracy and processing metrics</li>
+    <li><strong>Cost Optimization:</strong> Monitor AI usage and adjust thresholds as needed</li>
+    <li><strong>Error Handling:</strong> Implement retry logic for transient failures</li>
+  </ul>
+
+  <h2>12. Security Considerations</h2>
+  <ul>
+    <li><strong>Data Encryption:</strong> All uploaded documents are encrypted at rest</li>
+    <li><strong>Access Control:</strong> Document access restricted by user roles</li>
+    <li><strong>Audit Logging:</strong> All document processing activities are logged</li>
+    <li><strong>Compliance:</strong> GDPR and data protection regulation compliance</li>
+  </ul>
 
 </body>
 </html>
-
 

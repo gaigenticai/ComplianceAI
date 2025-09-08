@@ -7,9 +7,10 @@ uvicorn[standard]==0.24.0
 pydantic==2.5.0
 
 # AI/ML Libraries
-langchain==0.1.20
-langchain-openai==0.0.2
-openai==1.6.1
+langchain
+langchain-openai
+langchain-community
+openai
 spacy==3.7.2
 
 # Document Processing
@@ -34,6 +35,7 @@ alembic==1.13.0
 
 # Message Queue
 kafka-python==2.0.2
+lz4==4.3.2
 
 # Caching & Storage
 redis==5.0.1

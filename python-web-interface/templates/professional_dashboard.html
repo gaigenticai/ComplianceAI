@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ComplianceAI - Intelligence Dashboard</title>
+    <title>ComplianceAI - KYC Intelligence Dashboard</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/design-system.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         /* Dashboard-specific professional styles */
         .dashboard-header {
@@ -43,14 +45,15 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .dashboard-subtitle {
             font-size: 1.125rem;
             opacity: 0.9;
             font-weight: 400;
         }
-        
-        .navigation {
+
+        /* Professional Tabbed Navigation */
+        .main-navigation {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-bottom: 1px solid #e2e8f0;
@@ -58,43 +61,116 @@
             top: 0;
             z-index: 1020;
         }
-        
+
         .nav-container {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 1rem 0;
         }
-        
+
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 0.5rem;
         }
-        
+
         .nav-link {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem 1rem;
+            padding: 0.75rem 1.5rem;
             font-size: 0.875rem;
             font-weight: 500;
             color: #64748b;
             text-decoration: none;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             transition: all 0.15s ease;
+            border: 1px solid transparent;
         }
-        
+
         .nav-link:hover,
         .nav-link.active {
             color: #4f46e5;
             background: #f0f4ff;
+            border-color: #4f46e5;
         }
-        
+
         .nav-link svg {
             width: 16px;
             height: 16px;
         }
-        
+
+        /* Tabbed Content Styles */
+        .tabbed-content {
+            margin-top: 2rem;
+        }
+
+        .content-tabs {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .tab-navigation {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0;
+        }
+
+        .tab-nav-list {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .tab-nav-item {
+            flex: 1;
+        }
+
+        .tab-nav-link {
+            display: block;
+            padding: 1rem 1.5rem;
+            text-align: center;
+            font-weight: 600;
+            color: #64748b;
+            text-decoration: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tab-nav-link:hover {
+            color: #4f46e5;
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .tab-nav-link.active {
+            color: #4f46e5;
+            background: rgba(79, 70, 229, 0.1);
+            border-bottom-color: #4f46e5;
+        }
+
+        .tab-content {
+            padding: 2rem;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .system-status {
             display: flex;
             align-items: center;
@@ -106,7 +182,7 @@
             font-size: 0.75rem;
             font-weight: 500;
         }
-        
+
         .status-dot {
             width: 8px;
             height: 8px;
@@ -114,7 +190,7 @@
             background: #22c55e;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
@@ -362,8 +438,12 @@
         </div>
     </header>
     
-    <!-- Sophisticated Navigation -->
-    <nav class="navigation">
+    <!-- UI update verification banner -->
+    <div id="ui-update-banner" style="background:#fffbeb;border-left:4px solid #f59e0b;padding:0.75rem 1rem;margin:0.75rem 0;border-radius:6px;color:#92400e;font-weight:600;max-width:1200px;margin-left:auto;margin-right:auto;">
+        UI updated: <span id="ui-update-ts"></span>
+    </div>
+    <!-- Professional Tabbed Navigation -->
+    <nav class="main-navigation">
         <div class="container">
             <div class="nav-container">
                 <div class="nav-links">
@@ -385,12 +465,6 @@
                         </svg>
                         Analytics
                     </a>
-                    <a href="/testing" class="nav-link">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                        </svg>
-                        Testing
-                    </a>
                     <a href="/user-guides" class="nav-link">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
@@ -408,108 +482,352 @@
         </div>
     </nav>
     
-    <!-- Main Dashboard Content -->
-    <main class="container">
-        <!-- Key Metrics Grid -->
-        <div class="dashboard-grid">
-            <!-- Processing Metrics -->
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span class="metric-title">Cases Processed</span>
-                    <svg class="metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                    </svg>
+    <!-- Professional Tabbed Content -->
+    <div class="tabbed-content">
+        <div class="container">
+            <div class="content-tabs">
+                <!-- Tab Navigation -->
+                <div class="tab-navigation">
+                    <ul class="tab-nav-list">
+                        <li class="tab-nav-item">
+                            <a href="#overview" class="tab-nav-link active" onclick="switchTab('overview')">
+                                <i class="fas fa-tachometer-alt me-2"></i>Overview
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#cases" class="tab-nav-link" onclick="switchTab('cases')">
+                                <i class="fas fa-folder-open me-2"></i>KYC Cases
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#processing" class="tab-nav-link" onclick="switchTab('processing')">
+                                <i class="fas fa-cogs me-2"></i>Processing
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#analytics" class="tab-nav-link" onclick="switchTab('analytics')">
+                                <i class="fas fa-chart-bar me-2"></i>Analytics
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#settings" class="tab-nav-link" onclick="switchTab('settings')">
+                                <i class="fas fa-sliders-h me-2"></i>Settings
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                <div class="metric-value" id="total-cases">-</div>
-                <div class="metric-change positive" id="cases-change">+12% from last week</div>
-            </div>
-            
-            <!-- Processing Time -->
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span class="metric-title">Avg Processing Time</span>
-                    <svg class="metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div class="metric-value" id="processing-time">-</div>
-                <div class="metric-change positive" id="time-change">-8% faster than target</div>
-            </div>
-            
-            <!-- Success Rate -->
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span class="metric-title">Success Rate</span>
-                    <svg class="metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                    </svg>
-                </div>
-                <div class="metric-value" id="success-rate">-</div>
-                <div class="metric-change positive" id="success-change">Above 95% target</div>
-            </div>
-            
-            <!-- Cost Efficiency -->
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span class="metric-title">Cost per Case</span>
-                    <svg class="metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-                    </svg>
-                </div>
-                <div class="metric-value" id="cost-per-case">-</div>
-                <div class="metric-change positive" id="cost-change">Under $0.50 target</div>
-            </div>
-        </div>
-        
-        <!-- Secondary Grid -->
-        <div class="dashboard-grid">
-            <!-- Agent Status -->
-            <div class="agent-status-card">
-                <h3 style="font-size: 1.125rem; font-weight: 600; color: #0f172a; margin-bottom: 1rem;">Agent Status</h3>
-                <ul class="agent-list" id="agent-status">
-                    <li class="agent-item">
-                        <div class="agent-info">
-                            <div class="agent-avatar">IN</div>
-                            <div class="agent-details">
-                                <h4>Intake & Processing</h4>
-                                <p>Checking status...</p>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Overview Tab -->
+                    <div id="overview" class="tab-pane active">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h2 class="mb-4">
+                                    <i class="fas fa-tachometer-alt text-primary me-2"></i>
+                                    KYC Processing Overview
+                                </h2>
                             </div>
                         </div>
-                        <div class="loading-spinner"></div>
-                    </li>
-                </ul>
-            </div>
-            
-            <!-- Document Upload -->
-            <div class="upload-zone" onclick="document.getElementById('file-input').click()">
-                <input type="file" id="file-input" style="display: none" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadDocument(this)">
-                <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                </svg>
-                <div class="upload-title">Upload KYC Documents</div>
-                <div class="upload-subtitle">Drop files here or click to browse<br>Supports PDF, JPG, PNG up to 10MB</div>
-                <button class="btn btn-primary" style="background: #4f46e5; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 500; cursor: pointer;">Choose Files</button>
-                <div id="status" style="margin-top: 1rem;"></div>
-            </div>
-            
-            <!-- Recent Activity -->
-            <div class="activity-feed">
-                <h3 style="font-size: 1.125rem; font-weight: 600; color: #0f172a; margin-bottom: 1rem;">Recent Activity</h3>
-                <div id="recent-activity">
-                    <div class="activity-item">
-                        <div class="activity-dot"></div>
-                        <div class="activity-content">
-                            <div class="activity-title">System initialized successfully</div>
-                            <div class="activity-time">Just now</div>
+
+                        <!-- Key Metrics Grid -->
+                        <div class="dashboard-grid">
+                            <!-- Processing Metrics -->
+                            <div class="metric-card">
+                                <div class="metric-header">
+                                    <span class="metric-title">Cases Processed</span>
+                                    <svg class="metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="metric-value" id="total-cases">-</div>
+                                <div class="metric-change positive" id="cases-change">+12% from last week</div>
+                            </div>
+
+                            <!-- Processing Time -->
+                            <div class="metric-card">
+                                <div class="metric-header">
+                                    <span class="metric-title">Avg Processing Time</span>
+                                    <svg class="metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="metric-value" id="processing-time">-</div>
+                                <div class="metric-change positive" id="time-change">-8% faster than target</div>
+                            </div>
+
+                            <!-- Success Rate -->
+                            <div class="metric-card">
+                                <div class="metric-header">
+                                    <span class="metric-title">Success Rate</span>
+                                    <svg class="metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                                <div class="metric-value" id="success-rate">-</div>
+                                <div class="metric-change positive" id="success-change">Above 95% target</div>
+                            </div>
+
+                            <!-- Cost Efficiency -->
+                            <div class="metric-card">
+                                <div class="metric-header">
+                                    <span class="metric-title">Cost per Case</span>
+                                    <svg class="metric-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                                    </svg>
+                                </div>
+                                <div class="metric-value" id="cost-per-case">-</div>
+                                <div class="metric-change positive" id="cost-change">Under $0.50 target</div>
+                            </div>
+                        </div>
+
+                        <!-- Secondary Grid -->
+                        <div class="dashboard-grid">
+                            <!-- Agent Status -->
+                            <div class="agent-status-card">
+                                <h3 style="font-size: 1.125rem; font-weight: 600; color: #0f172a; margin-bottom: 1rem;">
+                                    <i class="fas fa-server text-primary me-2"></i>Agent Status
+                                </h3>
+                                <ul class="agent-list" id="agent-status">
+                                    <li class="agent-item">
+                                        <div class="agent-info">
+                                            <div class="agent-avatar">IN</div>
+                                            <div class="agent-details">
+                                                <h4>Intake & Processing</h4>
+                                                <p>Checking status...</p>
+                                            </div>
+                                        </div>
+                                        <div class="loading-spinner"></div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Recent Activity -->
+                            <div class="activity-feed">
+                                <h3 style="font-size: 1.125rem; font-weight: 600; color: #0f172a; margin-bottom: 1rem;">
+                                    <i class="fas fa-clock text-primary me-2"></i>Recent Activity
+                                </h3>
+                                <div id="recent-activity">
+                                    <div class="activity-item">
+                                        <div class="activity-dot"></div>
+                                        <div class="activity-content">
+                                            <div class="activity-title">System initialized successfully</div>
+                                            <div class="activity-time">Just now</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KYC Cases Tab -->
+                    <div id="cases" class="tab-pane">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h2 class="mb-4">
+                                    <i class="fas fa-folder-open text-primary me-2"></i>
+                                    KYC Cases Management
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-8">
+                                <!-- Cases List -->
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-list text-primary me-2"></i>Active Cases
+                                        </h5>
+                                        <button class="btn btn-primary btn-sm">
+                                            <i class="fas fa-plus me-1"></i>New Case
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="cases-list">
+                                            <div class="text-center py-5">
+                                                <i class="fas fa-spinner fa-spin fa-2x text-muted mb-3"></i>
+                                                <p class="text-muted">Loading cases...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <!-- Document Upload -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-upload text-primary me-2"></i>Document Upload
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+                                            <input type="file" id="file-input" style="display: none" accept=".pdf,.jpg,.jpeg,.png" onchange="uploadDocument(this)">
+                                            <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                            </svg>
+                                            <div class="upload-title">Upload KYC Documents</div>
+                                            <div class="upload-subtitle">Drop files here or click to browse<br>Supports PDF, JPG, PNG up to 10MB</div>
+                                            <button class="btn btn-primary" style="background: #4f46e5; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.5rem; font-weight: 500; cursor: pointer;">Choose Files</button>
+                                            <div id="status" style="margin-top: 1rem;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Processing Tab -->
+                    <div id="processing" class="tab-pane">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h2 class="mb-4">
+                                    <i class="fas fa-cogs text-primary me-2"></i>
+                                    Document Processing Center
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-tasks text-primary me-2"></i>Processing Queue
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="processing-queue">
+                                            <div class="text-center py-5">
+                                                <i class="fas fa-cog fa-spin fa-2x text-muted mb-3"></i>
+                                                <p class="text-muted">Processing documents...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Analytics Tab -->
+                    <div id="analytics" class="tab-pane">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h2 class="mb-4">
+                                    <i class="fas fa-chart-bar text-primary me-2"></i>
+                                    KYC Analytics & Insights
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-chart-line text-primary me-2"></i>Performance Analytics
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="analytics-chart" width="400" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Tab -->
+                    <div id="settings" class="tab-pane">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h2 class="mb-4">
+                                    <i class="fas fa-sliders-h text-primary me-2"></i>
+                                    System Configuration
+                                </h2>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-cog text-primary me-2"></i>Processing Settings
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <form>
+                                            <div class="mb-3">
+                                                <label class="form-label">Max File Size (MB)</label>
+                                                <input type="number" class="form-control" value="10">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Processing Timeout (seconds)</label>
+                                                <input type="number" class="form-control" value="300">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="mb-0">
+                                            <i class="fas fa-bell text-primary me-2"></i>Notifications
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" checked>
+                                            <label class="form-check-label">Email notifications</label>
+                                        </div>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" checked>
+                                            <label class="form-check-label">Processing alerts</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Update Preferences</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Professional dashboard JavaScript
+        // Professional tabbed dashboard JavaScript
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Remove active class from all tabs and panes
+            document.querySelectorAll('.tab-nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
+
+            // Add active class to selected tab and pane
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            // Load data for specific tabs
+            if (tabName === 'cases') {
+                loadCasesData();
+            } else if (tabName === 'processing') {
+                loadProcessingData();
+            } else if (tabName === 'analytics') {
+                loadAnalyticsData();
+            }
+        }
+
+        // Load dashboard overview data
         async function loadDashboardData() {
             try {
                 // Load metrics
@@ -518,7 +836,7 @@
                     const metrics = await metricsResponse.json();
                     updateMetrics(metrics);
                 }
-                
+
                 // Load agent status
                 const agentsResponse = await fetch('/api/agents/health');
                 if (agentsResponse.ok) {
@@ -529,6 +847,75 @@
                 console.error('Failed to load dashboard data:', error);
             }
         }
+
+        // Load cases data
+        async function loadCasesData() {
+            try {
+                const casesResponse = await fetch('/api/cases');
+                if (casesResponse.ok) {
+                    const cases = await casesResponse.json();
+                    updateCasesList(cases);
+                }
+            } catch (error) {
+                console.error('Failed to load cases data:', error);
+            }
+        }
+
+        // Load processing data
+        async function loadProcessingData() {
+            try {
+                const response = await fetch('/api/processing/queue');
+                if (response.ok) {
+                    const queue = await response.json();
+                    updateProcessingQueue(queue);
+                } else {
+                    console.error('Failed to load processing queue');
+                }
+            } catch (error) {
+                console.error('Failed to load processing data:', error);
+            }
+        }
+
+        // Load analytics data
+        function loadAnalyticsData() {
+            // Initialize analytics chart
+            const ctx = document.getElementById('analytics-chart').getContext('2d');
+            const analyticsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'KYC Cases Processed',
+                        data: [65, 78, 90, 81, 96, 105],
+                        borderColor: 'rgb(79, 70, 229)',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Success Rate %',
+                        data: [92, 94, 96, 93, 97, 98],
+                        borderColor: 'rgb(16, 185, 129)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'KYC Processing Performance'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
         
         function updateMetrics(metrics) {
             document.getElementById('total-cases').textContent = metrics.total_cases || '0';
@@ -536,7 +923,7 @@
             document.getElementById('success-rate').textContent = ((metrics.success_rate || 0) * 100).toFixed(1) + '%';
             document.getElementById('cost-per-case').textContent = '$' + (metrics.cost_per_case || 0).toFixed(2);
         }
-        
+
         function updateAgentStatus(agents) {
             const agentList = document.getElementById('agent-status');
             const agentConfigs = [
@@ -544,12 +931,12 @@
                 { key: 'intelligence', name: 'Intelligence & Compliance', avatar: 'IC' },
                 { key: 'decision', name: 'Decision & Orchestration', avatar: 'DO' }
             ];
-            
+
             agentList.innerHTML = agentConfigs.map(config => {
                 const agent = agents[config.key] || { status: 'unknown' };
                 const statusClass = agent.status === 'healthy' ? 'positive' : 'negative';
                 const statusText = agent.status === 'healthy' ? 'Operational' : 'Checking...';
-                
+
                 return `
                     <li class="agent-item">
                         <div class="agent-info">
@@ -566,37 +953,132 @@
                 `;
             }).join('');
         }
-        
+
+        function updateCasesList(cases) {
+            const casesListDiv = document.getElementById('cases-list');
+            if (!cases || cases.length === 0) {
+                casesListDiv.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h6 class="text-muted">No active cases</h6>
+                        <p class="text-muted">Upload a document to start processing</p>
+                    </div>
+                `;
+                return;
+            }
+
+            casesListDiv.innerHTML = cases.map(caseItem => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="card-title mb-1">
+                                    <i class="fas fa-file-alt text-primary me-2"></i>
+                                    Case ${caseItem.case_id}
+                                </h6>
+                                <p class="card-text mb-1">Customer: ${caseItem.customer_id}</p>
+                                <small class="text-muted">Status: ${caseItem.status}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-${caseItem.status === 'completed' ? 'success' : caseItem.status === 'processing' ? 'warning' : 'secondary'}">
+                                    ${caseItem.status}
+                                </span>
+                                <br>
+                                <small class="text-muted">${new Date(caseItem.created_at).toLocaleDateString()}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateProcessingQueue(queue) {
+            const processingDiv = document.getElementById('processing-queue');
+            if (!queue || queue.length === 0) {
+                processingDiv.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h6 class="text-success">Processing Queue Empty</h6>
+                        <p class="text-muted">All documents have been processed</p>
+                    </div>
+                `;
+                return;
+            }
+
+            processingDiv.innerHTML = queue.map(item => `
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="card-title mb-0">
+                                <i class="fas fa-cog text-primary me-2"></i>
+                                Case ${item.case_id}
+                            </h6>
+                            <span class="badge bg-${item.status === 'processing' ? 'warning' : 'secondary'}">
+                                ${item.status}
+                            </span>
+                        </div>
+                        <p class="card-text mb-2">Customer: ${item.customer_id}</p>
+                        ${item.status === 'processing' ? `
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                     role="progressbar" style="width: 75%"
+                                     aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                            </div>
+                            <small class="text-muted mt-1">Processing...</small>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
         async function uploadDocument(input) {
             const file = input.files[0];
             if (!file) return;
-            
+
             const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = '<div style="color: #4f46e5;">Uploading...</div>';
-            
+            statusDiv.innerHTML = '<div style="color: #4f46e5;"><i class="fas fa-spinner fa-spin me-2"></i>Uploading...</div>';
+
             const formData = new FormData();
             formData.append('document', file);
             formData.append('customer_id', 'web-upload-' + Date.now());
-            
+
             try {
                 const response = await fetch('/api/kyc/process', {
                     method: 'POST',
                     body: formData
                 });
-                
+
                 if (response.ok) {
                     const result = await response.json();
-                    statusDiv.innerHTML = `<div style="color: #16a34a;">✓ Document uploaded successfully! Case ID: ${result.case_id}</div>`;
-                    loadDashboardData(); // Refresh metrics
+                    statusDiv.innerHTML = `
+                        <div style="color: #16a34a;">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Document uploaded successfully! Case ID: ${result.case_id}
+                        </div>
+                    `;
+                    // Switch to cases tab and refresh data
+                    switchTab('cases');
+                    loadDashboardData();
                 } else {
                     const error = await response.json();
-                    statusDiv.innerHTML = `<div style="color: #dc2626;">✗ Upload failed: ${error.detail}</div>`;
+                    statusDiv.innerHTML = `
+                        <div style="color: #dc2626;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Upload failed: ${error.detail}
+                        </div>
+                    `;
                 }
             } catch (error) {
-                statusDiv.innerHTML = `<div style="color: #dc2626;">✗ Upload failed: ${error.message}</div>`;
+                statusDiv.innerHTML = `
+                    <div style="color: #dc2626;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Upload failed: ${error.message}
+                    </div>
+                `;
             }
         }
-        
+
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
             loadDashboardData();

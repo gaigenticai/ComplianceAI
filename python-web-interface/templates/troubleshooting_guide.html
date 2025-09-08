@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Troubleshooting Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}
+    .home-button {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .home-button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(79, 70, 229, 0.3);
+      color: white;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <a href="/" class="home-button">
+    <i class="fas fa-home"></i>
+    Back to Home
+  </a>
+  <h1>Troubleshooting Guide</h1>
+  <p>This comprehensive troubleshooting guide helps you diagnose and resolve common issues with the ComplianceAI platform.</p>
+
+  <h2>1. Getting Started</h2>
+  <h3>Quick Diagnosis Checklist</h3>
+  <p>Before diving into specific issues, run through this checklist:</p>
+  <ol>
+    <li><strong>Check System Status:</strong> Visit http://localhost:8001/health</li>
+    <li><strong>Verify Services:</strong> Run docker-compose ps to check container status</li>
+    <li><strong>Check Logs:</strong> Review recent logs with docker-compose logs --tail=50</li>
+    <li><strong>Verify Configuration:</strong> Ensure .env file exists and is properly configured</li>
+    <li><strong>Check Resources:</strong> Ensure sufficient CPU, memory, and disk space</li>
+  </ol>
+
+  <h3>Diagnostic Commands</h3>
+  <pre><code># System health check
+curl -f http://localhost:8001/health
+
+# Service status
+docker-compose ps
+
+# Recent logs
+docker-compose logs --tail=50
+
+# Resource usage
+docker stats
+
+# Network connectivity
+docker-compose exec postgres pg_isready -U postgres -d kyc_db
+docker-compose exec mongo mongosh --eval "db.stats()"</code></pre>
+
+  <h2>2. Startup Issues</h2>
+  <h3>Services Not Starting</h3>
+  <h4>Problem:</h4>
+  <p>Docker containers fail to start or exit immediately after startup</p>
+
+  <h4>Common Causes:</h4>
+  <ul>
+    <li>Missing environment variables</li>
+    <li>Port conflicts</li>
+    <li>Insufficient system resources</li>
+    <li>Configuration errors</li>
+  </ul>
+
+  <h4>Solutions:</h4>
+  <pre><code># Check for port conflicts
+lsof -i :5432,6379,27017,9092,3000
+
+# Verify environment file
+ls -la .env
+cat .env | grep -v PASSWORD
+
+# Check system resources
+df -h
+free -h
+
+# Clean restart
+docker-compose down -v
+docker-compose up --build --force-recreate</code></pre>
+
+  <h3>Database Connection Failures</h3>
+  <h4>Problem:</h4>
+  <p>Services can't connect to PostgreSQL or MongoDB</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Test PostgreSQL connection
+docker-compose exec postgres pg_isready -U postgres -d kyc_db
+
+# Test MongoDB connection
+docker-compose exec mongo mongosh --eval "db.adminCommand('ping')"
+
+# Check database logs
+docker-compose logs postgres
+docker-compose logs mongo</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Reset databases (WARNING: This will delete data)
+docker-compose down -v
+docker-compose up postgres mongo
+
+# Check connection strings in .env
+grep -E "(POSTGRES|MONGO)" .env
+
+# Verify database initialization
+docker-compose exec postgres psql -U postgres -d kyc_db -c "\dt"
+docker-compose exec mongo mongosh kyc_db --eval "db.stats()"</code></pre>
+
+  <h3>Kafka Connection Issues</h3>
+  <h4>Problem:</h4>
+  <p>Services can't connect to Kafka broker</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Test Kafka connectivity
+docker-compose exec kafka kafka-broker-api-versions --bootstrap-server localhost:9092
+
+# Check Kafka logs
+docker-compose logs kafka zookeeper
+
+# Verify topic creation
+docker-compose exec kafka kafka-topics --list --bootstrap-server localhost:9092</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Restart Kafka stack
+docker-compose restart zookeeper kafka
+
+# Recreate topics
+docker-compose exec kafka kafka-topics --create --topic regulatory.updates --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+
+# Check broker configuration
+docker-compose exec kafka kafka-configs --describe --bootstrap-server localhost:9092 --all</code></pre>
+
+  <h2>3. Processing Issues</h2>
+  <h3>KYC Cases Stuck in Processing</h3>
+  <h4>Problem:</h4>
+  <p>Customer cases remain in "processing" status indefinitely</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check agent health
+curl http://localhost:8001/api/agents/health
+
+# Monitor processing queue
+curl http://localhost:8001/api/processing/queue
+
+# Check for stuck messages in Kafka
+docker-compose exec kafka kafka-consumer-groups --describe --group intelligence-compliance-group --bootstrap-server localhost:9092
+
+# Review agent logs
+docker-compose logs intake-agent decision-agent intelligence-agent</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Restart processing agents
+docker-compose restart intake-agent intelligence-agent decision-agent
+
+# Clear processing queue
+curl -X POST http://localhost:8001/api/admin/clear-queue
+
+# Reset consumer offsets
+docker-compose exec kafka kafka-consumer-groups --reset-offsets --to-earliest --group intelligence-compliance-group --topic regulatory.updates --bootstrap-server localhost:9092 --execute
+
+# Check for database locks
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"</code></pre>
+
+  <h3>Document Processing Failures</h3>
+  <h4>Problem:</h4>
+  <p>OCR processing fails or produces poor quality results</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check OCR service status
+docker-compose logs intake-agent | grep -i ocr
+
+# Verify document quality
+curl http://localhost:8001/api/processing/stats
+
+# Test OCR with sample document
+curl -X POST http://localhost:8001/api/test/ocr \
+  -F "file=@sample_document.pdf"
+
+# Check AI service connectivity
+curl -f https://api.openai.com/v1/models \
+  -H "Authorization: Bearer $OPENAI_API_KEY"</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Restart intake agent
+docker-compose restart intake-agent
+
+# Verify OpenAI API key
+grep OPENAI_API_KEY .env
+
+# Check document format support
+curl http://localhost:8001/api/supported-formats
+
+# Update OCR models
+docker-compose exec intake-agent pip install --upgrade tesseract opencv-python</code></pre>
+
+  <h3>Compliance Rule Errors</h3>
+  <h4>Problem:</h4>
+  <p>Compliance rules fail to load or produce incorrect results</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check rule compilation status
+curl http://localhost:8001/api/compliance/rules/status
+
+# Verify rule syntax
+curl http://localhost:8001/api/compliance/rules/validate
+
+# Check for rule conflicts
+curl http://localhost:8001/api/compliance/rules/conflicts
+
+# Review rule processing logs
+docker-compose logs intelligence-agent | grep -i rule</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Reload compliance rules
+curl -X POST http://localhost:8001/api/compliance/rules/reload
+
+# Clear rule cache
+curl -X POST http://localhost:8001/api/cache/clear?type=rules
+
+# Validate rule syntax
+curl -X POST http://localhost:8001/api/compliance/rules/validate \
+  -H "Content-Type: application/json" \
+  -d '{"rule_definition": "..."}'
+
+# Update rule engine
+docker-compose restart intelligence-agent</code></pre>
+
+  <h2>4. Web Interface Issues</h2>
+  <h3>Page Loading Problems</h3>
+  <h4>Problem:</h4>
+  <p>Web interface fails to load or displays errors</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check web interface status
+curl -I http://localhost:8001/
+
+# Test API endpoints
+curl http://localhost:8001/api/v1/status
+
+# Check static file serving
+curl -I http://localhost:8001/static/css/style.css
+
+# Review web interface logs
+docker-compose logs kyc-web-interface</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Restart web interface
+docker-compose restart kyc-web-interface
+
+# Clear browser cache
+# (Browser-specific instructions)
+
+# Check template files
+docker-compose exec kyc-web-interface ls -la /app/templates/
+
+# Verify static files
+docker-compose exec kyc-web-interface ls -la /app/static/</code></pre>
+
+  <h3>Authentication Issues</h3>
+  <h4>Problem:</h4>
+  <p>Login fails or authentication doesn't work</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check authentication configuration
+grep -E "(REQUIRE_AUTH|JWT)" .env
+
+# Test authentication endpoint
+curl -X POST http://localhost:8001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "password"}'
+
+# Verify JWT settings
+docker-compose logs kyc-web-interface | grep -i jwt</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Reset authentication settings
+echo "REQUIRE_AUTH=false" >> .env
+docker-compose restart kyc-web-interface
+
+# Clear authentication cache
+curl -X POST http://localhost:8001/api/auth/clear-cache
+
+# Reset user database
+docker-compose exec postgres psql -U postgres -d kyc_db -c "TRUNCATE users RESTART IDENTITY;"
+
+# Reinitialize admin user
+curl -X POST http://localhost:8001/api/setup/initialize</code></pre>
+
+  <h3>Dashboard Not Updating</h3>
+  <h4>Problem:</h4>
+  <p>Dashboard shows stale data or doesn't refresh</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check dashboard API
+curl http://localhost:8001/api/dashboard/metrics
+
+# Verify data freshness
+curl http://localhost:8001/api/dashboard/last-update
+
+# Check cache status
+curl http://localhost:8001/api/cache/status
+
+# Review dashboard logs
+docker-compose logs kyc-web-interface | grep -i dashboard</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Clear dashboard cache
+curl -X POST http://localhost:8001/api/cache/clear?type=dashboard
+
+# Refresh metrics
+curl -X POST http://localhost:8001/api/metrics/refresh
+
+# Restart dashboard service
+docker-compose restart kyc-web-interface
+
+# Check data source connections
+curl http://localhost:8001/api/connections/status</code></pre>
+
+  <h2>5. Performance Issues</h2>
+  <h3>High CPU Usage</h3>
+  <h4>Problem:</h4>
+  <p>System shows consistently high CPU utilization</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check CPU usage
+docker stats
+
+# Identify high CPU processes
+ps aux --sort=-%cpu | head -10
+
+# Check agent performance metrics
+curl http://localhost:8001/api/performance/metrics
+
+# Review performance logs
+docker-compose logs | grep -i performance</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Scale up services
+docker-compose up -d --scale intake-agent=3 --scale intelligence-agent=2
+
+# Optimize database queries
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT * FROM pg_stat_statements ORDER BY total_time DESC LIMIT 10;"
+
+# Enable query caching
+curl -X POST http://localhost:8001/api/cache/enable
+
+# Adjust resource limits
+# Update docker-compose.yml with higher CPU limits</code></pre>
+
+  <h3>Memory Issues</h3>
+  <h4>Problem:</h4>
+  <p>Services run out of memory or show high memory usage</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check memory usage
+docker stats
+
+# Monitor memory trends
+curl http://localhost:8001/api/monitoring/memory
+
+# Check for memory leaks
+docker-compose logs | grep -i "memory\|leak"
+
+# Review garbage collection
+curl http://localhost:8001/api/performance/gc-stats</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Increase memory limits
+# Update docker-compose.yml memory limits
+
+# Restart services to clear memory
+docker-compose restart
+
+# Enable memory profiling
+curl -X POST http://localhost:8001/api/profiling/memory/enable
+
+# Optimize memory usage
+curl -X POST http://localhost:8001/api/optimization/memory</code></pre>
+
+  <h3>Slow Response Times</h3>
+  <h4>Problem:</h4>
+  <p>API responses are slow or timeouts occur</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check response times
+curl -w "@curl-format.txt" -o /dev/null -s http://localhost:8001/api/dashboard/metrics
+
+# Monitor latency metrics
+curl http://localhost:8001/api/monitoring/latency
+
+# Check database performance
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT * FROM pg_stat_activity;"
+
+# Review slow query logs
+docker-compose logs postgres | grep -i slow</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Add database indexes
+docker-compose exec postgres psql -U postgres -d kyc_db -c "CREATE INDEX CONCURRENTLY idx_kyc_sessions_status ON kyc_sessions (status);"
+
+# Enable caching
+curl -X POST http://localhost:8001/api/cache/enable
+
+# Optimize connection pooling
+# Update database connection pool settings
+
+# Scale services
+docker-compose up -d --scale web-interface=3</code></pre>
+
+  <h2>6. Database Issues</h2>
+  <h3>Connection Pool Exhaustion</h3>
+  <h4>Problem:</h4>
+  <p>Database connections are exhausted</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check active connections
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT count(*) FROM pg_stat_activity;"
+
+# Check connection limits
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SHOW max_connections;"
+
+# Monitor connection pool
+curl http://localhost:8001/api/database/connections
+
+# Review connection logs
+docker-compose logs postgres | grep -i connection</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Increase connection limits
+docker-compose exec postgres psql -U postgres -d kyc_db -c "ALTER SYSTEM SET max_connections = 200;"
+
+# Restart database
+docker-compose restart postgres
+
+# Optimize connection pooling in application
+# Update connection pool settings in .env
+
+# Add connection pool monitoring
+curl -X POST http://localhost:8001/api/monitoring/connections/enable</code></pre>
+
+  <h3>Data Corruption</h3>
+  <h4>Problem:</h4>
+  <p>Database shows corrupted or inconsistent data</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check database integrity
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT * FROM pg_stat_database;"
+
+# Verify data consistency
+curl http://localhost:8001/api/database/integrity
+
+# Check for orphaned records
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT COUNT(*) FROM kyc_sessions ks LEFT JOIN customers c ON ks.customer_id = c.customer_id WHERE c.customer_id IS NULL;"
+
+# Review database logs
+docker-compose logs postgres</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Run integrity checks
+docker-compose exec postgres psql -U postgres -d kyc_db -c "REINDEX DATABASE kyc_db;"
+
+# Repair corrupted indexes
+docker-compose exec postgres psql -U postgres -d kyc_db -c "REINDEX TABLE kyc_sessions;"
+
+# Restore from backup
+# Follow disaster recovery procedures
+
+# Enable data validation
+curl -X POST http://localhost:8001/api/validation/enable</code></pre>
+
+  <h3>Replication Lag</h3>
+  <h4>Problem:</h4>
+  <p>Database replication shows significant lag</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check replication status
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT * FROM pg_stat_replication;"
+
+# Monitor replication lag
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT * FROM pg_stat_wal_receiver;"
+
+# Check WAL status
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT * FROM pg_stat_archiver;"
+
+# Review replication logs
+docker-compose logs postgres | grep -i replication</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Restart replication
+docker-compose restart postgres
+
+# Check network connectivity
+docker-compose exec postgres ping -c 3 postgres-replica
+
+# Adjust replication settings
+docker-compose exec postgres psql -U postgres -d kyc_db -c "ALTER SYSTEM SET wal_sender_timeout = '60s';"
+
+# Monitor replication health
+curl -X POST http://localhost:8001/api/monitoring/replication/enable</code></pre>
+
+  <h2>7. Monitoring Issues</h2>
+  <h3>Missing Metrics</h3>
+  <h4>Problem:</h4>
+  <p>Prometheus/Grafana shows missing or incomplete metrics</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check Prometheus targets
+curl http://localhost:9090/api/v1/targets
+
+# Verify service discovery
+curl http://localhost:9090/api/v1/service-discovery
+
+# Check metric endpoints
+curl http://localhost:8001/metrics
+
+# Review Prometheus logs
+docker-compose logs prometheus</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Reload Prometheus configuration
+curl -X POST http://localhost:9090/-/reload
+
+# Restart Prometheus
+docker-compose restart prometheus
+
+# Check Grafana data sources
+curl http://admin:admin@localhost:3000/api/datasources
+
+# Reconfigure monitoring
+curl -X POST http://localhost:8001/api/monitoring/reconfigure</code></pre>
+
+  <h3>Alert Storm</h3>
+  <h4>Problem:</h4>
+  <p>Excessive alerts are being generated</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check active alerts
+curl http://localhost:9093/api/v2/alerts
+
+# Review alert rules
+curl http://localhost:9090/api/v1/rules
+
+# Check alert history
+curl http://localhost:9093/api/v2/alerts/history
+
+# Review AlertManager logs
+docker-compose logs alertmanager</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Adjust alert thresholds
+# Update alert rules in monitoring/alert_rules.yml
+
+# Implement alert grouping
+# Update alertmanager.yml with route grouping
+
+# Add alert inhibition
+# Configure alert inhibition rules
+
+# Restart monitoring stack
+docker-compose restart prometheus alertmanager</code></pre>
+
+  <h3>Log Aggregation Issues</h3>
+  <h4>Problem:</h4>
+  <p>Logs are not being collected or are incomplete</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check log shipping status
+curl http://localhost:3100/ready
+
+# Verify log volume
+docker-compose exec loki loki -config.file=/etc/loki/local-config.yaml -log.level=info
+
+# Check Promtail status
+curl http://localhost:9080/ready
+
+# Review log files
+docker-compose logs promtail</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Restart log aggregation
+docker-compose restart loki promtail
+
+# Verify log file permissions
+docker-compose exec promtail ls -la /var/log/
+
+# Check log volume mounts
+docker-compose exec promtail df -h
+
+# Reconfigure log collection
+curl -X POST http://localhost:3100/loki/api/v1/push -H "Content-Type: application/json" -d '{"streams": []}'</code></pre>
+
+  <h2>8. Security Issues</h2>
+  <h3>Authentication Failures</h3>
+  <h4>Problem:</h4>
+  <p>Users can't authenticate or sessions expire unexpectedly</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check authentication logs
+docker-compose logs kyc-web-interface | grep -i auth
+
+# Verify JWT configuration
+grep -E "(JWT|AUTH)" .env
+
+# Test authentication endpoint
+curl -X POST http://localhost:8001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "test", "password": "test"}'
+
+# Check session store
+curl http://localhost:6379/info</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Reset authentication settings
+echo "REQUIRE_AUTH=false" >> .env
+docker-compose restart kyc-web-interface
+
+# Clear session cache
+docker-compose exec redis redis-cli FLUSHALL
+
+# Regenerate JWT secrets
+openssl rand -hex 32 > jwt_secret.key
+
+# Update user credentials
+curl -X POST http://localhost:8001/api/auth/reset-password</code></pre>
+
+  <h3>SSL/TLS Issues</h3>
+  <h4>Problem:</h4>
+  <p>SSL certificates are invalid or HTTPS doesn't work</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check SSL configuration
+openssl s_client -connect localhost:443 -servername localhost
+
+# Verify certificate validity
+openssl x509 -in ssl/cert.pem -text -noout
+
+# Check nginx SSL configuration
+docker-compose exec nginx nginx -t
+
+# Review SSL logs
+docker-compose logs nginx | grep -i ssl</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Renew SSL certificates
+certbot renew
+
+# Update nginx configuration
+docker-compose exec nginx nginx -s reload
+
+# Check certificate chain
+openssl verify -CAfile /etc/ssl/certs/ca-certificates.crt ssl/cert.pem
+
+# Restart SSL services
+docker-compose restart nginx</code></pre>
+
+  <h3>Access Control Issues</h3>
+  <h4>Problem:</h4>
+  <p>Users have incorrect permissions or access is denied</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check user permissions
+curl http://localhost:8001/api/users/permissions
+
+# Verify role assignments
+curl http://localhost:8001/api/users/roles
+
+# Review access logs
+docker-compose logs kyc-web-interface | grep -i access
+
+# Check RBAC configuration
+curl http://localhost:8001/api/rbac/status</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Reset user permissions
+curl -X POST http://localhost:8001/api/users/reset-permissions
+
+# Update role definitions
+curl -X PUT http://localhost:8001/api/rbac/roles
+
+# Clear permission cache
+curl -X POST http://localhost:8001/api/cache/clear?type=permissions
+
+# Restart authentication service
+docker-compose restart kyc-web-interface</code></pre>
+
+  <h2>9. Backup & Recovery Issues</h2>
+  <h3>Backup Failures</h3>
+  <h4>Problem:</h4>
+  <p>Automated backups fail or are incomplete</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check backup logs
+tail -f /var/log/complianceai_backup.log
+
+# Verify backup integrity
+ls -la /backups/
+
+# Test backup restoration
+pg_restore --list /backups/latest.backup
+
+# Check backup script status
+systemctl status complianceai-backup</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Fix backup permissions
+chmod +x /usr/local/bin/complianceai-backup.sh
+
+# Update backup configuration
+vi /etc/complianceai/backup.conf
+
+# Test backup manually
+/usr/local/bin/complianceai-backup.sh
+
+# Restart backup service
+systemctl restart complianceai-backup</code></pre>
+
+  <h3>Recovery Problems</h3>
+  <h4>Problem:</h4>
+  <p>System recovery from backup fails</p>
+
+  <h4>Diagnosis:</h4>
+  <pre><code># Check recovery logs
+tail -f /var/log/complianceai_recovery.log
+
+# Verify backup integrity
+pg_restore --list /backups/latest.backup
+
+# Test partial recovery
+pg_restore --create --clean --if-exists --list /backups/latest.backup | head -10
+
+# Check system resources
+df -h && free -h</code></pre>
+
+  <h4>Solutions:</h4>
+  <pre><code># Free up disk space
+rm -rf /tmp/* /var/tmp/*
+
+# Increase system resources
+# Update docker-compose.yml resource limits
+
+# Perform incremental recovery
+pg_restore --create --clean --if-exists --single-transaction /backups/latest.backup
+
+# Verify recovery
+psql -U postgres -d kyc_db -c "SELECT COUNT(*) FROM customers;"</code></pre>
+
+  <h2>10. Emergency Procedures</h2>
+  <h3>Complete System Restart</h3>
+  <pre><code># Emergency restart procedure
+docker-compose down
+docker system prune -f
+docker volume prune -f
+docker-compose up -d --build --force-recreate
+
+# Verify restart
+curl -f http://localhost:8001/health</code></pre>
+
+  <h3>Data Recovery from Backup</h3>
+  <pre><code># Emergency data recovery
+docker-compose stop postgres
+docker volume rm complianceai_postgres_data
+docker-compose up -d postgres
+
+# Wait for initialization
+sleep 30
+
+# Restore from latest backup
+docker-compose exec postgres pg_restore -U postgres -d kyc_db /backups/latest.backup
+
+# Verify data integrity
+docker-compose exec postgres psql -U postgres -d kyc_db -c "SELECT COUNT(*) FROM customers;"</code></pre>
+
+  <h3>Contacting Support</h3>
+  <p>If all troubleshooting steps fail:</p>
+  <ol>
+    <li><strong>Gather Diagnostic Information:</strong>
+        <pre><code>docker-compose logs > diagnostic_logs.txt
+        docker stats > container_stats.txt
+        curl http://localhost:8001/api/system/diagnostics > system_diagnostics.json</code></pre>
+    </li>
+    <li><strong>Document the Issue:</strong>
+        <ul>
+            <li>Steps to reproduce</li>
+            <li>Expected vs actual behavior</li>
+            <li>System configuration</li>
+            <li>Error messages and logs</li>
+        </ul>
+    </li>
+    <li><strong>Contact Support:</strong>
+        <ul>
+            <li>Email: support@complianceai.com</li>
+            <li>Phone: +1 (555) 123-4567</li>
+            <li>Portal: https://support.complianceai.com</li>
+        </ul>
+    </li>
+  </ol>
+
+  <h2>11. Prevention Best Practices</h2>
+  <h3>Regular Maintenance</h3>
+  <ul>
+    <li><strong>Update Dependencies:</strong> Keep all software components updated</li>
+    <li><strong>Monitor Resources:</strong> Set up alerts for resource usage thresholds</li>
+    <li><strong>Backup Verification:</strong> Regularly test backup restoration</li>
+    <li><strong>Log Rotation:</strong> Implement proper log rotation policies</li>
+    <li><strong>Security Audits:</strong> Regular security scans and vulnerability assessments</li>
+  </ul>
+
+  <h3>Performance Monitoring</h3>
+  <ul>
+    <li><strong>Baseline Metrics:</strong> Establish normal performance baselines</li>
+    <li><strong>Trend Analysis:</strong> Monitor performance trends over time</li>
+    <li><strong>Capacity Planning:</strong> Plan for future resource needs</li>
+    <li><strong>Bottleneck Identification:</strong> Regularly identify and address bottlenecks</li>
+  </ul>
+
+  <h3>Incident Response</h3>
+  <ul>
+    <li><strong>Runbook Maintenance:</strong> Keep troubleshooting runbooks updated</li>
+    <li><strong>Escalation Procedures:</strong> Clear escalation paths for different issue types</li>
+    <li><strong>Post-Mortem Analysis:</strong> Learn from incidents to prevent recurrence</li>
+    <li><strong>Knowledge Base:</strong> Maintain a comprehensive knowledge base of resolved issues</li>
+  </ul>
+
+</body>
+</html>

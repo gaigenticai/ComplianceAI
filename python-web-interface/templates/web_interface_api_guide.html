@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Web Interface API Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <h1>Web Interface API Guide</h1>
+  <p>This comprehensive guide covers all API endpoints available in the ComplianceAI web interface, providing complete documentation for integration, testing, and operational use.</p>
+
+  <!-- Quick API UIs -->
+  <div style="margin:12px 0 24px;">
+    <a href="/docs" class="btn btn-primary me-2" target="_blank" rel="noopener noreferrer">
+      <i class="fas fa-tools me-2"></i>Open Swagger UI (/docs)
+    </a>
+    <a href="/redoc" class="btn btn-outline-primary me-2" target="_blank" rel="noopener noreferrer">
+      <i class="fas fa-book-open me-2"></i>Open ReDoc (/redoc)
+    </a>
+    <a href="/openapi.json" class="btn btn-outline-secondary" target="_blank" rel="noopener noreferrer">
+      <i class="fas fa-file-code me-2"></i>Open API Spec (/openapi.json)
+    </a>
+  </div>
+
+  <h2>1. Overview</h2>
+  <p>The ComplianceAI Web Interface provides a comprehensive REST API that serves as the primary integration point for all system interactions. The API is organized into logical groups covering system health, KYC processing, regulatory monitoring, compliance management, and user interface functionality.</p>
+
+  <h2>2. API Architecture</h2>
+  <h3>Base URL</h3>
+  <pre><code>Production: https://your-domain.com
+Development: http://localhost:8001
+Staging: https://staging.your-domain.com</code></pre>
+
+  <h3>Authentication</h3>
+  <pre><code># Conditional Authentication (Rule 10)
+# REQUIRE_AUTH environment variable controls authentication
+# Default: false (no authentication required)
+
+# When REQUIRE_AUTH=true:
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+
+# Authentication Endpoints (when enabled):
+POST /api/auth/login
+POST /api/auth/refresh
+POST /api/auth/logout</code></pre>
+
+  <h3>Response Format</h3>
+  <pre><code>Success Response:
+{
+  "success": true,
+  "data": {...},
+  "message": "Operation completed successfully",
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+
+Error Response:
+{
+  "success": false,
+  "error": "Error description",
+  "code": "ERROR_CODE",
+  "details": {...},
+  "timestamp": "2024-01-15T10:30:00Z"
+}</code></pre>
+
+  <h3>HTTP Status Codes</h3>
+  <table>
+    <tr>
+      <th>Code</th>
+      <th>Description</th>
+      <th>Usage</th>
+    </tr>
+    <tr>
+      <td>200</td>
+      <td>OK</td>
+      <td>Successful GET/POST/PUT requests</td>
+    </tr>
+    <tr>
+      <td>201</td>
+      <td>Created</td>
+      <td>Resource successfully created</td>
+    </tr>
+    <tr>
+      <td>400</td>
+      <td>Bad Request</td>
+      <td>Invalid request parameters or payload</td>
+    </tr>
+    <tr>
+      <td>401</td>
+      <td>Unauthorized</td>
+      <td>Authentication required or invalid token</td>
+    </tr>
+    <tr>
+      <td>403</td>
+      <td>Forbidden</td>
+      <td>Insufficient permissions</td>
+    </tr>
+    <tr>
+      <td>404</td>
+      <td>Not Found</td>
+      <td>Resource or endpoint not found</td>
+    </tr>
+    <tr>
+      <td>429</td>
+      <td>Too Many Requests</td>
+      <td>Rate limit exceeded</td>
+    </tr>
+    <tr>
+      <td>500</td>
+      <td>Internal Server Error</td>
+      <td>Server-side error</td>
+    </tr>
+    <tr>
+      <td>503</td>
+      <td>Service Unavailable</td>
+      <td>Service temporarily unavailable</td>
+    </tr>
+  </table>
+
+  <h2>3. System Health & Status</h2>
+  <h3>Health Check</h3>
+  <pre><code>GET /health
+
+Response:
+{
+  "status": "healthy",
+  "version": "1.0.0",
+  "uptime_seconds": 3600,
+  "environment": "production",
+  "timestamp": "2024-01-15T10:30:00Z"
+}</code></pre>
+
+  <h3>System Status</h3>
+  <pre><code>GET /api/v1/status
+
+Response:
+{
+  "system_status": "operational",
+  "services": {
+    "kyc_web_interface": "healthy",
+    "intake_processing_agent": "healthy",
+    "decision_orchestration_agent": "healthy",
+    "regulatory_intelligence_agent": "healthy",
+    "kyc_postgres": "healthy",
+    "kyc_redis": "healthy"
+  },
+  "metrics": {
+    "active_connections": 45,
+    "pending_tasks": 12,
+    "system_load": 0.65
+  },
+  "last_updated": "2024-01-15T10:30:00Z"
+}</code></pre>
+
+  <h3>Phase 4 API Status</h3>
+  <pre><code>GET /api/phase4/status
+
+Response:
+{
+  "phase4_status": "healthy",
+  "report_generation_ready": true,
+  "database_connected": true,
+  "last_health_check": "2024-01-15T10:30:00Z"
+}</code></pre>
+
+  <h3>Agent Health</h3>
+  <pre><code>GET /api/agents/health
+
+Response:
+{
+  "agents": [
+    {
+      "name": "intake-processing-agent",
+      "status": "healthy",
+      "url": "http://intake-processing-agent:8005",
+      "last_check": "2024-01-15T10:30:00Z",
+      "response_time_ms": 45
+    },
+    {
+      "name": "decision-orchestration-agent",
+      "status": "healthy",
+      "url": "http://decision-orchestration-agent:8003",
+      "last_check": "2024-01-15T10:30:00Z",
+      "response_time_ms": 32
+    }
+  ],
+  "overall_status": "healthy",
+  "total_agents": 6,
+  "healthy_agents": 6
+}</code></pre>
+
+  <h2>4. KYC Processing</h2>
+  <h3>Process KYC Case</h3>
+  <pre><code>POST /api/kyc/process
+Content-Type: multipart/form-data
+
+Form Data:
+- session_id: string (KYC session identifier)
+- customer_id: string (Customer identifier)
+- customer_data: JSON string with customer information
+- documents: File[] (Customer documents)
+- priority: string (normal/high/urgent)
+- jurisdiction: string (Customer jurisdiction)
+
+Response:
+{
+  "success": true,
+  "session_id": "session_123",
+  "customer_id": "customer_456",
+  "status": "processing",
+  "estimated_completion_minutes": 15,
+  "processing_steps": [
+    "Document intake",
+    "OCR processing",
+    "Intelligence analysis",
+    "Decision making"
+  ],
+  "message": "KYC processing initiated successfully"
+}</code></pre>
+
+  <h3>Get Case Details</h3>
+  <pre><code>GET /api/cases/{case_id}
+
+Response:
+{
+  "case_id": "case_123",
+  "customer_id": "customer_456",
+  "status": "completed",
+  "created_at": "2024-01-15T09:00:00Z",
+  "completed_at": "2024-01-15T09:45:00Z",
+  "decision": "approve",
+  "confidence": 0.92,
+  "processing_time_minutes": 45,
+  "documents_processed": 3,
+  "risk_score": 0.25,
+  "jurisdiction": "EU",
+  "assigned_officer": "officer_001",
+  "audit_trail": [...]
+}</code></pre>
+
+  <h3>List Cases</h3>
+  <pre><code>GET /api/cases?page=1&limit=20&status=completed&customer_id=customer_456
+
+Query Parameters:
+- page: integer (Page number, default: 1)
+- limit: integer (Items per page, default: 20)
+- status: string (Filter by status: pending/processing/completed/failed)
+- customer_id: string (Filter by customer)
+- date_from: string (Filter from date: YYYY-MM-DD)
+- date_to: string (Filter to date: YYYY-MM-DD)
+
+Response:
+{
+  "cases": [
+    {
+      "case_id": "case_123",
+      "customer_id": "customer_456",
+      "status": "completed",
+      "decision": "approve",
+      "created_at": "2024-01-15T09:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 150,
+    "pages": 8
+  },
+  "filters_applied": {
+    "status": "completed",
+    "customer_id": "customer_456"
+  }
+}</code></pre>
+
+  <h3>Processing Queue Status</h3>
+  <pre><code>GET /api/processing/queue
+
+Response:
+{
+  "queue_status": {
+    "active_jobs": 12,
+    "pending_jobs": 45,
+    "completed_today": 234,
+    "failed_today": 3,
+    "average_processing_time_minutes": 18
+  },
+  "queue_details": [
+    {
+      "job_id": "job_123",
+      "customer_id": "customer_456",
+      "priority": "high",
+      "status": "processing",
+      "started_at": "2024-01-15T10:15:00Z",
+      "estimated_completion": "2024-01-15T10:45:00Z"
+    }
+  ],
+  "system_capacity": {
+    "max_concurrent_jobs": 50,
+    "current_utilization_percent": 24
+  }
+}</code></pre>
+
+  <h2>5. Dashboard & Analytics</h2>
+  <h3>Dashboard Metrics</h3>
+  <pre><code>GET /api/dashboard/metrics
+
+Response:
+{
+  "summary": {
+    "total_cases_today": 156,
+    "approved_today": 142,
+    "rejected_today": 8,
+    "manual_review_today": 6,
+    "average_processing_time_minutes": 22,
+    "system_uptime_percent": 99.7
+  },
+  "charts": {
+    "hourly_throughput": [
+      {"hour": "00", "cases": 5},
+      {"hour": "01", "cases": 3},
+      {"hour": "02", "cases": 2}
+    ],
+    "decision_distribution": {
+      "approve": 91.0,
+      "reject": 5.1,
+      "manual_review": 3.9
+    },
+    "risk_score_distribution": {
+      "low": 78.5,
+      "medium": 18.7,
+      "high": 2.8
+    }
+  },
+  "alerts": [
+    {
+      "severity": "warning",
+      "message": "Processing queue backlog > 50",
+      "timestamp": "2024-01-15T10:25:00Z"
+    }
+  ],
+  "last_updated": "2024-01-15T10:30:00Z"
+}</code></pre>
+
+  <h3>System Metrics</h3>
+  <pre><code>GET /metrics
+
+Response: Prometheus metrics format
+# HELP http_requests_total Total number of HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",endpoint="/api/cases",status="200"} 15420
+http_requests_total{method="POST",endpoint="/api/kyc/process",status="201"} 3280
+
+# HELP http_request_duration_seconds HTTP request duration in seconds
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="0.1"} 14200
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="0.5"} 15200
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="1.0"} 15350
+
+# HELP kyc_processing_duration_seconds KYC processing duration
+# TYPE kyc_processing_duration_seconds histogram
+kyc_processing_duration_seconds_bucket{le="300"} 3200
+kyc_processing_duration_seconds_bucket{le="600"} 3100
+kyc_processing_duration_seconds_bucket{le="900"} 3080</code></pre>
+
+  <h2>6. Compliance Management</h2>
+  <h3>Get Compliance Rules</h3>
+  <pre><code>GET /api/compliance/rules?jurisdiction=EU&category=AML
+
+Query Parameters:
+- jurisdiction: string (EU/DE/IE/GB)
+- category: string (AML/KYC/GDPR)
+- status: string (active/inactive)
+- limit: integer (default: 50)
+
+Response:
+{
+  "rules": [
+    {
+      "rule_id": "rule_001",
+      "name": "Enhanced Due Diligence",
+      "category": "AML",
+      "jurisdiction": "EU",
+      "description": "Enhanced due diligence required for high-risk customers",
+      "threshold": 0.7,
+      "status": "active",
+      "created_at": "2024-01-01T00:00:00Z",
+      "last_updated": "2024-01-15T08:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 50,
+    "total": 125,
+    "pages": 3
+  }
+}</code></pre>
+
+  <h3>Create Compliance Rule</h3>
+  <pre><code>POST /api/compliance/rules
+Content-Type: application/json
+
+{
+  "name": "High-Risk Transaction Monitoring",
+  "category": "AML",
+  "jurisdiction": "EU",
+  "description": "Monitor transactions above EUR 15,000",
+  "rule_logic": {
+    "condition": "AND",
+    "rules": [
+      {
+        "field": "transaction_amount",
+        "operator": "greater_than",
+        "value": 15000
+      },
+      {
+        "field": "customer_risk_score",
+        "operator": "greater_than",
+        "value": 0.7
+      }
+    ]
+  },
+  "actions": [
+    {
+      "type": "flag",
+      "severity": "high",
+      "message": "High-risk transaction detected"
+    },
+    {
+      "type": "escalate",
+      "to": "compliance_officer"
+    }
+  ],
+  "status": "active"
+}
+
+Response:
+{
+  "success": true,
+  "rule_id": "rule_002",
+  "message": "Compliance rule created successfully",
+  "rule": {...}
+}</code></pre>
+
+  <h3>Performance Metrics</h3>
+  <pre><code>GET /api/performance/metrics?period=7d&metric=throughput
+
+Query Parameters:
+- period: string (1d/7d/30d/90d)
+- metric: string (throughput/latency/accuracy/all)
+
+Response:
+{
+  "period": "7d",
+  "metrics": {
+    "throughput": {
+      "daily_average": 234,
+      "peak_hourly": 45,
+      "trend": "+12%",
+      "data_points": [...]
+    },
+    "latency": {
+      "p50_seconds": 18,
+      "p95_seconds": 45,
+      "p99_seconds": 120,
+      "trend": "-5%",
+      "data_points": [...]
+    },
+    "accuracy": {
+      "overall_accuracy": 94.8,
+      "false_positive_rate": 3.2,
+      "false_negative_rate": 1.9,
+      "trend": "+2.1%",
+      "data_points": [...]
+    }
+  },
+  "generated_at": "2024-01-15T10:30:00Z"
+}</code></pre>
+
+  <h2>7. Regulatory Intelligence</h2>
+  <h3>Regulatory Status</h3>
+  <pre><code>GET /api/regulatory/status
+
+Response:
+{
+  "regulatory_status": "operational",
+  "feeds_active": 5,
+  "documents_processed_today": 127,
+  "obligations_extracted_today": 89,
+  "last_feed_update": "2024-01-15T09:45:00Z",
+  "jurisdictions_covered": ["EU", "DE", "IE", "GB"],
+  "feed_health": {
+    "EUR_Lex": "healthy",
+    "EBA": "healthy",
+    "BaFin": "warning",
+    "CBI": "healthy",
+    "FCA": "healthy"
+  }
+}</code></pre>
+
+  <h3>Scheduler Control</h3>
+  <pre><code>POST /api/regulatory/scheduler/start
+
+Response:
+{
+  "success": true,
+  "message": "Regulatory feed scheduler started",
+  "scheduler_status": "running",
+  "feeds_enabled": ["EUR_Lex", "EBA", "BaFin", "CBI", "FCA"],
+  "next_poll": "2024-01-15T11:00:00Z"
+}
+
+POST /api/regulatory/scheduler/stop
+
+Response:
+{
+  "success": true,
+  "message": "Regulatory feed scheduler stopped",
+  "scheduler_status": "stopped"
+}
+
+POST /api/regulatory/scheduler/poll-now
+
+Response:
+{
+  "success": true,
+  "message": "Manual poll initiated",
+  "poll_id": "poll_20240115_001",
+  "estimated_completion": "2024-01-15T10:35:00Z"
+}</code></pre>
+
+  <h3>Scheduler Metrics</h3>
+  <pre><code>GET /api/regulatory/scheduler/metrics
+
+Response:
+{
+  "scheduler_metrics": {
+    "status": "running",
+    "uptime_hours": 168,
+    "total_polls": 2016,
+    "successful_polls": 1985,
+    "failed_polls": 31,
+    "success_rate": 98.5,
+    "average_poll_time_seconds": 45,
+    "last_successful_poll": "2024-01-15T10:30:00Z"
+  },
+  "feed_metrics": [
+    {
+      "feed_name": "EUR_Lex",
+      "status": "healthy",
+      "last_poll": "2024-01-15T10:30:00Z",
+      "documents_found": 5,
+      "success_rate": 99.2
+    }
+  ],
+  "processing_queue": {
+    "pending_documents": 23,
+    "processing_documents": 3,
+    "completed_today": 127
+  }
+}</code></pre>
+
+  <h3>Document Parser Testing</h3>
+  <pre><code>POST /api/regulatory/parser/test-document
+Content-Type: application/json
+
+{
+  "document_url": "https://eba.europa.eu/documents/123/report.pdf",
+  "document_type": "PDF",
+  "jurisdiction": "EU",
+  "expected_obligations": 5
+}
+
+Response:
+{
+  "success": true,
+  "document_id": "doc_20240115_001",
+  "processing_time_seconds": 12.5,
+  "extracted_obligations": 7,
+  "confidence_score": 0.89,
+  "quality_metrics": {
+    "completeness": 0.95,
+    "accuracy": 0.87,
+    "validity": 0.92
+  },
+  "sample_obligations": [
+    {
+      "obligation_id": "eba_001",
+      "regulation": "CRR",
+      "article": "Article 92",
+      "content": "CET1 ratio shall be at least 4.5%",
+      "confidence": 0.94
+    }
+  ]
+}</code></pre>
+
+  <h3>Parser Status</h3>
+  <pre><code>GET /api/regulatory/parser/status
+
+Response:
+{
+  "parser_status": "healthy",
+  "active_parsers": 3,
+  "queue_size": 23,
+  "processing_capacity": 85,
+  "supported_formats": ["PDF", "HTML", "XML", "DOCX"],
+  "performance_metrics": {
+    "average_processing_time_seconds": 18.5,
+    "success_rate": 94.7,
+    "documents_processed_today": 127
+  }
+}</code></pre>
+
+  <h3>Parser Metrics</h3>
+  <pre><code>GET /api/regulatory/parser/metrics
+
+Response:
+{
+  "parser_metrics": {
+    "total_documents_processed": 15420,
+    "successful_parsing": 14580,
+    "failed_parsing": 840,
+    "success_rate": 94.5,
+    "average_confidence": 0.87,
+    "processing_times": {
+      "p50": 15,
+      "p95": 45,
+      "p99": 120
+    },
+    "format_distribution": {
+      "PDF": 68.5,
+      "HTML": 24.3,
+      "XML": 5.2,
+      "DOCX": 2.0
+    }
+  },
+  "quality_metrics": {
+    "completeness_score": 0.93,
+    "accuracy_score": 0.89,
+    "consistency_score": 0.91,
+    "overall_quality": 0.91
+  }
+}</code></pre>
+
+  <h3>Regulatory Obligations</h3>
+  <pre><code>GET /api/regulatory/obligations?jurisdiction=EU&regulation=CRR&limit=20
+
+Query Parameters:
+- jurisdiction: string (EU/DE/IE/GB)
+- regulation: string (CRR/PSD2/GDPR/AML)
+- status: string (active/pending/review)
+- date_from: string (YYYY-MM-DD)
+- date_to: string (YYYY-MM-DD)
+- limit: integer (default: 50)
+
+Response:
+{
+  "obligations": [
+    {
+      "obligation_id": "eba_crr_001",
+      "regulation": "CRR",
+      "article": "Article 92",
+      "jurisdiction": "EU",
+      "content": "Institutions shall maintain a CET1 ratio of at least 4.5%",
+      "effective_date": "2024-01-01",
+      "status": "active",
+      "confidence": 0.95,
+      "source": "EUR_Lex",
+      "created_at": "2024-01-10T08:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 1250,
+    "pages": 63
+  },
+  "filters_applied": {
+    "jurisdiction": "EU",
+    "regulation": "CRR"
+  }
+}</code></pre>
+
+  <h3>Regulatory Feeds</h3>
+  <pre><code>GET /api/regulatory/feeds
+
+Response:
+{
+  "feeds": [
+    {
+      "feed_name": "EUR_Lex",
+      "feed_type": "RSS",
+      "url": "https://eur-lex.europa.eu/rss/en/oj/series/32024L.xml",
+      "status": "active",
+      "last_successful_poll": "2024-01-15T10:30:00Z",
+      "last_failed_poll": null,
+      "success_rate": 99.2,
+      "documents_discovered": 15420,
+      "frequency_minutes": 15,
+      "jurisdictions": ["EU"],
+      "regulations": ["CRR", "PSD2", "MiFID II"]
+    },
+    {
+      "feed_name": "EBA",
+      "feed_type": "API",
+      "url": "https://eba.europa.eu/api/regulatory-updates",
+      "status": "active",
+      "last_successful_poll": "2024-01-15T10:25:00Z",
+      "last_failed_poll": null,
+      "success_rate": 98.7,
+      "documents_discovered": 8920,
+      "frequency_minutes": 30,
+      "jurisdictions": ["EU"],
+      "regulations": ["CRR", "BRRD", "DGSD"]
+    }
+  ],
+  "summary": {
+    "total_feeds": 5,
+    "active_feeds": 5,
+    "healthy_feeds": 4,
+    "warning_feeds": 1,
+    "total_documents_discovered": 24340,
+    "documents_last_24h": 127
+  }
+}</code></pre>
+
+  <h3>Test Regulatory Feed</h3>
+  <pre><code>POST /api/regulatory/test-feed
+Content-Type: application/json
+
+{
+  "feed_url": "https://eur-lex.europa.eu/rss/en/oj/series/32024L.xml",
+  "feed_type": "RSS",
+  "timeout_seconds": 30
+}
+
+Response:
+{
+  "success": true,
+  "feed_status": "accessible",
+  "response_time_ms": 450,
+  "documents_found": 25,
+  "last_updated": "2024-01-15T10:00:00Z",
+  "sample_documents": [
+    {
+      "title": "Commission Delegated Regulation (EU) 2024/123",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R0123",
+      "published": "2024-01-15T08:00:00Z",
+      "jurisdiction": "EU"
+    }
+  ],
+  "recommendations": [
+    "Feed is healthy and accessible",
+    "Consider increasing polling frequency for high-volume periods"
+  ]
+}</code></pre>
+
+  <h3>Resilience Status</h3>
+  <pre><code>GET /api/regulatory/resilience/status
+
+Response:
+{
+  "resilience_status": "healthy",
+  "circuit_breakers": {
+    "eur_lex_feed": "closed",
+    "eba_api": "closed",
+    "bafin_feed": "half_open"
+  },
+  "dead_letter_queue": {
+    "size": 12,
+    "oldest_message_age_hours": 2,
+    "retry_attempts": 3
+  },
+  "fallback_services": {
+    "backup_feed_available": true,
+    "cache_available": true,
+    "offline_mode_supported": true
+  },
+  "system_health": {
+    "cpu_usage": 45.2,
+    "memory_usage": 67.8,
+    "disk_usage": 34.1,
+    "network_latency_ms": 12
+  }
+}</code></pre>
+
+  <h3>Circuit Breaker Status</h3>
+  <pre><code>GET /api/regulatory/resilience/circuit-breakers
+
+Response:
+{
+  "circuit_breakers": [
+    {
+      "name": "eur_lex_feed",
+      "state": "closed",
+      "failure_count": 0,
+      "success_count": 1520,
+      "last_failure": null,
+      "last_success": "2024-01-15T10:30:00Z",
+      "threshold_failure_rate": 0.5,
+      "current_failure_rate": 0.0
+    },
+    {
+      "name": "eba_api",
+      "state": "closed",
+      "failure_count": 2,
+      "success_count": 1480,
+      "last_failure": "2024-01-14T15:30:00Z",
+      "last_success": "2024-01-15T10:25:00Z",
+      "threshold_failure_rate": 0.5,
+      "current_failure_rate": 0.001
+    }
+  ]
+}</code></pre>
+
+  <h3>Failure Metrics</h3>
+  <pre><code>GET /api/regulatory/resilience/failures
+
+Response:
+{
+  "failure_metrics": {
+    "total_failures": 45,
+    "failures_last_24h": 3,
+    "failure_rate": 0.002,
+    "most_common_errors": [
+      {
+        "error_type": "connection_timeout",
+        "count": 18,
+        "percentage": 40.0,
+        "affected_feeds": ["bafin_feed", "cbi_feed"]
+      },
+      {
+        "error_type": "parse_error",
+        "count": 12,
+        "percentage": 26.7,
+        "affected_feeds": ["fca_feed"]
+      }
+    ],
+    "recovery_actions": [
+      {
+        "action": "circuit_breaker_opened",
+        "timestamp": "2024-01-15T09:15:00Z",
+        "feed": "bafin_feed",
+        "reason": "High failure rate detected"
+      },
+      {
+        "action": "fallback_activated",
+        "timestamp": "2024-01-15T09:20:00Z",
+        "feed": "bafin_feed",
+        "fallback_type": "cached_data"
+      }
+    ]
+  }
+}</code></pre>
+
+  <h3>DLQ Status</h3>
+  <pre><code>GET /api/regulatory/resilience/dlq-status
+
+Response:
+{
+  "dlq_status": {
+    "queue_size": 12,
+    "max_queue_size": 1000,
+    "oldest_message_age_hours": 2.5,
+    "messages_by_age": {
+      "0-1_hours": 8,
+      "1-6_hours": 3,
+      "6-24_hours": 1,
+      "24+_hours": 0
+    },
+    "retry_statistics": {
+      "attempt_1": 8,
+      "attempt_2": 3,
+      "attempt_3": 1,
+      "max_attempts_exceeded": 0
+    },
+    "message_types": {
+      "feed_connection_error": 7,
+      "document_parse_error": 4,
+      "obligation_extraction_error": 1
+    }
+  },
+  "recent_messages": [
+    {
+      "message_id": "msg_20240115_001",
+      "feed_name": "bafin_feed",
+      "error_type": "connection_timeout",
+      "retry_count": 2,
+      "next_retry": "2024-01-15T11:00:00Z",
+      "error_details": "Connection timed out after 30 seconds"
+    }
+  ]
+}</code></pre>
+
+  <h3>Test Retry Logic</h3>
+  <pre><code>POST /api/regulatory/resilience/test-retry
+Content-Type: application/json
+
+{
+  "feed_name": "bafin_feed",
+  "test_type": "connection_retry",
+  "max_attempts": 3,
+  "timeout_seconds": 30
+}
+
+Response:
+{
+  "success": true,
+  "test_id": "retry_test_20240115_001",
+  "attempts_made": 2,
+  "final_result": "success",
+  "total_time_seconds": 45.2,
+  "retry_strategy": "exponential_backoff",
+  "recommendations": [
+    "Retry logic is working correctly",
+    "Consider increasing timeout for this feed",
+    "Circuit breaker threshold may need adjustment"
+  ]
+}</code></pre>
+
+  <h3>Kafka Status</h3>
+  <pre><code>GET /api/regulatory/kafka/status
+
+Response:
+{
+  "kafka_status": "healthy",
+  "brokers_connected": 3,
+  "topics": {
+    "regulatory.updates": {
+      "partitions": 6,
+      "replicas": 3,
+      "messages_last_hour": 2340,
+      "consumer_lag": 12
+    },
+    "intelligence_compliance_input": {
+      "partitions": 3,
+      "replicas": 2,
+      "messages_last_hour": 1890,
+      "consumer_lag": 5
+    }
+  },
+  "consumer_groups": [
+    {
+      "group_id": "intelligence-compliance-group",
+      "status": "stable",
+      "members": 3,
+      "lag": 5,
+      "topics": ["intelligence_compliance_input"]
+    },
+    {
+      "group_id": "regulatory-processor-group",
+      "status": "stable",
+      "members": 2,
+      "lag": 12,
+      "topics": ["regulatory.updates"]
+    }
+  ],
+  "performance_metrics": {
+    "throughput_msgs_per_sec": 45.2,
+    "latency_ms_p95": 23,
+    "error_rate": 0.001
+  }
+}</code></pre>
+
+  <h3>Test Kafka Event</h3>
+  <pre><code>POST /api/regulatory/kafka/test-event
+Content-Type: application/json
+
+{
+  "topic": "regulatory.updates",
+  "event_type": "obligation_created",
+  "payload": {
+    "obligation_id": "test_obligation_001",
+    "regulation": "CRR",
+    "content": "Test obligation for API testing",
+    "jurisdiction": "EU"
+  },
+  "key": "test_session_001"
+}
+
+Response:
+{
+  "success": true,
+  "message_id": "msg_20240115_001",
+  "topic": "regulatory.updates",
+  "partition": 2,
+  "offset": 15432,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "delivery_status": "delivered",
+  "estimated_processing_time_seconds": 5
+}</code></pre>
+
+  <h2>8. Testing & Development</h2>
+  <h3>Run Test Suite</h3>
+  <pre><code>POST /api/testing/run-test
+Content-Type: application/json
+
+{
+  "test_suite": "integration_tests",
+  "test_cases": ["kyc_processing", "regulatory_feeds"],
+  "environment": "staging",
+  "parallel_execution": true,
+  "timeout_minutes": 30
+}
+
+Response:
+{
+  "test_run_id": "test_run_20240115_001",
+  "status": "running",
+  "test_suite": "integration_tests",
+  "total_tests": 25,
+  "estimated_completion": "2024-01-15T11:00:00Z",
+  "test_progress": {
+    "completed": 0,
+    "running": 5,
+    "pending": 20,
+    "failed": 0
+  }
+}</code></pre>
+
+  <h3>Track User Guide Access</h3>
+  <pre><code>POST /api/user-guides/track-access
+Content-Type: application/json
+
+{
+  "guide_id": "phase3-components-guide",
+  "user_id": "user_001",
+  "session_id": "session_123",
+  "access_type": "view",
+  "user_agent": "Mozilla/5.0...",
+  "ip_address": "192.168.1.100",
+  "referrer": "https://compliance-ai.com/dashboard"
+}
+
+Response:
+{
+  "success": true,
+  "access_id": "access_20240115_001",
+  "guide_id": "phase3-components-guide",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "analytics_enabled": true
+}</code></pre>
+
+  <h2>9. User Interface Endpoints</h2>
+  <h3>Main Dashboard</h3>
+  <pre><code>GET /
+
+Response: HTML dashboard page with real-time metrics and navigation</code></pre>
+
+  <h3>Regulatory Dashboard</h3>
+  <pre><code>GET /regulatory
+
+Response: HTML page showing regulatory intelligence dashboard</code></pre>
+
+  <h3>Compliance Dashboard</h3>
+  <pre><code>GET /compliance
+
+Response: HTML page showing compliance rules and monitoring</code></pre>
+
+  <h3>Performance Dashboard</h3>
+  <pre><code>GET /performance
+
+Response: HTML page showing system performance metrics</code></pre>
+
+  <h3>User Guides</h3>
+  <pre><code>GET /user-guides
+
+Response: HTML page listing all available user guides
+
+GET /onboarding-guides
+GET /kyc-review-guides
+GET /decisioning-guides
+GET /phase3-components-guide
+GET /phase4-components-guide
+GET /phase6-components-guide
+GET /regulatory-intelligence-guide
+GET /intake-processing-agent-guide
+GET /decision-orchestration-agent-guide
+
+Response: HTML content for specific user guides</code></pre>
+
+  <h3>Phase-Specific Pages</h3>
+  <pre><code>GET /phase3/guides
+GET /phase4/guides
+GET /phase6/guides
+
+Response: HTML pages with phase-specific guides and documentation</code></pre>
+
+  <h2>10. Error Handling</h2>
+  <h3>Common Error Responses</h3>
+  <pre><code>400 Bad Request:
+{
+  "success": false,
+  "error": "Invalid request parameters",
+  "code": "VALIDATION_ERROR",
+  "details": {
+    "field": "customer_id",
+    "issue": "Required field missing"
+  }
+}
+
+401 Unauthorized:
+{
+  "success": false,
+  "error": "Authentication required",
+  "code": "AUTH_REQUIRED",
+  "details": {
+    "login_url": "/api/auth/login"
+  }
+}
+
+404 Not Found:
+{
+  "success": false,
+  "error": "Resource not found",
+  "code": "RESOURCE_NOT_FOUND",
+  "details": {
+    "resource_type": "case",
+    "resource_id": "case_999"
+  }
+}
+
+429 Too Many Requests:
+{
+  "success": false,
+  "error": "Rate limit exceeded",
+  "code": "RATE_LIMIT_EXCEEDED",
+  "details": {
+    "limit": 100,
+    "window": "1 minute",
+    "reset_time": "2024-01-15T10:31:00Z"
+  }
+}
+
+500 Internal Server Error:
+{
+  "success": false,
+  "error": "Internal server error",
+  "code": "INTERNAL_ERROR",
+  "details": {
+    "request_id": "req_20240115_001",
+    "support_contact": "support@compliance-ai.com"
+  }
+}</code></pre>
+
+  <h2>11. Rate Limiting</h2>
+  <h3>Rate Limit Headers</h3>
+  <pre><code>X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 87
+X-RateLimit-Reset: 1642154400
+X-RateLimit-Window: 60
+
+# Rate limit exceeded response
+HTTP/1.1 429 Too Many Requests
+Content-Type: application/json
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1642154400
+
+{
+  "success": false,
+  "error": "Rate limit exceeded",
+  "code": "RATE_LIMIT_EXCEEDED",
+  "details": {
+    "retry_after_seconds": 30
+  }
+}</code></pre>
+
+  <h3>Rate Limit Configuration</h3>
+  <pre><code># Rate limiting by endpoint type
+GENERAL_ENDPOINTS_LIMIT = 100  # requests per minute
+PROCESSING_ENDPOINTS_LIMIT = 20  # requests per minute
+ADMIN_ENDPOINTS_LIMIT = 10      # requests per minute
+
+# Burst limits
+BURST_MULTIPLIER = 2  # Allow 2x normal rate for short bursts
+
+# Rate limit windows
+WINDOW_SECONDS = 60  # 1 minute windows
+
+# Exempted endpoints (no rate limiting)
+EXEMPT_ENDPOINTS = ["/health", "/metrics", "/api/v1/status"]</code></pre>
+
+  <h2>12. API Versioning</h2>
+  <h3>Version Strategy</h3>
+  <ul>
+    <li><strong>URL Path Versioning:</strong> /api/v1/endpoint</li>
+    <li><strong>Header Versioning:</strong> Accept-Version: v1.2</li>
+    <li><strong>Query Parameter:</strong> /api/endpoint?version=v1.2</li>
+  </ul>
+
+  <h3>Current Versions</h3>
+  <pre><code># Current stable version
+API_VERSION = "v1.0"
+
+# Supported versions
+SUPPORTED_VERSIONS = ["v1.0", "v0.9"]
+
+# Version compatibility
+VERSION_COMPATIBILITY = {
+    "v1.0": ["v0.9"],  # v1.0 is backward compatible with v0.9
+    "v0.9": []         # v0.9 is not forward compatible
+}</code></pre>
+
+  <h3>Deprecation Policy</h3>
+  <pre><code># Deprecation headers
+Deprecation: version="v0.9"
+Sunset: Wed, 21 Oct 2024 07:28:00 GMT
+Link: </api/v1/status>; rel="deprecation"; type="text/html"
+
+# Version migration
+GET /api/v1/endpoint
+Accept-Version: v0.9  # Still supported but deprecated
+
+# Migration response
+{
+  "success": true,
+  "data": {...},
+  "version": "v1.0",
+  "deprecated_version": "v0.9",
+  "migration_guide": "/docs/api-migration-v0.9-to-v1.0"
+}</code></pre>
+
+  <h2>13. Webhooks & Callbacks</h2>
+  <h3>Webhook Configuration</h3>
+  <pre><code>POST /api/webhooks/register
+Content-Type: application/json
+
+{
+  "webhook_id": "kyc_completion_webhook",
+  "url": "https://your-app.com/webhooks/kyc-completed",
+  "events": ["kyc.completed", "kyc.failed"],
+  "secret": "your-webhook-secret",
+  "retry_policy": {
+    "max_attempts": 5,
+    "backoff_strategy": "exponential",
+    "timeout_seconds": 30
+  }
+}
+
+Response:
+{
+  "success": true,
+  "webhook_id": "kyc_completion_webhook",
+  "status": "active",
+  "test_url": "/api/webhooks/test/kyc_completion_webhook"
+}</code></pre>
+
+  <h3>Webhook Payloads</h3>
+  <pre><code># KYC Completion Event
+{
+  "event_type": "kyc.completed",
+  "webhook_id": "kyc_completion_webhook",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "data": {
+    "case_id": "case_123",
+    "customer_id": "customer_456",
+    "decision": "approve",
+    "confidence": 0.92,
+    "processing_time_minutes": 22,
+    "documents_processed": 3
+  },
+  "signature": "sha256=abc123..."
+}
+
+# Regulatory Update Event
+{
+  "event_type": "regulatory.update",
+  "webhook_id": "regulatory_updates",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "data": {
+    "obligation_id": "eba_crr_001",
+    "regulation": "CRR",
+    "jurisdiction": "EU",
+    "content": "CET1 ratio updated to 4.5%",
+    "effective_date": "2024-01-01",
+    "impact": "high"
+  },
+  "signature": "sha256=def456..."
+}</code></pre>
+
+  <h3>Webhook Security</h3>
+  <pre><code># HMAC-SHA256 signature verification
+import hmac
+import hashlib
+
+def verify_webhook_signature(payload, signature, secret):
+    expected_signature = hmac.new(
+        secret.encode(),
+        payload.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    
+    return hmac.compare_digest(signature, expected_signature)
+
+# Usage
+is_valid = verify_webhook_signature(
+    payload=request.body,
+    signature=request.headers.get('X-Webhook-Signature'),
+    secret='your-webhook-secret'
+)</code></pre>
+
+  <h2>14. SDK & Client Libraries</h2>
+  <h3>Python SDK</h3>
+  <pre><code>from compliance_ai_sdk import ComplianceAIClient
+
+# Initialize client
+client = ComplianceAIClient(
+    base_url="https://api.compliance-ai.com",
+    api_key="your-api-key"
+)
+
+# Process KYC case
+result = client.kyc.process(
+    customer_id="customer_456",
+    documents=["passport.jpg", "utility_bill.pdf"],
+    jurisdiction="EU"
+)
+
+# Monitor case status
+status = client.cases.get_status("case_123")
+
+# Get regulatory updates
+obligations = client.regulatory.get_obligations(
+    jurisdiction="EU",
+    regulation="CRR",
+    limit=50
+)</code></pre>
+
+  <h3>JavaScript SDK</h3>
+  <pre><code>import { ComplianceAI } from 'compliance-ai-sdk';
+
+const client = new ComplianceAI({
+  baseURL: 'https://api.compliance-ai.com',
+  apiKey: 'your-api-key'
+});
+
+// Process KYC with progress tracking
+const result = await client.kyc.process({
+  customerId: 'customer_456',
+  documents: [passportFile, utilityBillFile],
+  jurisdiction: 'EU',
+  onProgress: (progress) => {
+    console.log(`Processing: ${progress}%`);
+  }
+});
+
+// Subscribe to real-time updates
+const subscription = client.webhooks.subscribe(
+  'kyc.completed',
+  (event) => {
+    console.log('KYC completed:', event.data);
+  }
+);</code></pre>
+
+  <h3>API Testing Tools</h3>
+  <pre><code># Postman Collection
+{
+  "info": {
+    "name": "ComplianceAI API Collection",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "KYC Processing",
+      "item": [
+        {
+          "name": "Process KYC Case",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "multipart/form-data"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "session_id",
+                  "value": "session_123"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/kyc/process",
+              "host": ["{{base_url}}"],
+              "path": ["api", "kyc", "process"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}</code></pre>
+
+  <h2>15. Monitoring & Analytics</h2>
+  <h3>API Usage Analytics</h3>
+  <pre><code>GET /api/analytics/usage?period=30d&group_by=endpoint
+
+Response:
+{
+  "period": "30d",
+  "total_requests": 154200,
+  "unique_users": 1250,
+  "top_endpoints": [
+    {
+      "endpoint": "/api/cases",
+      "requests": 45200,
+      "avg_response_time_ms": 45,
+      "error_rate": 0.002
+    },
+    {
+      "endpoint": "/api/kyc/process",
+      "requests": 32100,
+      "avg_response_time_ms": 120,
+      "error_rate": 0.008
+    }
+  ],
+  "usage_trends": {
+    "daily_requests": [...],
+    "error_rates": [...],
+    "response_times": [...]
+  }
+}</code></pre>
+
+  <h3>Performance Analytics</h3>
+  <pre><code>GET /api/analytics/performance?metric=latency&percentile=95
+
+Response:
+{
+  "metric": "latency",
+  "percentile": 95,
+  "data": {
+    "overall_p95_ms": 125,
+    "by_endpoint": {
+      "/api/kyc/process": 180,
+      "/api/cases": 45,
+      "/api/regulatory/status": 23
+    },
+    "by_time_period": [
+      {"period": "00:00-06:00", "p95_ms": 95},
+      {"period": "06:00-12:00", "p95_ms": 145},
+      {"period": "12:00-18:00", "p95_ms": 165},
+      {"period": "18:00-24:00", "p95_ms": 110}
+    ]
+  },
+  "trends": {
+    "7_day_change": "+12.5%",
+    "30_day_change": "-5.2%"
+  }
+}</code></pre>
+
+  <h2>16. Security & Compliance</h2>
+  <h3>API Security Features</h3>
+  <ul>
+    <li><strong>JWT Authentication:</strong> Bearer token-based authentication</li>
+    <li><strong>Role-Based Access Control:</strong> Granular permissions system</li>
+    <li><strong>Request Signing:</strong> HMAC-SHA256 request signature verification</li>
+    <li><strong>IP Whitelisting:</strong> Source IP address restrictions</li>
+    <li><strong>Rate Limiting:</strong> Request throttling and abuse prevention</li>
+    <li><strong>API Key Management:</strong> Secure key rotation and revocation</li>
+  </ul>
+
+  <h3>Data Protection</h3>
+  <ul>
+    <li><strong>Encryption at Rest:</strong> AES-256 encryption for stored data</li>
+    <li><strong>Encryption in Transit:</strong> TLS 1.3 for all API communications</li>
+    <li><strong>Data Masking:</strong> Sensitive data obfuscation in logs</li>
+    <li><strong>Audit Logging:</strong> Complete API request/response logging</li>
+    <li><strong>Data Retention:</strong> Configurable data retention policies</li>
+    <li><strong>GDPR Compliance:</strong> Right to access, rectify, and delete data</li>
+  </ul>
+
+  <h3>Compliance Monitoring</h3>
+  <pre><code>GET /api/compliance/api-audit?date_from=2024-01-01&severity=high
+
+Response:
+{
+  "audit_entries": [
+    {
+      "timestamp": "2024-01-15T10:25:00Z",
+      "endpoint": "/api/kyc/process",
+      "user_id": "user_001",
+      "ip_address": "192.168.1.100",
+      "user_agent": "ComplianceAI-SDK/1.0.0",
+      "request_size_bytes": 2048576,
+      "response_size_bytes": 1024,
+      "response_time_ms": 125,
+      "status_code": 200,
+      "data_classification": "PII",
+      "compliance_flags": []
+    }
+  ],
+  "summary": {
+    "total_requests": 154200,
+    "pii_requests": 45200,
+    "compliance_violations": 0,
+    "security_incidents": 0,
+    "data_breach_attempts": 2
+  }
+}</code></pre>
+
+</body>
+</html>
