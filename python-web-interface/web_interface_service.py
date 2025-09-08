@@ -93,7 +93,7 @@ class WebInterfaceService:
         self.config = {
             'host': os.getenv('SERVER_HOST', '0.0.0.0'),
             'port': int(os.getenv('SERVER_PORT', 8000)),
-            'postgres_url': os.getenv('POSTGRES_URL', 'postgresql://postgres:password@localhost:5432/kyc_db'),
+            'postgres_url': os.getenv('POSTGRES_URL', 'postgresql://postgres:password@localhost:5433/kyc_db'),
             'redis_url': os.getenv('REDIS_URL', 'redis://localhost:6379'),
             'intake_agent_url': os.getenv('INTAKE_AGENT_URL', 'http://localhost:8001'),
             'intelligence_agent_url': os.getenv('INTELLIGENCE_AGENT_URL', 'http://localhost:8002'),
@@ -1754,13 +1754,13 @@ class WebInterfaceService:
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Performance
+                        Analytics
                     </a>
                     <a href="/user-guides" class="nav-link">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                         </svg>
-                        User Guides
+                        Documentation
                     </a>
                 </div>
                 <div class="system-status">
@@ -2488,19 +2488,19 @@ class WebInterfaceService:
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Performance
+                        Analytics
                     </a>
                     <a href="/user-guides" class="nav-link">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                         </svg>
-                        User Guides
+                        Documentation
                     </a>
                 </div>
                 <div class="system-status">
                     <div class="system-status">
                         <div class="status-dot"></div>
-                        Performance Active
+                        Analytics Active
                     </div>
                 </div>
             </div>
@@ -2550,7 +2550,7 @@ class WebInterfaceService:
                             <div class="col-12">
                                 <h2 class="mb-4">
                                     <i class="fas fa-tachometer-alt text-primary me-2"></i>
-                                    Performance Overview
+                                    Analytics Overview
                                 </h2>
                             </div>
                         </div>
@@ -2710,7 +2710,7 @@ class WebInterfaceService:
                             <div class="feature-header">
                                 <h3 class="feature-title">
                                     <i class="fas fa-chart-line text-primary me-2"></i>
-                                    Performance Trends
+                                    Analytics Trends
                                 </h3>
                                 <p class="feature-description">Historical performance data and trend analysis</p>
                             </div>
@@ -2887,7 +2887,7 @@ class WebInterfaceService:
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Performance
+                        Analytics
                     </a>
                     <a href="/testing" class="nav-link">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3437,13 +3437,13 @@ class WebInterfaceService:
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Performance
+                        Analytics
                     </a>
                     <a href="/user-guides" class="nav-link active">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                         </svg>
-                        User Guides
+                        Documentation
                     </a>
                 </div>
                 <div class="system-status">
@@ -3594,7 +3594,7 @@ class WebInterfaceService:
                             <div class="feature-header">
                                 <h3 class="feature-title">
                                     <i class="fas fa-chart-line text-primary me-2"></i>
-                                    Performance Monitoring
+                                    Analytics Monitoring
                                 </h3>
                                 <p class="feature-description">Real-time system performance and analytics</p>
                             </div>
@@ -3778,7 +3778,7 @@ POST /api/documents/upload
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Performance
+                        Analytics
                     </a>
                     <a href="/testing" class="nav-link">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -4328,13 +4328,13 @@ POST /api/documents/upload
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
-                        Performance
+                        Analytics
                     </a>
                     <a href="/user-guides" class="nav-link active">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
                         </svg>
-                        User Guides
+                        Documentation
                     </a>
                 </div>
                 <div class="system-status">
@@ -4485,7 +4485,7 @@ POST /api/documents/upload
                             <div class="feature-header">
                                 <h3 class="feature-title">
                                     <i class="fas fa-chart-line text-primary me-2"></i>
-                                    Performance Monitoring
+                                    Analytics Monitoring
                                 </h3>
                                 <p class="feature-description">Real-time system performance and analytics</p>
                             </div>

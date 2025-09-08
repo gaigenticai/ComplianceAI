@@ -327,11 +327,8 @@
     <!-- Professional Dashboard Header -->
     <header class="dashboard-header">
         <div class="container">
-            <h1 class="dashboard-title">
-                <i class="fas fa-book me-3"></i>
-                ComplianceAI User Guides
-            </h1>
-            <p class="dashboard-subtitle">Complete documentation for all ComplianceAI features and components</p>
+            <h1 class="dashboard-title">ComplianceAI</h1>
+            <p class="dashboard-subtitle">KYC Processing & Compliance Platform</p>
             <div style="position:absolute;right:24px;top:24px;">
                 <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
             </div>
@@ -2740,6 +2737,24 @@ client.startKYC({
         // Initialize documentation
         document.addEventListener("DOMContentLoaded", function() {
             console.log("Main documentation loaded");
+        });
+    </script>
+    <script>
+        // Set active nav link based on current pathname
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const links = document.querySelectorAll('.nav-link');
+                const path = window.location.pathname.replace(/\/$/, '');
+                links.forEach(a => {
+                    const href = a.getAttribute('href') || '/';
+                    const normalized = href.replace(/\/$/, '') || '/';
+                    if (path === normalized || (path.startsWith(normalized) && normalized !== '/')) {
+                        a.classList.add('active');
+                    } else {
+                        a.classList.remove('active');
+                    }
+                });
+            } catch (e) { console.error(e); }
         });
     </script>
 </body>

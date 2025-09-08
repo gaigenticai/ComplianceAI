@@ -764,11 +764,8 @@
     <!-- Professional Dashboard Header -->
     <header class="dashboard-header">
         <div class="container">
-            <h1 class="dashboard-title">
-                <i class="fas fa-chart-line me-3"></i>
-                Compliance Report Generation
-            </h1>
-            <p class="dashboard-subtitle">Professional regulatory report generation for FINREP, COREP, and DORA compliance</p>
+            <h1 class="dashboard-title">ComplianceAI</h1>
+            <p class="dashboard-subtitle">KYC Processing & Compliance Platform</p>
         </div>
     </header>
 
@@ -1358,6 +1355,24 @@
             `;
 
             alert('DORA ICT risk assessment completed successfully!');
+        });
+    </script>
+    <script>
+        // Set active nav link based on current pathname
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const links = document.querySelectorAll('.nav-link');
+                const path = window.location.pathname.replace(/\/$/, '');
+                links.forEach(a => {
+                    const href = a.getAttribute('href') || '/';
+                    const normalized = href.replace(/\/$/, '') || '/';
+                    if (path === normalized || (path.startsWith(normalized) && normalized !== '/')) {
+                        a.classList.add('active');
+                    } else {
+                        a.classList.remove('active');
+                    }
+                });
+            } catch (e) { console.error(e); }
         });
     </script>
 </body>

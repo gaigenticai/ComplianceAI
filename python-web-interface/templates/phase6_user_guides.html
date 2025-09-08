@@ -287,11 +287,8 @@
     <!-- Professional Dashboard Header -->
     <header class="dashboard-header">
         <div class="container">
-            <h1 class="dashboard-title">
-                <i class="fas fa-rocket me-3"></i>
-                Monitoring User Guides
-            </h1>
-            <p class="dashboard-subtitle">Complete documentation for production readiness and deployment</p>
+            <h1 class="dashboard-title">ComplianceAI</h1>
+            <p class="dashboard-subtitle">KYC Processing & Compliance Platform</p>
         </div>
     </header>
 
@@ -377,7 +374,7 @@
                             <div class="col-12">
                                 <h2 class="mb-4">
                                     <i class="fas fa-rocket text-primary me-2"></i>
-                                    Phase 6 Documentation Overview
+                                    Monitoring Documentation Overview
                                 </h2>
                             </div>
                         </div>
@@ -435,8 +432,8 @@
 
                         <div class="feature-card">
                             <div class="feature-header">
-                                <h3 class="feature-title">What is Phase 6?</h3>
-                                <p class="feature-description">Phase 6 provides comprehensive documentation and production readiness tools for ComplianceAI deployment.</p>
+                                <h3 class="feature-title">What is Monitoring?</h3>
+                                <p class="feature-description">Monitoring provides comprehensive documentation and production readiness tools for ComplianceAI deployment.</p>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
@@ -615,7 +612,7 @@ docker-compose up -d
                                 <p class="feature-description">Complete REST API documentation for all endpoints</p>
                             </div>
                             <div class="code-block">
-# Phase 6 Production API
+# Monitoring Production API
 
 ## Base URLs
 Production: https://api.your-domain.com
@@ -683,7 +680,25 @@ GET /api/system/status
 
         // Initialize documentation
         document.addEventListener("DOMContentLoaded", function() {
-            console.log("Phase 6 documentation loaded");
+            console.log("Monitoring documentation loaded");
+        });
+    </script>
+    <script>
+        // Set active nav link based on current pathname
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const links = document.querySelectorAll('.nav-link');
+                const path = window.location.pathname.replace(/\/$/, '');
+                links.forEach(a => {
+                    const href = a.getAttribute('href') || '/';
+                    const normalized = href.replace(/\/$/, '') || '/';
+                    if (path === normalized || (path.startsWith(normalized) && normalized !== '/')) {
+                        a.classList.add('active');
+                    } else {
+                        a.classList.remove('active');
+                    }
+                });
+            } catch (e) { console.error(e); }
         });
     </script>
 </body>

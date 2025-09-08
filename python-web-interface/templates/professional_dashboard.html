@@ -433,15 +433,11 @@
     <!-- Professional Dashboard Header -->
     <header class="dashboard-header">
         <div class="container">
-            <h1 class="dashboard-title">ComplianceAI Intelligence</h1>
-            <p class="dashboard-subtitle">Advanced KYC Processing & Compliance Automation Platform</p>
+            <h1 class="dashboard-title">ComplianceAI</h1>
+            <p class="dashboard-subtitle">KYC Processing & Compliance Platform</p>
         </div>
     </header>
     
-    <!-- UI update verification banner -->
-    <div id="ui-update-banner" style="background:#fffbeb;border-left:4px solid #f59e0b;padding:0.75rem 1rem;margin:0.75rem 0;border-radius:6px;color:#92400e;font-weight:600;max-width:1200px;margin-left:auto;margin-right:auto;">
-        UI updated: <span id="ui-update-ts"></span>
-    </div>
     <!-- Professional Tabbed Navigation -->
     <nav class="main-navigation">
         <div class="container">
@@ -1084,6 +1080,24 @@
             loadDashboardData();
             // Refresh data every 30 seconds
             setInterval(loadDashboardData, 30000);
+        });
+    </script>
+    <script>
+        // Set active nav link based on current pathname
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const links = document.querySelectorAll('.nav-link');
+                const path = window.location.pathname.replace(/\/$/, '');
+                links.forEach(a => {
+                    const href = a.getAttribute('href') || '/';
+                    const normalized = href.replace(/\/$/, '') || '/';
+                    if (path === normalized || (path.startsWith(normalized) && normalized !== '/')) {
+                        a.classList.add('active');
+                    } else {
+                        a.classList.remove('active');
+                    }
+                });
+            } catch (e) { console.error(e); }
         });
     </script>
 </body>

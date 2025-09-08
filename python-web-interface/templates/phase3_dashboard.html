@@ -405,11 +405,8 @@
     <!-- Professional Dashboard Header -->
     <header class="dashboard-header">
         <div class="container">
-            <h1 class="dashboard-title">
-                <i class="fas fa-brain me-3"></i>
-                Intelligence & Compliance
-            </h1>
-            <p class="dashboard-subtitle">Advanced regulatory rule processing, jurisdiction handling, and audit capabilities</p>
+            <h1 class="dashboard-title">ComplianceAI</h1>
+            <p class="dashboard-subtitle">KYC Processing & Compliance Platform</p>
         </div>
     </header>
 
@@ -1096,6 +1093,24 @@
             document.getElementById('consumerStatus').className = 'badge bg-secondary';
             document.getElementById('consumerStatus').textContent = 'Stopped';
             alert('Kafka Consumer stopped!');
+        });
+    </script>
+    <script>
+        // Set active nav link based on current pathname
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const links = document.querySelectorAll('.nav-link');
+                const path = window.location.pathname.replace(/\/$/, '');
+                links.forEach(a => {
+                    const href = a.getAttribute('href') || '/';
+                    const normalized = href.replace(/\/$/, '') || '/';
+                    if (path === normalized || (path.startsWith(normalized) && normalized !== '/')) {
+                        a.classList.add('active');
+                    } else {
+                        a.classList.remove('active');
+                    }
+                });
+            } catch (e) { console.error(e); }
         });
     </script>
 </body>

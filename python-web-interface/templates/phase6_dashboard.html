@@ -335,11 +335,8 @@
     <!-- Professional Dashboard Header -->
     <header class="dashboard-header">
         <div class="container">
-            <h1 class="dashboard-title">
-                <i class="fas fa-rocket me-3"></i>
-                System Monitoring & Production Readiness
-            </h1>
-            <p class="dashboard-subtitle">Comprehensive documentation, configuration samples, and production deployment guides</p>
+            <h1 class="dashboard-title">ComplianceAI</h1>
+            <p class="dashboard-subtitle">KYC Processing & Compliance Platform</p>
         </div>
     </header>
 
@@ -394,6 +391,17 @@
     <div class="tabbed-content">
         <div class="container">
             <div class="content-tabs">
+                <!-- Page Title (moved from header) -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h2 class="mb-4">
+                            <i class="fas fa-rocket text-primary me-2"></i>
+                            System Monitoring & Production Readiness
+                        </h2>
+                        <p class="text-muted">Comprehensive documentation, configuration samples, and production deployment guides</p>
+                    </div>
+                </div>
+
                 <!-- Tab Navigation -->
                 <div class="tab-navigation">
                     <ul class="tab-nav-list">
@@ -809,6 +817,24 @@
                 `;
             }, 3000);
         }
+    </script>
+    <script>
+        // Set active nav link based on current pathname
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const links = document.querySelectorAll('.nav-link');
+                const path = window.location.pathname.replace(/\/$/, '');
+                links.forEach(a => {
+                    const href = a.getAttribute('href') || '/';
+                    const normalized = href.replace(/\/$/, '') || '/';
+                    if (path === normalized || (path.startsWith(normalized) && normalized !== '/')) {
+                        a.classList.add('active');
+                    } else {
+                        a.classList.remove('active');
+                    }
+                });
+            } catch (e) { console.error(e); }
+        });
     </script>
 </body>
 </html>
