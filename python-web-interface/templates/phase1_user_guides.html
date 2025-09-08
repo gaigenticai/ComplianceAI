@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Customer Onboarding Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <h1>Customer Onboarding Guide</h1>
+  <p>This guide documents Phase 1: intake and customer onboarding workflows.</p>
+
+  <h2>1. Purpose</h2>
+  <p>Collect required identity and proof-of-address documentation, validate formats and extract metadata.</p>
+
+  <h2>2. Supported Document Types</h2>
+  <ul>
+    <li>Passport, National ID, Driver's License (PDF, JPG, PNG)</li>
+    <li>Utility bill, Bank statement (proof of address)</li>
+    <li>Corporate registrations and incorporation docs (for businesses)</li>
+  </ul>
+
+  <h2>3. Processing Steps</h2>
+  <ol>
+    <li>Secure upload (multipart/form-data to <code>/api/documents/upload</code>)</li>
+    <li>Automatic OCR & text extraction</li>
+    <li>Metadata validation (dates, MRZ parsing where applicable)</li>
+    <li>Initial document classification and case creation</li>
+  </ol>
+
+  <h2>4. Troubleshooting</h2>
+  <p>If OCR fails, ensure image DPI & lighting are sufficient. For PDF issues, confirm embedded fonts are not encrypted.</p>
+
+</body>
+</html>
+
+
