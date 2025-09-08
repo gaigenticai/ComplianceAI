@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Kafka Messaging Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <h1>Kafka Messaging Guide</h1>
+  <p>This comprehensive guide covers the Kafka messaging architecture, resilience patterns, circuit breakers, and dead letter queue handling in the ComplianceAI platform.</p>
+
+  <h2>1. Overview</h2>
+  <p>The ComplianceAI platform uses Apache Kafka as its central event streaming platform to enable asynchronous communication between microservices. The messaging architecture provides reliable event-driven communication with comprehensive resilience patterns and fault tolerance mechanisms.</p>
+
+  <h2>2. Kafka Architecture</h2>
+  <h3>Core Components</h3>
+  <ul>
+    <li><strong>Kafka Cluster:</strong> Distributed event streaming platform with multiple brokers</li>
+    <li><strong>Zookeeper:</strong> Coordination service for cluster management and leader election</li>
+    <li><strong>Schema Registry:</strong> Centralized schema management for message validation</li>
+    <li><strong>Kafka Connect:</strong> Framework for streaming data between Kafka and external systems</li>
+    <li><strong>KSQL:</strong> Streaming SQL engine for real-time data processing</li>
+  </ul>
+
+  <h3>Message Flow Architecture</h3>
+  <pre><code>┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Producers      │───▶│  Kafka Topics    │───▶│  Consumers      │
+│  (Agents)       │    │  (Event Streams) │    │  (Agents)       │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                        │                        │
+         ▼                        ▼                        ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Circuit        │    │  Resilience      │    │  Dead Letter    │
+│  Breakers       │    │  Patterns        │    │  Queues         │
+└─────────────────┘    └──────────────────┘    └─────────────────┘</code></pre>
+
+  <h2>3. Topic Architecture</h2>
+  <h3>Core Topics</h3>
+  <h4>Regulatory Intelligence Topics</h4>
+  <pre><code>regulatory.updates
+├── Purpose: Publish new/updated regulatory obligations
+├── Producer: Regulatory Intelligence Agent
+├── Consumers: Intelligence & Compliance Agent, Decision Orchestration Agent
+├── Retention: 30 days
+├── Partitions: 6 (by jurisdiction)
+├── Replication Factor: 3
+
+regulatory.feed_health
+├── Purpose: Feed monitoring and health status
+├── Producer: Regulatory Intelligence Agent
+├── Consumers: Monitoring System, Alert Manager
+├── Retention: 7 days
+├── Partitions: 3 (by feed type)
+├── Replication Factor: 3
+
+regulatory.deadlines
+├── Purpose: Regulatory compliance deadlines and alerts
+├── Producer: Regulatory Intelligence Agent
+├── Consumers: Decision Orchestration Agent, Alert System
+├── Retention: 90 days
+├── Partitions: 12 (by regulation type)
+├── Replication Factor: 3</code></pre>
+
+  <h4>KYC Processing Topics</h4>
+  <pre><code>intelligence_compliance_input
+├── Purpose: Processed document data for compliance analysis
+├── Producer: Intake Processing Agent
+├── Consumers: Intelligence & Compliance Agent
+├── Retention: 14 days
+├── Partitions: 8 (by customer segment)
+├── Replication Factor: 3
+
+decision_orchestration_input
+├── Purpose: Compliance analysis results for decision making
+├── Producer: Intelligence & Compliance Agent
+├── Consumers: Decision Orchestration Agent
+├── Retention: 7 days
+├── Partitions: 6 (by risk level)
+├── Replication Factor: 3
+
+kyc.decisions
+├── Purpose: Final KYC decisions and outcomes
+├── Producer: Decision Orchestration Agent
+├── Consumers: Reporting System, Audit System
+├── Retention: 1 year
+├── Partitions: 12 (by month)
+├── Replication Factor: 3</code></pre>
+
+  <h4>Report Generation Topics</h4>
+  <pre><code>report.generation_requests
+├── Purpose: Report generation requests from users
+├── Producer: Web Interface, API Clients
+├── Consumers: Phase 4 Report Generation
+├── Retention: 30 days
+├── Partitions: 4 (by report type)
+├── Replication Factor: 3
+
+report.generation_status
+├── Purpose: Report generation progress and completion
+├── Producer: Phase 4 Report Generation
+├── Consumers: Web Interface, Notification System
+├── Retention: 7 days
+├── Partitions: 4 (by report type)
+├── Replication Factor: 3
+
+report.delivery_confirmations
+├── Purpose: Report delivery confirmations and acknowledgments
+├── Producer: Report Delivery System
+├── Consumers: Audit System, Compliance Monitoring
+├── Retention: 90 days
+├── Partitions: 6 (by delivery method)
+├── Replication Factor: 3</code></pre>
+
+  <h3>Topic Naming Convention</h3>
+  <pre><code>{domain}.{subdomain}.{entity}.{action}
+Examples:
+├── regulatory.updates (regulatory domain, updates action)
+├── kyc.decisions (kyc domain, decisions entity)
+├── report.generation_requests (report domain, generation subdomain, requests action)
+├── intelligence_compliance_input (intelligence domain, compliance subdomain, input action)</code></pre>
+
+  <h3>Partitioning Strategy</h3>
+  <h4>Key-Based Partitioning</h4>
+  <ul>
+    <li><strong>Customer ID Partitioning:</strong> Group messages by customer for ordered processing</li>
+    <li><strong>Jurisdiction Partitioning:</strong> Route messages by regulatory jurisdiction</li>
+    <li><strong>Report Type Partitioning:</strong> Distribute report generation by type</li>
+    <li><strong>Time-Based Partitioning:</strong> Partition by month/year for retention management</li>
+  </ul>
+
+  <h4>Partition Assignment</h4>
+  <pre><code>// Customer-based partitioning
+partition = hash(customer_id) % num_partitions
+
+// Jurisdiction-based partitioning
+jurisdiction_partitions = {
+  'EU': [0, 1, 2],
+  'DE': [3, 4],
+  'IE': [5],
+  'GB': [6, 7]
+}
+
+// Time-based partitioning for reports
+def get_month_partition(timestamp):
+    year = timestamp.year
+    month = timestamp.month
+    return ((year - 2020) * 12 + month) % num_partitions</code></pre>
+
+  <h2>4. Producer Architecture</h2>
+  <h3>Producer Configuration</h3>
+  <h4>Core Settings</h4>
+  <pre><code>bootstrap.servers=kafka:9092
+acks=all                           # Wait for all replicas
+retries=3                         # Retry failed sends
+max.in.flight.requests.per.connection=5
+enable.idempotence=true           # Exactly-once delivery
+compression.type=snappy           # Message compression
+batch.size=16384                  # Batch size in bytes
+linger.ms=5                       # Batch linger time
+buffer.memory=33554432            # Buffer memory (32MB)</code></pre>
+
+  <h4>Security Configuration</h4>
+  <pre><code>security.protocol=SASL_SSL
+sasl.mechanism=PLAIN
+sasl.username=${KAFKA_USERNAME}
+sasl.password=${KAFKA_PASSWORD}
+ssl.truststore.location=/etc/kafka/ssl/truststore.jks
+ssl.keystore.location=/etc/kafka/ssl/keystore.jks</code></pre>
+
+  <h3>Message Serialization</h3>
+  <h4>JSON Schema Validation</h4>
+  <pre><code>{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "event_id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "event_type": {
+        "type": "string",
+        "enum": ["obligation_created", "obligation_updated", "obligation_deleted"]
+      },
+      "obligation_id": {
+        "type": "string"
+      },
+      "regulation_type": {
+        "type": "string"
+      },
+      "jurisdiction": {
+        "type": "string"
+      },
+      "timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "payload": {
+        "type": "object"
+      }
+    },
+    "required": ["event_id", "event_type", "timestamp"]
+  }</code></pre>
+
+  <h4>Avro Schema (Alternative)</h4>
+  <pre><code>{
+    "type": "record",
+    "name": "RegulatoryEvent",
+    "namespace": "com.complianceai.events",
+    "fields": [
+      {
+        "name": "event_id",
+        "type": "string"
+      },
+      {
+        "name": "event_type",
+        "type": {
+          "type": "enum",
+          "name": "EventType",
+          "symbols": ["obligation_created", "obligation_updated", "obligation_deleted"]
+        }
+      },
+      {
+        "name": "obligation_id",
+        "type": ["null", "string"],
+        "default": null
+      },
+      {
+        "name": "timestamp",
+        "type": "string",
+        "logicalType": "timestamp-millis"
+      }
+    ]
+  }</code></pre>
+
+  <h3>Producer Implementation</h3>
+  <h4>Message Publishing</h4>
+  <pre><code>async def publish_regulatory_event(
+    producer: KafkaProducer,
+    event: RegulatoryEvent,
+    topic: str
+) -> bool:
+    """Publish regulatory event with error handling"""
+    try:
+        # Validate message against schema
+        validate_event_schema(event)
+        
+        # Create message key for partitioning
+        key = create_message_key(event)
+        
+        # Serialize message
+        message_value = json.dumps(event.dict()).encode('utf-8')
+        
+        # Send message with callback
+        future = await producer.send(
+            topic=topic,
+            key=key,
+            value=message_value,
+            headers=[
+                ('event_type', event.event_type.value.encode()),
+                ('correlation_id', event.correlation_id.encode())
+            ]
+        )
+        
+        # Wait for acknowledgment
+        record_metadata = await future
+        
+        logger.info(
+            "Message published successfully",
+            topic=topic,
+            partition=record_metadata.partition,
+            offset=record_metadata.offset
+        )
+        
+        return True
+        
+    except Exception as e:
+        logger.error(
+            "Failed to publish message",
+            error=str(e),
+            topic=topic,
+            event_id=event.event_id
+        )
+        return False</code></pre>
+
+  <h4>Error Handling and Retry</h4>
+  <pre><code>@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=4, max=60),
+    retry=retry_if_exception_type(KafkaError)
+)
+async def publish_with_retry(
+    producer: KafkaProducer,
+    event: RegulatoryEvent,
+    topic: str
+) -> bool:
+    """Publish with exponential backoff retry"""
+    return await publish_regulatory_event(producer, event, topic)
+
+async def publish_to_dlq(
+    producer: KafkaProducer,
+    failed_event: RegulatoryEvent,
+    error: Exception
+) -> None:
+    """Send failed message to dead letter queue"""
+    dlq_event = {
+        'original_event': failed_event.dict(),
+        'error_message': str(error),
+        'error_type': type(error).__name__,
+        'failure_timestamp': datetime.now().isoformat(),
+        'retry_count': getattr(failed_event, 'retry_count', 0) + 1
+    }
+    
+    await producer.send(
+        topic='regulatory.dlq',
+        key=failed_event.event_id.encode(),
+        value=json.dumps(dlq_event).encode('utf-8')
+    )</code></pre>
+
+  <h2>5. Consumer Architecture</h2>
+  <h3>Consumer Configuration</h3>
+  <h4>Consumer Group Settings</h4>
+  <pre><code>bootstrap.servers=kafka:9092
+group.id=intelligence-compliance-group
+auto.offset.reset=latest
+enable.auto.commit=false           # Manual offset management
+max.poll.records=100              # Batch size
+session.timeout.ms=30000          # Session timeout
+heartbeat.interval.ms=3000        # Heartbeat interval
+max.poll.interval.ms=300000       # Max poll interval</code></pre>
+
+  <h4>Consumer Groups</h4>
+  <pre><code>intelligence-compliance-group
+├── Consumer 1: Rule Compiler
+├── Consumer 2: Audit Logger
+├── Consumer 3: Jurisdiction Handler
+└── Consumer 4: Overlap Resolver
+
+decision-orchestration-group
+├── Consumer 1: Decision Engine
+├── Consumer 2: Risk Assessor
+└── Consumer 3: Escalation Handler
+
+regulatory-reporting-group
+├── Consumer 1: FINREP Generator
+├── Consumer 2: COREP Generator
+└── Consumer 3: DORA Generator</code></pre>
+
+  <h3>Message Processing</h3>
+  <h4>Consumer Implementation</h4>
+  <pre><code>class RegulatoryEventConsumer:
+    def __init__(self, group_id: str, topics: List[str]):
+        self.consumer = KafkaConsumer(
+            *topics,
+            bootstrap_servers=['kafka:9092'],
+            group_id=group_id,
+            auto_offset_reset='latest',
+            enable_auto_commit=False,
+            value_deserializer=lambda x: json.loads(x.decode('utf-8'))
+        )
+        self.processing_stats = ConsumerStats()
+        
+    async def consume_messages(self):
+        """Main message consumption loop"""
+        try:
+            while True:
+                # Poll for messages with timeout
+                message_batch = await self.consumer.poll(
+                    timeout_ms=1000,
+                    max_records=50
+                )
+                
+                if not message_batch:
+                    continue
+                
+                # Process batch of messages
+                await self.process_batch(message_batch)
+                
+                # Manual offset commit
+                await self.consumer.commit_async()
+                
+        except Exception as e:
+            logger.error(f"Consumer error: {e}")
+            # Implement graceful shutdown
+            
+    async def process_batch(self, message_batch: Dict):
+        """Process batch of messages"""
+        for topic_partition, messages in message_batch.items():
+            for message in messages:
+                try:
+                    # Process individual message
+                    await self.process_message(message)
+                    
+                    # Update statistics
+                    self.processing_stats.messages_processed += 1
+                    
+                except Exception as e:
+                    # Handle processing error
+                    await self.handle_processing_error(message, e)
+                    
+                    # Update error statistics
+                    self.processing_stats.messages_failed += 1</code></pre>
+
+  <h4>Message Processing Strategies</h4>
+  <h4>At-Least-Once Processing</h4>
+  <pre><code>async def process_message_at_least_once(self, message):
+    """Process message with at-least-once guarantee"""
+    # Process the message
+    await self.business_logic(message.value)
+    
+    # Store processing result
+    await self.store_processing_result(message.value)
+    
+    # Only commit offset after successful processing
+    await self.consumer.commit({
+        message.topic_partition: message.offset + 1
+    })</code></pre>
+
+  <h4>Exactly-Once Processing</h4>
+  <pre><code>async def process_message_exactly_once(self, message):
+    """Process message with exactly-once guarantee"""
+    # Check if message already processed
+    if await self.is_message_processed(message.key):
+        logger.info(f"Message {message.key} already processed")
+        return
+    
+    # Start transaction
+    async with self.database.transaction():
+        # Process message
+        await self.business_logic(message.value)
+        
+        # Mark as processed
+        await self.mark_message_processed(message.key)
+        
+        # Commit transaction and offset atomically
+        await self.consumer.commit({
+            message.topic_partition: message.offset + 1
+        })</code></pre>
+
+  <h2>6. Resilience Patterns</h2>
+  <h3>Circuit Breaker Pattern</h3>
+  <h4>Circuit Breaker States</h4>
+  <pre><code>class CircuitBreakerState(Enum):
+    CLOSED = "closed"        # Normal operation
+    OPEN = "open"           # Failing, rejecting requests
+    HALF_OPEN = "half_open"  # Testing if service recovered
+
+class CircuitBreaker:
+    def __init__(self, failure_threshold: int = 5, recovery_timeout: int = 60):
+        self.state = CircuitBreakerState.CLOSED
+        self.failure_count = 0
+        self.last_failure_time = None
+        self.failure_threshold = failure_threshold
+        self.recovery_timeout = recovery_timeout
+        
+    async def call(self, func, *args, **kwargs):
+        """Execute function with circuit breaker protection"""
+        if self.state == CircuitBreakerState.OPEN:
+            if self._should_attempt_reset():
+                self.state = CircuitBreakerState.HALF_OPEN
+            else:
+                raise CircuitBreakerOpenException("Circuit breaker is OPEN")
+        
+        try:
+            result = await func(*args, **kwargs)
+            self._on_success()
+            return result
+            
+        except Exception as e:
+            self._on_failure()
+            raise e
+    
+    def _on_success(self):
+        """Handle successful operation"""
+        self.failure_count = 0
+        self.state = CircuitBreakerState.CLOSED
+        
+    def _on_failure(self):
+        """Handle failed operation"""
+        self.failure_count += 1
+        self.last_failure_time = datetime.now()
+        
+        if self.failure_count >= self.failure_threshold:
+            self.state = CircuitBreakerState.OPEN
+            
+    def _should_attempt_reset(self) -> bool:
+        """Check if we should attempt to reset the circuit"""
+        if self.last_failure_time is None:
+            return True
+            
+        time_since_failure = (datetime.now() - self.last_failure_time).total_seconds()
+        return time_since_failure >= self.recovery_timeout</code></pre>
+
+  <h4>Circuit Breaker Integration</h4>
+  <pre><code>class KafkaProducerWithCircuitBreaker:
+    def __init__(self):
+        self.producer = KafkaProducer(...)
+        self.circuit_breaker = CircuitBreaker(
+            failure_threshold=5,
+            recovery_timeout=300  # 5 minutes
+        )
+        
+    async def send_with_circuit_breaker(self, topic: str, message: dict):
+        """Send message with circuit breaker protection"""
+        async def _send():
+            return await self.producer.send(topic, message)
+        
+        return await self.circuit_breaker.call(_send)</code></pre>
+
+  <h3>Retry Patterns</h3>
+  <h4>Exponential Backoff</h4>
+  <pre><code>@retry(
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=4, max=60),
+    retry=retry_if_exception_type((KafkaTimeoutError, KafkaError))
+)
+async def publish_with_retry(self, topic: str, message: dict):
+    """Publish message with exponential backoff retry"""
+    return await self.producer.send(topic, message)
+
+# Custom retry condition
+def retry_on_transient_errors(exception):
+    """Retry only on transient errors, not permanent ones"""
+    transient_errors = (
+        KafkaTimeoutError,
+        ConnectionError,
+        TimeoutError
+    )
+    return isinstance(exception, transient_errors)
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=2, min=1, max=30),
+    retry=retry_if_exception_type(retry_on_transient_errors)
+)
+async def consume_with_retry(self):
+    """Consume messages with selective retry logic"""
+    return await self.consumer.poll()</code></pre>
+
+  <h4>Dead Letter Queue (DLQ)</h4>
+  <pre><code>class DeadLetterQueue:
+    def __init__(self, producer: KafkaProducer, max_retries: int = 3):
+        self.producer = producer
+        self.max_retries = max_retries
+        self.dlqs = {
+            'regulatory.dlq': 'Failed regulatory messages',
+            'kyc.dlq': 'Failed KYC processing messages',
+            'report.dlq': 'Failed report generation messages'
+        }
+        
+    async def send_to_dlq(self, original_topic: str, message: dict, error: Exception):
+        """Send failed message to appropriate DLQ"""
+        # Determine DLQ topic based on original topic
+        dlq_topic = self._get_dlq_topic(original_topic)
+        
+        # Enrich message with error information
+        dlq_message = {
+            'original_topic': original_topic,
+            'original_message': message,
+            'error_type': type(error).__name__,
+            'error_message': str(error),
+            'failure_timestamp': datetime.now().isoformat(),
+            'retry_count': getattr(message, 'retry_count', 0) + 1,
+            'max_retries': self.max_retries
+        }
+        
+        # Send to DLQ
+        await self.producer.send(
+            topic=dlq_topic,
+            key=self._get_message_key(message),
+            value=json.dumps(dlq_message).encode('utf-8'),
+            headers=[
+                ('original_topic', original_topic.encode()),
+                ('error_type', type(error).__name__.encode())
+            ]
+        )
+        
+        logger.warning(
+            "Message sent to DLQ",
+            dlq_topic=dlq_topic,
+            original_topic=original_topic,
+            error=str(error)
+        )
+    
+    def _get_dlq_topic(self, original_topic: str) -> str:
+        """Determine appropriate DLQ topic"""
+        if 'regulatory' in original_topic:
+            return 'regulatory.dlq'
+        elif 'kyc' in original_topic:
+            return 'kyc.dlq'
+        elif 'report' in original_topic:
+            return 'report.dlq'
+        else:
+            return 'general.dlq'
+    
+    def _get_message_key(self, message: dict) -> bytes:
+        """Extract or generate message key for DLQ"""
+        if 'event_id' in message:
+            return message['event_id'].encode()
+        elif 'id' in message:
+            return str(message['id']).encode()
+        else:
+            return str(uuid.uuid4()).encode()</code></pre>
+
+  <h3>Error Recovery</h3>
+  <h4>Automatic Recovery</h4>
+  <pre><code>class MessageRecoveryManager:
+    def __init__(self, consumer: KafkaConsumer, producer: KafkaProducer):
+        self.consumer = consumer
+        self.producer = producer
+        self.recovery_strategies = {
+            'network_error': self._recover_network_error,
+            'processing_error': self._recover_processing_error,
+            'timeout_error': self._recover_timeout_error
+        }
+        
+    async def recover_message(self, message: dict, error: Exception) -> bool:
+        """Attempt to recover failed message"""
+        error_type = self._classify_error(error)
+        
+        if error_type in self.recovery_strategies:
+            strategy = self.recovery_strategies[error_type]
+            return await strategy(message, error)
+        
+        # Default: send to DLQ
+        await self.dlq.send_to_dlq(message['topic'], message, error)
+        return False
+    
+    async def _recover_network_error(self, message: dict, error: Exception) -> bool:
+        """Recover from network connectivity issues"""
+        # Wait for network recovery
+        await asyncio.sleep(5)
+        
+        # Retry with exponential backoff
+        return await self._retry_with_backoff(message)
+    
+    async def _recover_processing_error(self, message: dict, error: Exception) -> bool:
+        """Recover from message processing errors"""
+        # Check if it's a temporary processing issue
+        if self._is_temporary_processing_error(error):
+            # Retry after a short delay
+            await asyncio.sleep(1)
+            return await self._retry_with_backoff(message)
+        
+        # Permanent error - send to DLQ
+        return False
+    
+    async def _recover_timeout_error(self, message: dict, error: Exception) -> bool:
+        """Recover from timeout errors"""
+        # Increase timeout and retry
+        return await self._retry_with_increased_timeout(message)
+    
+    async def _retry_with_backoff(self, message: dict, max_attempts: int = 3) -> bool:
+        """Retry message processing with exponential backoff"""
+        for attempt in range(max_attempts):
+            try:
+                delay = (2 ** attempt) + random.uniform(0, 1)
+                await asyncio.sleep(delay)
+                
+                # Attempt to reprocess message
+                return await self._reprocess_message(message)
+                
+            except Exception:
+                continue
+        
+        return False</code></pre>
+
+  <h2>7. Monitoring & Observability</h2>
+  <h3>Kafka Metrics</h3>
+  <h4>Producer Metrics</h4>
+  <pre><code># Message production rate
+rate(kafka_producer_messages_sent_total[5m])
+
+# Producer request latency
+histogram_quantile(0.95, rate(kafka_producer_request_latency_ms_bucket[5m]))
+
+# Producer error rate
+rate(kafka_producer_errors_total[5m])
+
+# Producer buffer usage
+kafka_producer_buffer_usage_ratio
+
+# Producer connection count
+kafka_producer_connection_count</code></pre>
+
+  <h4>Consumer Metrics</h4>
+  <pre><code># Consumer lag
+kafka_consumer_lag{topic="regulatory.updates", group="intelligence-compliance-group"}
+
+# Consumer throughput
+rate(kafka_consumer_messages_consumed_total[5m])
+
+# Consumer processing time
+histogram_quantile(0.95, rate(kafka_consumer_processing_time_seconds_bucket[5m]))
+
+# Consumer commit rate
+rate(kafka_consumer_commits_total[5m])
+
+# Consumer rebalance events
+rate(kafka_consumer_rebalance_total[5m])</code></pre>
+
+  <h4>Broker Metrics</h4>
+  <pre><code># Broker active controller
+kafka_controller_active_controller_count
+
+# Broker partition count
+kafka_server_partition_count
+
+# Broker leader partition count
+kafka_server_leader_partition_count
+
+# Broker under-replicated partitions
+kafka_server_under_replicated_partition_count
+
+# Broker offline partitions
+kafka_server_offline_partition_count</code></pre>
+
+  <h3>Resilience Metrics</h3>
+  <h4>Circuit Breaker Metrics</h4>
+  <pre><code># Circuit breaker state
+kafka_circuit_breaker_state{component="regulatory_producer"}
+
+# Circuit breaker transitions
+rate(kafka_circuit_breaker_state_changes_total[5m])
+
+# Circuit breaker failure rate
+rate(kafka_circuit_breaker_failures_total[5m]) / rate(kafka_circuit_breaker_requests_total[5m])
+
+# Active circuit breakers
+kafka_active_circuit_breakers</code></pre>
+
+  <h4>DLQ Metrics</h4>
+  <pre><code># DLQ message rate
+rate(kafka_dlq_messages_total[5m])
+
+# DLQ messages by error type
+rate(kafka_dlq_messages_total{error_type="processing_error"}[5m])
+
+# DLQ oldest message age
+kafka_dlq_oldest_message_age_seconds
+
+# DLQ processing rate
+rate(kafka_dlq_processed_messages_total[5m])</code></pre>
+
+  <h4>Retry Metrics</h4>
+  <pre><code># Retry attempts by component
+rate(kafka_retry_attempts_total{component="regulatory_producer"}[5m])
+
+# Retry success rate
+rate(kafka_retry_success_total[5m]) / rate(kafka_retry_attempts_total[5m])
+
+# Retry failure rate
+rate(kafka_retry_failures_total[5m]) / rate(kafka_retry_attempts_total[5m])
+
+# Retry queue size
+kafka_retry_queue_size</code></pre>
+
+  <h2>8. Configuration Management</h2>
+  <h3>Kafka Cluster Configuration</h3>
+  <h4>Server Properties</h4>
+  <pre><code># broker.id=1
+# listeners=PLAINTEXT://:9092
+# log.dirs=/var/lib/kafka/data
+# zookeeper.connect=zookeeper:2181
+# num.partitions=6
+# default.replication.factor=3
+# min.insync.replicas=2
+# unclean.leader.election.enable=false
+
+# Retention settings
+log.retention.hours=168
+log.segment.bytes=1073741824
+log.retention.check.interval.ms=300000
+
+# Performance settings
+num.io.threads=8
+num.network.threads=3
+socket.send.buffer.bytes=102400
+socket.receive.buffer.bytes=102400
+socket.request.max.bytes=104857600</code></pre>
+
+  <h4>Topic Configuration</h4>
+  <pre><code># Create topic with specific configuration
+kafka-topics --create --topic regulatory.updates \
+  --bootstrap-server kafka:9092 \
+  --partitions 6 \
+  --replication-factor 3 \
+  --config retention.ms=2592000000 \
+  --config segment.ms=86400000 \
+  --config cleanup.policy=delete
+
+# List topics
+kafka-topics --list --bootstrap-server kafka:9092
+
+# Describe topic
+kafka-topics --describe --topic regulatory.updates --bootstrap-server kafka:9092
+
+# Delete topic (use with caution)
+kafka-topics --delete --topic old.topic --bootstrap-server kafka:9092</code></pre>
+
+  <h3>Consumer Group Management</h3>
+  <h4>Consumer Group Commands</h4>
+  <pre><code># List consumer groups
+kafka-consumer-groups --bootstrap-server kafka:9092 --list
+
+# Describe consumer group
+kafka-consumer-groups --bootstrap-server kafka:9092 \
+  --describe --group intelligence-compliance-group
+
+# Reset consumer group offset
+kafka-consumer-groups --bootstrap-server kafka:9092 \
+  --group intelligence-compliance-group \
+  --reset-offsets --to-earliest \
+  --topic regulatory.updates \
+  --execute
+
+# Delete consumer group
+kafka-consumer-groups --bootstrap-server kafka:9092 \
+  --delete --group old-consumer-group</code></pre>
+
+  <h3>Schema Registry Configuration</h3>
+  <h4>Schema Registry Setup</h4>
+  <pre><code># schema-registry.properties
+listeners=http://0.0.0.0:8081
+kafkastore.bootstrap.servers=kafka:9092
+kafkastore.topic=_schemas
+kafkastore.connection.url=zookeeper:2181
+schema.compatibility.level=FULL_TRANSITIVE
+master.eligibility=true
+schema.cache.size=1000</code></pre>
+
+  <h4>Schema Management</h4>
+  <pre><code># Register schema
+curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+  --data '{"schema": "{\"type\": \"record\", \"name\": \"RegulatoryEvent\", \"fields\": [{\"name\": \"event_id\", \"type\": \"string\"}]}"}' \
+  http://localhost:8081/subjects/regulatory-events-value/versions
+
+# List subjects
+curl -X GET http://localhost:8081/subjects
+
+# Get schema by ID
+curl -X GET http://localhost:8081/schemas/ids/1
+
+# Check compatibility
+curl -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+  --data '{"schema": "{\"type\": \"record\", \"name\": \"Test\", \"fields\": []}"}' \
+  http://localhost:8081/compatibility/subjects/regulatory-events-value/versions/latest</code></pre>
+
+  <h2>9. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>Message Loss</dt>
+    <dd>Check producer acks setting, verify topic replication factor, monitor consumer lag</dd>
+
+    <dt>Consumer Lag</dt>
+    <dd>Increase consumer instances, check processing bottlenecks, verify partition distribution</dd>
+
+    <dt>Broker Failures</dt>
+    <dd>Check disk space, network connectivity, JVM settings, Zookeeper health</dd>
+
+    <dt>Circuit Breaker Issues</dt>
+    <dd>Adjust failure thresholds, review error patterns, check recovery timeouts</dd>
+
+    <dt>DLQ Backlog</dt>
+    <dd>Implement DLQ processing, review error patterns, improve error handling</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Check topic information
+kafka-topics --describe --topic regulatory.updates --bootstrap-server kafka:9092
+
+# Monitor consumer lag
+kafka-consumer-groups --describe --group intelligence-compliance-group --bootstrap-server kafka:9092
+
+# Check broker logs
+docker logs kafka-broker-1
+
+# Test producer connectivity
+kafka-console-producer --topic test-topic --bootstrap-server kafka:9092
+
+# Test consumer connectivity
+kafka-console-consumer --topic test-topic --bootstrap-server kafka:9092 --from-beginning
+
+# Check Zookeeper status
+echo "stat" | nc zookeeper 2181
+
+# View producer metrics
+curl http://localhost:8004/metrics | grep kafka_producer
+
+# View consumer metrics
+curl http://localhost:8003/metrics | grep kafka_consumer
+
+# Monitor circuit breaker status
+curl http://localhost:8004/api/resilience/circuit-breakers
+
+# Check DLQ status
+curl http://localhost:8004/api/resilience/dlq-status</code></pre>
+
+  <h2>10. Best Practices</h2>
+  <ul>
+    <li><strong>Topic Design:</strong> Use meaningful topic names with consistent naming conventions</li>
+    <li><strong>Partitioning Strategy:</strong> Choose appropriate partitioning keys for your use case</li>
+    <li><strong>Message Schema:</strong> Use schema registry for message validation and evolution</li>
+    <li><strong>Error Handling:</strong> Implement comprehensive error handling with DLQs</li>
+    <li><strong>Monitoring:</strong> Monitor key metrics and set up appropriate alerting</li>
+    <li><strong>Performance Tuning:</strong> Tune producer/consumer settings for optimal performance</li>
+    <li><strong>Security:</strong> Implement proper authentication and authorization</li>
+    <li><strong>Backup & Recovery:</strong> Implement backup strategies for critical topics</li>
+    <li><strong>Capacity Planning:</strong> Monitor resource usage and plan for scaling</li>
+    <li><strong>Documentation:</strong> Maintain comprehensive documentation of your Kafka architecture</li>
+  </ul>
+
+  <h2>11. Performance Optimization</h2>
+  <h3>Producer Optimization</h3>
+  <ul>
+    <li><strong>Batch Settings:</strong> Increase batch.size and linger.ms for higher throughput</li>
+    <li><strong>Compression:</strong> Use snappy or lz4 compression to reduce network usage</li>
+    <li><strong>Async Production:</strong> Use async send with callbacks for better performance</li>
+    <li><strong>Connection Pooling:</strong> Reuse connections to reduce overhead</li>
+    <li><strong>Message Size:</strong> Optimize message size to balance throughput and latency</li>
+  </ul>
+
+  <h3>Consumer Optimization</h3>
+  <ul>
+    <li><strong>Batch Processing:</strong> Process messages in batches for efficiency</li>
+    <li><strong>Parallel Processing:</strong> Use multiple consumer threads for CPU-intensive tasks</li>
+    <li><strong>Offset Management:</strong> Use manual offset commits for better control</li>
+    <li><strong>Partition Assignment:</strong> Optimize partition assignment strategies</li>
+    <li><strong>Memory Management:</strong> Monitor and tune consumer memory usage</li>
+  </ul>
+
+  <h3>Broker Optimization</h3>
+  <ul>
+    <li><strong>Disk Performance:</strong> Use fast SSD storage with proper RAID configuration</li>
+    <li><strong>Memory Settings:</strong> Tune JVM heap size and garbage collection</li>
+    <li><strong>Network Settings:</strong> Optimize network buffers and connection limits</li>
+    <li><strong>Log Settings:</strong> Configure log segment sizes and retention policies</li>
+    <li><strong>Replication Settings:</strong> Balance replication factor with performance needs</li>
+  </ul>
+
+  <h2>12. Security Considerations</h2>
+  <h3>Authentication & Authorization</h3>
+  <ul>
+    <li><strong>SASL Authentication:</strong> Use SASL/PLAIN or SASL/SCRAM for client authentication</li>
+    <li><strong>SSL/TLS Encryption:</strong> Enable SSL for data in transit encryption</li>
+    <li><strong>ACLs:</strong> Implement topic-level access controls</li>
+    <li><strong>Client Certificates:</strong> Use mutual TLS for enhanced security</li>
+  </ul>
+
+  <h3>Data Protection</h3>
+  <ul>
+    <li><strong>Message Encryption:</strong> Encrypt sensitive message payloads</li>
+    <li><strong>At-Rest Encryption:</strong> Enable broker-side encryption for stored data</li>
+    <li><strong>Audit Logging:</strong> Enable comprehensive audit logging for compliance</li>
+    <li><strong>Data Retention:</strong> Implement appropriate data retention policies</li>
+  </ul>
+
+  <h2>13. Integration Examples</h2>
+  <h3>Kafka Connect Integration</h3>
+  <pre><code># JDBC Source Connector for database integration
+{
+  "name": "regulatory-jdbc-source",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+    "tasks.max": "1",
+    "connection.url": "jdbc:postgresql://postgres:5432/complianceai",
+    "connection.user": "compliance_user",
+    "connection.password": "secure_password",
+    "table.whitelist": "regulatory_obligations",
+    "mode": "incrementing",
+    "incrementing.column.name": "id",
+    "topic.prefix": "regulatory.",
+    "poll.interval.ms": "5000"
+  }
+}
+
+# Elasticsearch Sink Connector for search integration
+{
+  "name": "regulatory-elasticsearch-sink",
+  "config": {
+    "connector.class": "io.confluent.connect.elasticsearch.ElasticsearchSinkConnector",
+    "tasks.max": "1",
+    "topics": "regulatory.updates",
+    "connection.url": "http://elasticsearch:9200",
+    "type.name": "regulatory_event",
+    "key.ignore": "false",
+    "schema.ignore": "true"
+  }
+}</code></pre>
+
+  <h3>KSQL Streaming Queries</h3>
+  <pre><code># Create stream from regulatory updates
+CREATE STREAM regulatory_updates_stream (
+  event_id VARCHAR,
+  event_type VARCHAR,
+  obligation_id VARCHAR,
+  regulation_type VARCHAR,
+  jurisdiction VARCHAR,
+  timestamp VARCHAR,
+  payload MAP&lt;VARCHAR, VARCHAR&gt;
+) WITH (
+  KAFKA_TOPIC = 'regulatory.updates',
+  VALUE_FORMAT = 'JSON'
+);
+
+# Filter critical regulatory changes
+CREATE STREAM critical_regulatory_changes AS
+SELECT *
+FROM regulatory_updates_stream
+WHERE event_type = 'obligation_created'
+  AND payload['priority'] = 'high';
+
+# Aggregate regulatory events by jurisdiction
+CREATE TABLE regulatory_events_by_jurisdiction AS
+SELECT jurisdiction,
+       COUNT(*) AS event_count,
+       LATEST_BY_OFFSET(timestamp) AS latest_event
+FROM regulatory_updates_stream
+GROUP BY jurisdiction;
+
+# Join with external data
+CREATE STREAM enriched_regulatory_events AS
+SELECT r.event_id, r.obligation_id, e.external_data
+FROM regulatory_updates_stream r
+LEFT JOIN external_data_stream e
+  ON r.event_id = e.correlation_id;</code></pre>
+
+</body>
+</html>

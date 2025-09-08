@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Regulatory Intelligence Agent Guide - ComplianceAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px;background:#f8fafc}</style>
+</head>
+<body>
+  <!-- Standard header/navigation to match main dashboard -->
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.5rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.5rem;">Regulatory Intelligence Agent</h1>
+        <small>Comprehensive guide — part of ComplianceAI documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card p-4 mb-4">
+      <h2>Overview</h2>
+      <p>This comprehensive guide covers the Regulatory Intelligence Agent, the autonomous system that monitors regulatory feeds, processes documents, and extracts compliance obligations in the ComplianceAI platform.</p>
+    </div>
+
+  <h2>1. Overview</h2>
+  <p>The Regulatory Intelligence Agent is an autonomous AI-powered system that continuously monitors regulatory feeds from multiple authorities, processes complex documents, and extracts structured compliance obligations. It serves as the intelligence backbone of the ComplianceAI platform, ensuring real-time awareness of regulatory changes.</p>
+
+  <h2>2. Key Features</h2>
+  <ul>
+    <li><strong>Autonomous Feed Monitoring:</strong> Real-time RSS/API feed monitoring from 5+ regulatory authorities</li>
+    <li><strong>Multi-Format Document Processing:</strong> PDF, HTML, XML document parsing with LangChain integration</li>
+    <li><strong>AI-Powered Obligation Extraction:</strong> GPT-4 and SpaCy for advanced NLP and structured data extraction</li>
+    <li><strong>Change Detection & Version Tracking:</strong> Automated detection of regulatory updates and amendments</li>
+    <li><strong>Confidence Scoring:</strong> AI confidence metrics for extraction accuracy and reliability</li>
+    <li><strong>Kafka Integration:</strong> Real-time publishing of regulatory updates to compliance agents</li>
+    <li><strong>Comprehensive Audit Trails:</strong> Complete logging of all regulatory processing activities</li>
+  </ul>
+
+  <h2>3. Supported Regulatory Sources</h2>
+  <h3>European Union</h3>
+  <ul>
+    <li><strong>EUR-Lex:</strong> Official Journal of the European Union, directives, regulations, and decisions</li>
+    <li><strong>EBA (European Banking Authority):</strong> Banking sector guidelines, technical standards, and recommendations</li>
+  </ul>
+
+  <h3>National Authorities</h3>
+  <ul>
+    <li><strong>BaFin (Germany):</strong> Federal Financial Supervisory Authority regulatory updates</li>
+    <li><strong>CBI (Ireland):</strong> Central Bank of Ireland regulatory communications</li>
+    <li><strong>FCA (UK):</strong> Financial Conduct Authority rules, guidance, and policy statements</li>
+  </ul>
+
+  <h2>4. Regulatory Frameworks Monitored</h2>
+  <h3>Banking & Financial Services</h3>
+  <ul>
+    <li><strong>Basel III:</strong> Capital adequacy and liquidity requirements</li>
+    <li><strong>CRR (Capital Requirements Regulation):</strong> EU banking capital requirements</li>
+    <li><strong>CRD V (Capital Requirements Directive V):</strong> EU banking governance and supervision</li>
+    <li><strong>PSD2 (Payment Services Directive 2):</strong> Open banking and payment services</li>
+  </ul>
+
+  <h3>Digital & Technology Regulation</h3>
+  <ul>
+    <li><strong>DORA (Digital Operational Resilience Act):</strong> ICT and digital operational resilience</li>
+    <li><strong>AI Act:</strong> Artificial Intelligence regulation and compliance</li>
+  </ul>
+
+  <h3>Data Protection & Privacy</h3>
+  <ul>
+    <li><strong>GDPR:</strong> General Data Protection Regulation requirements</li>
+  </ul>
+
+  <h3>Investment Services</h3>
+  <ul>
+    <li><strong>MiFID II (Markets in Financial Instruments Directive II):</strong> Investment services regulation</li>
+  </ul>
+
+  <h2>5. Feed Monitoring Architecture</h2>
+  <h3>Feed Types Supported</h3>
+  <ul>
+    <li><strong>RSS Feeds:</strong> Standard RSS/Atom feeds from regulatory websites</li>
+    <li><strong>REST APIs:</strong> RESTful API endpoints providing regulatory updates</li>
+    <li><strong>XML/JSON APIs:</strong> Structured data feeds from regulatory portals</li>
+  </ul>
+
+  <h3>Monitoring Process</h3>
+  <ol>
+    <li><strong>Scheduled Polling:</strong> Configurable polling intervals (1-60 minutes)</li>
+    <li><strong>Content Discovery:</strong> RSS feed parsing and new document detection</li>
+    <li><strong>Change Detection:</strong> SHA-256 hashing for content comparison</li>
+    <li><strong>Metadata Extraction:</strong> Title, publication date, author, and classification</li>
+    <li><strong>Queue Processing:</strong> New documents queued for AI processing</li>
+  </ol>
+
+  <h3>Health Monitoring</h3>
+  <ul>
+    <li><strong>Feed Availability:</strong> HTTP status monitoring and response time tracking</li>
+    <li><strong>Content Freshness:</strong> Detection of stale or outdated feeds</li>
+    <li><strong>Error Rate Monitoring:</strong> Failed poll tracking and alerting</li>
+    <li><strong>Circuit Breaker Pattern:</strong> Automatic suspension of unhealthy feeds</li>
+  </ul>
+
+  <h2>6. Document Processing Pipeline</h2>
+  <h3>Document Types Processed</h3>
+  <ul>
+    <li><strong>PDF Documents:</strong> Official regulatory PDFs, consultation papers, and guidance</li>
+    <li><strong>HTML Pages:</strong> Regulatory website content and dynamic web pages</li>
+    <li><strong>XML/JSON:</strong> Structured regulatory data and API responses</li>
+  </ul>
+
+  <h3>AI Processing Stack</h3>
+  <h3>LangChain Integration</h3>
+  <ul>
+    <li><strong>Document Loaders:</strong> PyPDFLoader, WebBaseLoader, UnstructuredHTMLLoader</li>
+    <li><strong>Text Splitters:</strong> RecursiveCharacterTextSplitter, SpacyTextSplitter</li>
+    <li><strong>Document Processing:</strong> Chunking, preprocessing, and format normalization</li>
+  </ul>
+
+  <h3>SpaCy NLP Processing</h3>
+  <ul>
+    <li><strong>Named Entity Recognition:</strong> Identification of regulatory entities and terms</li>
+    <li><strong>Linguistic Analysis:</strong> Part-of-speech tagging and dependency parsing</li>
+    <li><strong>Document Structure:</strong> Section and clause identification</li>
+  </ul>
+
+  <h3>OpenAI GPT-4 Integration</h3>
+  <ul>
+    <li><strong>Obligation Extraction:</strong> Advanced reasoning for complex regulatory text</li>
+    <li><strong>Context Understanding:</strong> Legal language interpretation and classification</li>
+    <li><strong>Confidence Scoring:</strong> AI confidence metrics for extraction reliability</li>
+  </ul>
+
+  <h2>7. Obligation Extraction Process</h2>
+  <h3>Obligation Types Extracted</h3>
+  <ul>
+    <li><strong>Compliance Requirements:</strong> Mandatory rules and standards</li>
+    <li><strong>Reporting Obligations:</strong> Data submission and disclosure requirements</li>
+    <li><strong>Implementation Deadlines:</strong> Effective dates and transition periods</li>
+    <li><strong>Penalties & Sanctions:</strong> Non-compliance consequences</li>
+    <li><strong>Guidance & Recommendations:</strong> Best practices and interpretive guidance</li>
+  </ul>
+
+  <h3>Structured Data Model</h3>
+  <pre><code>{
+    "obligation_id": "unique_identifier",
+    "regulation_name": "Basel III",
+    "article": "Article 92",
+    "clause": "1(a)",
+    "jurisdiction": "EU",
+    "effective_date": "2024-01-01T00:00:00Z",
+    "content": "Full obligation text...",
+    "version": "v1.2.0",
+    "source_publisher": "EBA",
+    "source_url": "https://eba.europa.eu/...",
+    "confidence_score": 0.95,
+    "regulation_type": "Basel III",
+    "level": "Level 2",
+    "priority": 8,
+    "language": "en"
+  }</code></pre>
+
+  <h3>Confidence Scoring</h3>
+  <ul>
+    <li><strong>High Confidence (0.9-1.0):</strong> Clear, unambiguous obligations with strong context</li>
+    <li><strong>Medium Confidence (0.7-0.89):</strong> Well-structured obligations requiring some interpretation</li>
+    <li><strong>Low Confidence (0.5-0.69):</strong> Complex or ambiguous obligations needing review</li>
+    <li><strong>Review Required (<0.5):</strong> Obligations requiring manual verification</li>
+  </ul>
+
+  <h2>8. Version Tracking & Change Detection</h2>
+  <h3>Change Detection Methods</h3>
+  <ul>
+    <li><strong>Content Hashing:</strong> SHA-256 comparison of document content</li>
+    <li><strong>Metadata Comparison:</strong> Publication date and version tracking</li>
+    <li><strong>Structural Analysis:</strong> Detection of significant content changes</li>
+    <li><strong>Amendment Tracking:</strong> Correlating amendments with original regulations</li>
+  </ul>
+
+  <h3>Version Management</h3>
+  <ul>
+    <li><strong>Semantic Versioning:</strong> Major.Minor.Patch version numbering</li>
+    <li><strong>Change Classification:</strong> Breaking changes, clarifications, technical updates</li>
+    <li><strong>Audit Trail:</strong> Complete history of regulatory changes</li>
+    <li><strong>Rollback Capability:</strong> Reversion to previous regulatory states</li>
+  </ul>
+
+  <h2>9. Kafka Integration & Messaging</h2>
+  <h3>Message Topics</h3>
+  <ul>
+    <li><strong>regulatory.updates:</strong> New and updated regulatory obligations</li>
+    <li><strong>regulatory.changes:</strong> Detected changes and amendments</li>
+    <li><strong>regulatory.health:</strong> Feed health and system status updates</li>
+  </ul>
+
+  <h3>Message Structure</h3>
+  <pre><code>{
+    "event_type": "obligation_extracted",
+    "obligation": {...},
+    "metadata": {
+      "source": "EUR-Lex",
+      "processing_time": "2.3s",
+      "confidence_score": 0.94,
+      "timestamp": "2024-01-15T10:30:00Z"
+    }
+  }</code></pre>
+
+  <h3>Consumer Integration</h3>
+  <ul>
+    <li><strong>Rule Compiler:</strong> Automatic rule generation from new obligations</li>
+    <li><strong>Compliance Engine:</strong> Real-time policy updates and validation</li>
+    <li><strong>Reporting Systems:</strong> Regulatory reporting requirement updates</li>
+    <li><strong>Risk Systems:</strong> Dynamic risk assessment based on regulatory changes</li>
+  </ul>
+
+  <h2>10. API Endpoints</h2>
+  <h3>Status & Health Monitoring</h3>
+  <pre><code>GET /health
+Returns overall agent health status
+
+GET /api/regulatory/status
+Returns regulatory intelligence status and metrics
+
+GET /api/regulatory/parser/status
+Returns document parser health and processing statistics</code></pre>
+
+  <h3>Feed Management</h3>
+  <pre><code>GET /api/regulatory/feeds
+Returns status of all monitored regulatory feeds
+
+POST /api/regulatory/test-feed
+{
+  "feed_url": "https://eur-lex.europa.eu/rss/en/oj/series/32024L.xml",
+  "feed_type": "RSS"
+}
+Test specific regulatory feed connectivity</code></pre>
+
+  <h3>Document Processing</h3>
+  <pre><code>POST /api/regulatory/parser/test-document
+{
+  "document_url": "https://eba.europa.eu/documents/...",
+  "document_type": "PDF"
+}
+Test document processing and obligation extraction
+
+GET /api/regulatory/parser/metrics
+Returns document processing performance metrics</code></pre>
+
+  <h3>Kafka Operations</h3>
+  <pre><code>POST /api/regulatory/kafka/test-event
+{
+  "event_type": "obligation_extracted",
+  "payload": {...}
+}
+Send test message to Kafka topic
+
+GET /api/regulatory/kafka/status
+Returns Kafka producer health and connection status</code></pre>
+
+  <h3>Regulatory Scheduler</h3>
+  <pre><code>POST /api/regulatory/scheduler/start
+Start the regulatory feed monitoring scheduler
+
+POST /api/regulatory/scheduler/stop
+Stop the regulatory feed monitoring scheduler
+
+POST /api/regulatory/scheduler/poll-now
+Trigger immediate polling of all regulatory feeds
+
+GET /api/regulatory/scheduler/metrics
+Returns scheduler performance and polling statistics</code></pre>
+
+  <h2>11. Monitoring & Metrics</h2>
+  <h3>Performance Metrics</h3>
+  <ul>
+    <li><strong>Feed Polling:</strong> Success rate, response time, error rates per source</li>
+    <li><strong>Document Processing:</strong> Processing time, success rate, confidence scores</li>
+    <li><strong>Obligation Extraction:</strong> Extraction accuracy, false positive rates</li>
+    <li><strong>Kafka Publishing:</strong> Message delivery rates, latency, error handling</li>
+  </ul>
+
+  <h3>Business Metrics</h3>
+  <ul>
+    <li><strong>Regulatory Coverage:</strong> Percentage of sources successfully monitored</li>
+    <li><strong>Obligation Discovery:</strong> New obligations identified per day/week</li>
+    <li><strong>Change Detection:</strong> Regulatory changes detected and processed</li>
+    <li><strong>Processing Backlog:</strong> Queue depth and processing delays</li>
+  </ul>
+
+  <h3>Health Monitoring</h3>
+  <ul>
+    <li><strong>Feed Health:</strong> Individual feed status and consecutive failure counts</li>
+    <li><strong>System Resources:</strong> CPU, memory, disk usage monitoring</li>
+    <li><strong>Error Tracking:</strong> Exception rates and error categorization</li>
+    <li><strong>Recovery Metrics:</strong> Automatic recovery success rates</li>
+  </ul>
+
+  <h2>12. Configuration</h2>
+  <h3>Feed Configuration</h3>
+  <pre><code># Feed polling intervals (minutes)
+EUR_LEX_POLL_INTERVAL = 15
+EBA_POLL_INTERVAL = 30
+BAFIN_POLL_INTERVAL = 60
+CBI_POLL_INTERVAL = 45
+FCA_POLL_INTERVAL = 30
+
+# Processing timeouts (seconds)
+DOCUMENT_DOWNLOAD_TIMEOUT = 120
+OBLIGATION_EXTRACTION_TIMEOUT = 300
+KAFKA_PUBLISH_TIMEOUT = 30
+
+# Batch processing
+MAX_DOCUMENTS_PER_BATCH = 10
+MAX_OBLIGATIONS_PER_DOCUMENT = 50</code></pre>
+
+  <h3>AI Model Configuration</h3>
+  <pre><code># OpenAI configuration
+OPENAI_MODEL = "gpt-4"
+OPENAI_TEMPERATURE = 0.1
+OPENAI_MAX_TOKENS = 2000
+
+# SpaCy model
+SPACY_MODEL = "en_core_web_lg"
+
+# LangChain configuration
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 200
+MAX_CHUNKS_PER_DOCUMENT = 50</code></pre>
+
+  <h3>Kafka Configuration</h3>
+  <pre><code># Producer configuration
+KAFKA_BOOTSTRAP_SERVERS = ["kafka:9092"]
+KAFKA_TOPIC = "regulatory.updates"
+KAFKA_ACKS = "all"
+KAFKA_RETRIES = 3
+
+# Message configuration
+MESSAGE_KEY_FIELD = "obligation_id"
+MESSAGE_TIMESTAMP_FIELD = "retrieved_at"</code></pre>
+
+  <h2>13. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>Feed Connection Failures</dt>
+    <dd>Check network connectivity, SSL certificates, and firewall settings. Verify feed URLs are accessible.</dd>
+
+    <dt>Document Processing Errors</dt>
+    <dd>Ensure document format is supported. Check for password-protected PDFs or corrupted files.</dd>
+
+    <dt>Low Confidence Scores</dt>
+    <dd>Review document quality and complexity. Consider manual review for critical low-confidence extractions.</dd>
+
+    <dt>Kafka Connection Issues</dt>
+    <dd>Verify Kafka broker availability and network connectivity. Check topic permissions and configurations.</dd>
+
+    <dt>Memory Issues</dt>
+    <dd>Monitor document size limits and processing memory usage. Implement document chunking for large files.</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Check agent health
+curl http://localhost:8004/health
+
+# Test specific feed
+curl -X POST http://localhost:8004/api/regulatory/test-feed \
+  -H "Content-Type: application/json" \
+  -d '{"feed_url": "https://eur-lex.europa.eu/rss/en/oj/series/32024L.xml"}'
+
+# Monitor processing metrics
+curl http://localhost:8004/api/regulatory/parser/metrics
+
+# Check Kafka status
+curl http://localhost:8004/api/regulatory/kafka/status</code></pre>
+
+  <h2>14. Integration Examples</h2>
+  <h3>Webhook Integration</h3>
+  <pre><code># Webhook endpoint for real-time regulatory updates
+POST /webhooks/regulatory-updates
+Content-Type: application/json
+
+{
+  "event_type": "new_obligation",
+  "obligation": {
+    "obligation_id": "EBA_2024_001",
+    "regulation_name": "CRR",
+    "content": "Capital requirements updated...",
+    "effective_date": "2024-06-01"
+  },
+  "webhook_secret": "your_secret_key"
+}</code></pre>
+
+  <h3>API Integration</h3>
+  <pre><code># Query recent regulatory changes
+GET /api/regulatory/obligations?since=2024-01-01&regulation=Basel%20III
+
+# Subscribe to regulatory updates
+POST /api/regulatory/subscriptions
+{
+  "webhook_url": "https://your-app.com/webhooks/regulatory",
+  "regulations": ["Basel III", "PSD2"],
+  "event_types": ["new_obligation", "amendment"]
+}</code></pre>
+
+  <h2>15. Security Considerations</h2>
+  <ul>
+    <li><strong>Data Encryption:</strong> All regulatory data encrypted at rest and in transit</li>
+    <li><strong>Access Controls:</strong> Role-based access to sensitive regulatory information</li>
+    <li><strong>Audit Logging:</strong> Complete audit trail of all regulatory processing activities</li>
+    <li><strong>Compliance Monitoring:</strong> Automated monitoring for regulatory compliance</li>
+    <li><strong>Backup & Recovery:</strong> Regular backups and disaster recovery procedures</li>
+  </ul>
+
+  <h2>16. Performance Optimization</h2>
+  <h3>Processing Optimization</h3>
+  <ul>
+    <li><strong>Concurrent Processing:</strong> Parallel document processing for high throughput</li>
+    <li><strong>Caching Strategy:</strong> Redis caching for frequently accessed regulatory data</li>
+    <li><strong>Batch Processing:</strong> Efficient batch processing of multiple documents</li>
+    <li><strong>Resource Pooling:</strong> Connection pooling for database and external API calls</li>
+  </ul>
+
+  <h3>Scalability Features</h3>
+  <ul>
+    <li><strong>Horizontal Scaling:</strong> Multiple agent instances for high availability</li>
+    <li><strong>Load Balancing:</strong> Distributed processing across multiple nodes</li>
+    <li><strong>Queue Management:</strong> Intelligent queue prioritization and load balancing</li>
+    <li><strong>Auto-scaling:</strong> Dynamic scaling based on processing load</li>
+  </ul>
+
+  <h2>17. Compliance & Regulatory Requirements</h2>
+  <h3>Regulatory Compliance</h3>
+  <ul>
+    <li><strong>RegReporting Requirements:</strong> Comprehensive regulatory reporting obligations</li>
+    <li><strong>Timely Updates:</strong> Real-time monitoring and rapid response capabilities</li>
+    <li><strong>Audit Trails:</strong> Complete documentation of regulatory change management</li>
+    <li><strong>Data Quality:</strong> High accuracy in obligation extraction and classification</li>
+  </ul>
+
+  <h3>Data Protection</h3>
+  <ul>
+    <li><strong>GDPR Compliance:</strong> Personal data handling and privacy protection</li>
+    <li><strong>Data Retention:</strong> Appropriate retention periods for regulatory data</li>
+    <li><strong>Data Minimization:</strong> Collection of only necessary regulatory information</li>
+    <li><strong>Access Logging:</strong> Comprehensive logging of data access and processing</li>
+  </ul>
+
+  <h2>18. Best Practices</h2>
+  <ul>
+    <li><strong>Feed Diversity:</strong> Monitor multiple sources for comprehensive coverage</li>
+    <li><strong>Quality Validation:</strong> Regular validation of extraction accuracy and confidence scores</li>
+    <li><strong>Change Management:</strong> Structured process for regulatory change implementation</li>
+    <li><strong>Stakeholder Communication:</strong> Clear communication of regulatory changes to business units</li>
+    <li><strong>Continuous Improvement:</strong> Regular review and enhancement of AI models and processes</li>
+  </ul>
+
+</body>
+</html>

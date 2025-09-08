@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Decision Orchestration Agent Guide - ComplianceAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px;background:#f8fafc}</style>
+</head>
+<body>
+  <!-- Standard header/navigation to match main dashboard -->
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.5rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.5rem;">Decision Orchestration Agent</h1>
+        <small>Comprehensive guide — part of ComplianceAI documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card p-4 mb-4">
+      <h2>Overview</h2>
+      <p>This comprehensive guide covers the Decision Orchestration Agent, the intelligent final decision maker in the ComplianceAI platform that orchestrates KYC workflows and makes approve/reject decisions with cost optimization.</p>
+    </div>
+
+  <h2>1. Overview</h2>
+  <p>The Decision Orchestration Agent serves as the final decision maker in the 3-agent ComplianceAI architecture. It combines rule-based fast-track decisions for 80% of clear cases with LLM reasoning for complex scenarios, providing final KYC approve/reject/review decisions with comprehensive audit trails.</p>
+
+  <h2>2. Core Architecture</h2>
+  <h3>Decision Pipeline</h3>
+  <pre><code>Intelligence Results → Fast Track Evaluation → Rule/LLM Decision → Final Decision
+                          ↓
+                   Cost Optimization Engine
+                          ↓
+                Audit Trail & Reporting</code></pre>
+
+  <h3>Key Components</h3>
+  <ul>
+    <li><strong>Rule-Based Engine:</strong> Fast-track decisions for clear cases (80% target)</li>
+    <li><strong>LLM Engine:</strong> Complex reasoning for edge cases using GPT-4</li>
+    <li><strong>LangGraph Workflow:</strong> Stateful orchestration and decision routing</li>
+    <li><strong>Cost Optimizer:</strong> Intelligent routing between rule-based and LLM processing</li>
+    <li><strong>Memory System:</strong> Learning from previous decisions and patterns</li>
+    <li><strong>Audit Trail:</strong> Complete decision history and reasoning</li>
+  </ul>
+
+  <h2>3. Cost Optimization Strategy</h2>
+  <h3>Processing Costs by Method</h3>
+  <table>
+    <tr>
+      <th>Method</th>
+      <th>Cost per Decision</th>
+      <th>Use Case</th>
+      <th>Target Usage</th>
+    </tr>
+    <tr>
+      <td>Rule-Based (Fast Track)</td>
+      <td>$0.001</td>
+      <td>Clear cases with low risk</td>
+      <td>80%</td>
+    </tr>
+    <tr>
+      <td>LLM Complex Reasoning</td>
+      <td>$0.10-0.15</td>
+      <td>Edge cases requiring analysis</td>
+      <td>20%</td>
+    </tr>
+    <tr>
+      <td>Target Blended Cost</td>
+      <td>$0.10-0.15</td>
+      <td>All decisions (weighted average)</td>
+      <td>100%</td>
+    </tr>
+  </table>
+
+  <h3>Intelligent Routing</h3>
+  <ul>
+    <li><strong>Fast Track Criteria:</strong> Low risk score (< 0.3) + compliant status + high confidence (> 0.85)</li>
+    <li><strong>Complex Case Triggers:</strong> Medium risk, PEP matches, compliance issues, low confidence</li>
+    <li><strong>Auto-Reject Conditions:</strong> High risk score (> 0.8), sanctions matches, critical violations</li>
+    <li><strong>Manual Review Default:</strong> All other cases requiring human oversight</li>
+  </ul>
+
+  <h2>4. Rule-Based Decision Engine</h2>
+  <h3>Decision Categories</h3>
+  <h4>Auto-Approve Conditions</h4>
+  <ul>
+    <li><strong>Risk Score:</strong> < 0.3 (low risk)</li>
+    <li><strong>Compliance Status:</strong> Fully compliant</li>
+    <li><strong>Confidence:</strong> > 0.85 (high confidence)</li>
+    <li><strong>Sanctions Screening:</strong> Clear (no matches)</li>
+    <li><strong>PEP Screening:</strong> Clear (no politically exposed persons)</li>
+  </ul>
+
+  <h4>Auto-Reject Conditions</h4>
+  <ul>
+    <li><strong>Risk Score:</strong> ≥ 0.8 (critical risk)</li>
+    <li><strong>Sanctions Match:</strong> Confirmed sanctions list match</li>
+    <li><strong>Critical Violations:</strong> Non-compliant with mandatory requirements</li>
+  </ul>
+
+  <h4>Manual Review Triggers</h4>
+  <ul>
+    <li><strong>Risk Score:</strong> 0.3 - 0.8 (medium risk)</li>
+    <li><strong>PEP Match:</strong> Politically exposed person identified</li>
+    <li><strong>Compliance Issues:</strong> Non-critical compliance violations</li>
+    <li><strong>Low Confidence:</strong> Processing confidence < 0.7</li>
+  </ul>
+
+  <h3>Fast Track Evaluation Logic</h3>
+  <pre><code>def can_fast_track(state: DecisionState) -> bool:
+    risk_score = state.get('risk_score', 0.5)
+    compliance_status = state.get('compliance_status', 'unknown')
+    confidence = state.get('confidence', 0.5)
+    
+    intelligence_data = state.get('intelligence_data', {})
+    sanctions_result = intelligence_data.get('sanctions_screening', {})
+    pep_result = intelligence_data.get('pep_screening', {})
+    
+    return (
+        risk_score < 0.3 and
+        compliance_status == 'compliant' and
+        confidence > 0.85 and
+        sanctions_result.get('status') == 'clear' and
+        pep_result.get('status') == 'clear'
+    )</code></pre>
+
+  <h3>Decision Reasoning Generation</h3>
+  <h4>Approval Reasoning</h4>
+  <pre><code>APPROVED: Low risk score (0.25), high confidence (0.92), 
+  all compliance checks passed, no sanctions or PEP matches</code></pre>
+
+  <h4>Rejection Reasoning</h4>
+  <pre><code>REJECTED: Critical risk score: 0.85; Customer matches sanctions list; 
+  Critical compliance violations: 2</code></pre>
+
+  <h4>Manual Review Reasoning</h4>
+  <pre><code>MANUAL REVIEW: Medium risk score: 0.65; PEP match requires enhanced due diligence</code></pre>
+
+  <h2>5. LLM Complex Decision Engine</h2>
+  <h3>GPT-4 Integration</h3>
+  <ul>
+    <li><strong>Model:</strong> GPT-4 for sophisticated reasoning and analysis</li>
+    <li><strong>Temperature:</strong> 0.1 for consistent, deterministic decisions</li>
+    <li><strong>Max Tokens:</strong> 500 for focused, concise responses</li>
+    <li><strong>Structured Output:</strong> JSON format for reliable parsing</li>
+  </ul>
+
+  <h3>Complex Case Triggers</h3>
+  <ul>
+    <li><strong>Conflicting Evidence:</strong> Contradictory information from multiple sources</li>
+    <li><strong>Borderline Risk Scores:</strong> Scores near decision thresholds</li>
+    <li><strong>Complex PEP Scenarios:</strong> Close associates, dormant PEPs</li>
+    <li><strong>Regulatory Gray Areas:</strong> Ambiguous compliance interpretations</li>
+    <li><strong>High-Value Customers:</strong> Large exposure requiring enhanced scrutiny</li>
+  </ul>
+
+  <h3>Decision Context Preparation</h3>
+  <pre><code>decision_context = {
+    "customer_id": state['customer_id'],
+    "session_id": state['session_id'],
+    "risk_score": state['risk_score'],
+    "risk_level": state['risk_level'],
+    "confidence": state['confidence'],
+    "intake_summary": summarize_document_processing(state['intake_data']),
+    "intelligence_summary": summarize_intelligence_data(state['intelligence_data'])
+  }</code></pre>
+
+  <h3>LLM Prompt Structure</h3>
+  <pre><code>System Prompt:
+  You are an expert KYC decision maker with 20 years of experience in financial compliance.
+  Make final KYC decisions based on risk assessment, compliance checks, and regulatory requirements.
+
+  User Prompt:
+  Customer ID: CUST_001
+  Session ID: SESSION_123
+
+  Risk Assessment:
+  - Risk Score: 0.65
+  - Risk Level: medium
+  - Overall Confidence: 0.78
+
+  Document Processing Summary: [processed data summary]
+  Intelligence Analysis Summary: [compliance check summary]
+
+  Provide: decision, detailed reasoning, confidence level</code></pre>
+
+  <h3>Expected LLM Response Format</h3>
+  <pre><code>{
+    "decision": "approve|reject|manual_review|escalate",
+    "reasoning": "Detailed explanation of decision factors and regulatory considerations",
+    "confidence": 0.85
+  }</code></pre>
+
+  <h2>6. LangGraph Workflow Orchestration</h2>
+  <h3>State Management</h3>
+  <pre><code>DecisionState = TypedDict({
+    'session_id': str,
+    'customer_id': str,
+    'intake_data': Dict[str, Any],
+    'intelligence_data': Dict[str, Any],
+    'risk_score': float,
+    'risk_level': str,
+    'compliance_status': str,
+    'confidence': float,
+    'decision': Optional[str],
+    'reasoning': str,
+    'processing_method': str,
+    'escalation_required': bool,
+    'human_review_required': bool,
+    'messages': Annotated[List[BaseMessage], operator.add]
+})</code></pre>
+
+  <h3>Workflow Nodes</h3>
+  <ul>
+    <li><strong>evaluate_fast_track:</strong> Determine if case can be fast-tracked</li>
+    <li><strong>rule_based_decision:</strong> Make rule-based decision for clear cases</li>
+    <li><strong>llm_complex_decision:</strong> Make LLM-based decision for complex cases</li>
+    <li><strong>finalize_decision:</strong> Finalize decision and set escalation flags</li>
+  </ul>
+
+  <h3>Workflow Routing Logic</h3>
+  <pre><code>// Conditional routing based on complexity
+if can_fast_track(state):
+    route = "fast_track"  // → rule_based_decision
+else:
+    route = "complex"     // → llm_complex_decision
+
+// All paths converge to finalization
+rule_based_decision → finalize_decision
+llm_complex_decision → finalize_decision
+finalize_decision → END</code></pre>
+
+  <h3>Memory and Checkpointing</h3>
+  <ul>
+    <li><strong>MemorySaver:</strong> Persistent state management across workflow steps</li>
+    <li><strong>Checkpointing:</strong> Ability to resume interrupted workflows</li>
+    <li><strong>Message History:</strong> Complete conversation and decision trail</li>
+    <li><strong>Learning:</strong> Pattern recognition and decision improvement over time</li>
+  </ul>
+
+  <h2>7. Decision Types and Outcomes</h2>
+  <h3>Primary Decision Types</h3>
+  <h4>APPROVE</h4>
+  <ul>
+    <li><strong>Conditions:</strong> Low risk, compliant, high confidence</li>
+    <li><strong>Processing:</strong> Automatic approval, no human intervention</li>
+    <li><strong>Escalation:</strong> None required</li>
+    <li><strong>Audit Level:</strong> Standard audit trail</li>
+  </ul>
+
+  <h4>REJECT</h4>
+  <ul>
+    <li><strong>Conditions:</strong> High risk, sanctions match, critical violations</li>
+    <li><strong>Processing:</strong> Immediate rejection with clear reasoning</li>
+    <li><strong>Escalation:</strong> Compliance officer notification</li>
+    <li><strong>Audit Level:</strong> Enhanced audit trail with detailed reasoning</li>
+  </ul>
+
+  <h4>MANUAL_REVIEW</h4>
+  <ul>
+    <li><strong>Conditions:</strong> Medium risk, PEP match, borderline cases</li>
+    <li><strong>Processing:</strong> Queue for human review with all evidence</li>
+    <li><strong>Escalation:</strong> Assigned to appropriate review team</li>
+    <li><strong>Audit Level:</strong> Full audit trail with review assignment</li>
+  </ul>
+
+  <h4>ESCALATE</h4>
+  <ul>
+    <li><strong>Conditions:</strong> Critical risk, complex scenarios, high-value exposure</li>
+    <li><strong>Processing:</strong> Immediate escalation to senior compliance officers</li>
+    <li><strong>Escalation:</strong> Senior management and legal review</li>
+    <li><strong>Audit Level:</strong> Maximum audit trail with escalation documentation</li>
+  </ul>
+
+  <h2>8. Risk Assessment Integration</h2>
+  <h3>Risk Score Ranges</h3>
+  <table>
+    <tr>
+      <th>Risk Level</th>
+      <th>Score Range</th>
+      <th>Typical Decision</th>
+      <th>Processing Method</th>
+    </tr>
+    <tr>
+      <td>Low Risk</td>
+      <td>0.0 - 0.3</td>
+      <td>Auto-Approve</td>
+      <td>Fast Track</td>
+    </tr>
+    <tr>
+      <td>Medium Risk</td>
+      <td>0.3 - 0.8</td>
+      <td>Manual Review</td>
+      <td>Standard</td>
+    </tr>
+    <tr>
+      <td>High Risk</td>
+      <td>0.8 - 1.0</td>
+      <td>Auto-Reject</td>
+      <td>Fast Track</td>
+    </tr>
+  </table>
+
+  <h3>Intelligence Data Processing</h3>
+  <ul>
+    <li><strong>Sanctions Screening:</strong> OFAC, EU, UN watchlist matching</li>
+    <li><strong>PEP Screening:</strong> Politically exposed person identification</li>
+    <li><strong>Adverse Media:</strong> Negative news and reputation analysis</li>
+    <li><strong>Compliance Checks:</strong> Regulatory requirement validation</li>
+    <li><strong>Risk Scoring:</strong> Multi-factor risk assessment</li>
+  </ul>
+
+  <h3>Confidence Scoring</h3>
+  <ul>
+    <li><strong>High Confidence (0.85+):</strong> Strong evidence, clear compliance</li>
+    <li><strong>Medium Confidence (0.7-0.84):</strong> Good evidence, minor uncertainties</li>
+    <li><strong>Low Confidence (<0.7):</strong> Weak evidence, requires review</li>
+  </ul>
+
+  <h2>9. Audit Trail and Reporting</h2>
+  <h3>Comprehensive Audit Trail</h3>
+  <pre><code>audit_entry = {
+    "session_id": "SESSION_123",
+    "customer_id": "CUST_001",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "decision": "approve",
+    "reasoning": "Low risk score (0.25), all checks passed",
+    "confidence": 0.92,
+    "processing_method": "fast_track",
+    "risk_score": 0.25,
+    "intelligence_data": {...},
+    "processing_time_seconds": 1.2,
+    "cost_dollars": 0.001,
+    "escalation_required": false,
+    "human_review_required": false,
+    "messages": [...],  // LangGraph conversation history
+    "rule_applied": "auto_approve_low_risk",
+    "reviewer_id": null,
+    "final_approver": "system"
+  }</code></pre>
+
+  <h3>Decision Metrics Tracking</h3>
+  <ul>
+    <li><strong>Decision Distribution:</strong> Approve/Reject/Manual Review percentages</li>
+    <li><strong>Processing Time:</strong> Average time by method and decision type</li>
+    <li><strong>Cost Analysis:</strong> Cost per decision and total cost tracking</li>
+    <li><strong>Accuracy Metrics:</strong> Decision accuracy and override rates</li>
+    <li><strong>Escalation Rates:</strong> Human intervention and override frequencies</li>
+  </ul>
+
+  <h2>10. API Endpoints</h2>
+  <h3>Decision Making</h3>
+  <pre><code>POST /api/decision/make-decision
+Content-Type: application/json
+
+{
+  "session_id": "session_123",
+  "customer_id": "customer_456",
+  "intake_data": {
+    "document_type": "passport",
+    "extracted_data": {...},
+    "quality_score": 0.87,
+    "confidence": 0.91
+  },
+  "intelligence_data": {
+    "risk_score": 0.25,
+    "sanctions_screening": {"status": "clear"},
+    "pep_screening": {"status": "clear"},
+    "compliance_checks": [...]
+  }
+}
+
+Response:
+{
+  "session_id": "session_123",
+  "customer_id": "customer_456",
+  "decision": "approve",
+  "confidence": 0.92,
+  "reasoning": "Low risk score (0.25), all compliance checks passed",
+  "processing_method": "fast_track",
+  "risk_assessment": {...},
+  "compliance_summary": {...},
+  "escalation_required": false,
+  "human_review_required": false,
+  "processing_time_seconds": 1.2,
+  "estimated_cost_dollars": 0.001,
+  "audit_trail": [...],
+  "status": "completed"
+}</code></pre>
+
+  <h3>Decision Status and History</h3>
+  <pre><code>GET /api/decision/status/{session_id}
+Response:
+{
+  "session_id": "session_123",
+  "status": "completed",
+  "decision": "approve",
+  "confidence": 0.92,
+  "processing_time_seconds": 1.2,
+  "last_updated": "2024-01-15T10:30:00Z"
+}
+
+GET /api/decision/history/{customer_id}
+Response:
+[
+  {
+    "session_id": "session_123",
+    "decision": "approve",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "confidence": 0.92,
+    "method": "fast_track"
+  }
+]</code></pre>
+
+  <h3>Workflow Management</h3>
+  <pre><code>POST /api/decision/workflow/resume
+{
+  "session_id": "session_123",
+  "checkpoint_data": {...}
+}
+
+GET /api/decision/workflow/active
+Response:
+[
+  {
+    "session_id": "session_123",
+    "current_node": "rule_based_decision",
+    "progress": 0.75,
+    "estimated_completion_seconds": 30
+  }
+]</code></pre>
+
+  <h3>Performance Metrics</h3>
+  <pre><code>GET /api/decision/metrics
+Response:
+{
+  "total_decisions": 15420,
+  "fast_track_percentage": 78.5,
+  "average_processing_time_seconds": 2.3,
+  "average_cost_per_decision": 0.045,
+  "decision_distribution": {
+    "approve": 65.2,
+    "reject": 12.1,
+    "manual_review": 22.7
+  },
+  "accuracy_rate": 94.8
+}
+
+GET /api/decision/metrics/detailed?date_from=2024-01-01
+Response: Detailed metrics with time series data</code></pre>
+
+  <h2>11. Configuration</h2>
+  <h3>Decision Thresholds</h3>
+  <pre><code># Fast track approval criteria
+FAST_TRACK_RISK_MAX = 0.3
+FAST_TRACK_CONFIDENCE_MIN = 0.85
+FAST_TRACK_COMPLIANCE_REQUIRED = "compliant"
+
+# Auto-reject criteria
+AUTO_REJECT_RISK_MIN = 0.8
+AUTO_REJECT_SANCTIONS_MATCH = True
+AUTO_REJECT_CRITICAL_VIOLATIONS = True
+
+# Manual review triggers
+MANUAL_REVIEW_RISK_RANGE = (0.3, 0.8)
+MANUAL_REVIEW_PEP_MATCH = True
+MANUAL_REVIEW_COMPLIANCE_ISSUES = True
+MANUAL_REVIEW_CONFIDENCE_LOW = 0.7
+
+# Escalation thresholds
+ESCALATION_RISK_MIN = 0.9
+ESCALATION_HIGH_VALUE_THRESHOLD = 1000000  # $1M
+ESCALATION_COMPLEX_CASE = True</code></pre>
+
+  <h3>Cost Optimization Settings</h3>
+  <pre><code># Cost targets
+TARGET_COST_PER_DECISION = 0.10
+TARGET_FAST_TRACK_PERCENTAGE = 80.0
+MAX_LLM_COST_PER_DECISION = 0.15
+
+# Performance targets
+TARGET_PROCESSING_TIME_FAST_TRACK = 2.0  # seconds
+TARGET_PROCESSING_TIME_LLM = 10.0        # seconds
+MAX_PROCESSING_TIME = 30.0               # seconds
+
+# Quality thresholds
+MIN_DECISION_CONFIDENCE = 0.7
+QUALITY_REVIEW_THRESHOLD = 0.85
+ACCURACY_TARGET = 95.0</code></pre>
+
+  <h3>LLM Configuration</h3>
+  <pre><code># OpenAI settings
+OPENAI_MODEL = "gpt-4"
+OPENAI_TEMPERATURE = 0.1
+OPENAI_MAX_TOKENS = 500
+OPENAI_TIMEOUT_SECONDS = 30
+
+# Prompt engineering
+SYSTEM_PROMPT_VERSION = "v2.1"
+CONTEXT_WINDOW_SIZE = 4000
+RESPONSE_FORMAT = "json"
+
+# Fallback settings
+FALLBACK_MODEL = "gpt-3.5-turbo"
+FALLBACK_ENABLED = True
+FALLBACK_CONFIDENCE_THRESHOLD = 0.8</code></pre>
+
+  <h3>Workflow Configuration</h3>
+  <pre><code># LangGraph settings
+MEMORY_ENABLED = True
+CHECKPOINTING_ENABLED = True
+MAX_WORKFLOW_STEPS = 10
+WORKFLOW_TIMEOUT_SECONDS = 60
+
+# Concurrency settings
+MAX_CONCURRENT_DECISIONS = 50
+QUEUE_SIZE = 100
+WORKER_THREADS = 4
+
+# Database settings
+BATCH_SIZE = 10
+CACHE_TTL_SECONDS = 300
+CONNECTION_POOL_SIZE = 10</code></pre>
+
+  <h2>12. Monitoring & Metrics</h2>
+  <h3>Performance Metrics</h3>
+  <ul>
+    <li><strong>Decision Throughput:</strong> Decisions per minute by method</li>
+    <li><strong>Cost Efficiency:</strong> Cost per decision and total cost tracking</li>
+    <li><strong>Processing Time:</strong> Average time by decision type and complexity</li>
+    <li><strong>Fast Track Ratio:</strong> Percentage of decisions using rule-based processing</li>
+    <li><strong>Accuracy Rate:</strong> Decision accuracy and human override rates</li>
+  </ul>
+
+  <h3>Business Metrics</h3>
+  <ul>
+    <li><strong>Decision Distribution:</strong> Approve/Reject/Manual Review percentages</li>
+    <li><strong>Escalation Rate:</strong> Cases requiring senior review</li>
+    <li><strong>Review Queue Length:</strong> Pending manual reviews</li>
+    <li><strong>Customer Satisfaction:</strong> Processing time and decision quality</li>
+  </ul>
+
+  <h3>Prometheus Metrics</h3>
+  <pre><code># Decision metrics
+decision_decisions_made_total{decision_type="approve",method="fast_track"} 10023
+decision_decisions_made_total{decision_type="reject",method="fast_track"} 1876
+decision_decisions_made_total{decision_type="manual_review",method="llm_complex"} 3521
+
+# Performance metrics
+decision_processing_duration_seconds_bucket{method="fast_track",le="2.0"} 11899
+decision_processing_duration_seconds_bucket{method="llm_complex",le="10.0"} 2876
+
+# Cost metrics
+decision_cost_per_decision_dollars{method="fast_track"} 0.001
+decision_cost_per_decision_dollars{method="llm_complex"} 0.12
+
+# System metrics
+decision_active_decisions 23
+decision_fast_track_percentage 78.5</code></pre>
+
+  <h2>13. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>Low Fast Track Percentage</dt>
+    <dd>Adjust risk score thresholds, review compliance criteria, check confidence levels</dd>
+
+    <dt>High Processing Costs</dt>
+    <dd>Optimize LLM usage, tune decision thresholds, implement better caching</dd>
+
+    <dt>Decision Inconsistencies</dt>
+    <dd>Review rule definitions, validate intelligence data quality, check threshold settings</dd>
+
+    <dt>Workflow Timeouts</dt>
+    <dd>Increase timeout limits, optimize LLM prompts, check system resources</dd>
+
+    <dt>Memory Issues</dt>
+    <dd>Configure memory limits, implement checkpoint cleanup, monitor memory usage</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Test decision making
+curl -X POST http://localhost:8003/api/decision/make-decision \
+  -H "Content-Type: application/json" \
+  -d '{"session_id": "test_123", "customer_id": "test_cust", "intake_data": {...}, "intelligence_data": {...}}'
+
+# Check decision status
+curl http://localhost:8003/api/decision/status/test_123
+
+# View performance metrics
+curl http://localhost:8003/api/decision/metrics
+
+# Monitor active workflows
+curl http://localhost:8003/api/decision/workflow/active
+
+# Health check
+curl http://localhost:8003/health
+
+# View detailed logs
+curl http://localhost:8003/logs?level=DEBUG&session_id=test_123</code></pre>
+
+  <h2>14. Best Practices</h2>
+  <ul>
+    <li><strong>Threshold Tuning:</strong> Regularly review and adjust decision thresholds based on performance data</li>
+    <li><strong>Cost Monitoring:</strong> Track decision costs and optimize LLM usage patterns</li>
+    <li><strong>Quality Assurance:</strong> Implement decision accuracy monitoring and human oversight</li>
+    <li><strong>Workflow Optimization:</strong> Continuously improve workflow routing and decision logic</li>
+    <li><strong>Scalability Planning:</strong> Design for horizontal scaling and load balancing</li>
+    <li><strong>Audit Compliance:</strong> Maintain comprehensive audit trails for regulatory compliance</li>
+    <li><strong>Performance Monitoring:</strong> Monitor system performance and resource utilization</li>
+    <li><strong>Continuous Learning:</strong> Use decision patterns to improve future decision making</li>
+    <li><strong>Risk Management:</strong> Balance automation with appropriate human oversight</li>
+    <li><strong>Business Alignment:</strong> Ensure decision logic aligns with business objectives and risk appetite</li>
+  </ul>
+
+  <h2>15. Integration Examples</h2>
+  <h3>Complete KYC Workflow Integration</h3>
+  <pre><code>// Intake Agent → Intelligence Agent → Decision Agent
+const kycWorkflow = async (customerData, documents) => {
+  try {
+    // Step 1: Document processing
+    const intakeResult = await intakeAgent.processDocuments({
+      session_id: generateSessionId(),
+      customer_id: customerData.id,
+      documents: documents
+    });
+
+    // Step 2: Intelligence analysis
+    const intelligenceResult = await intelligenceAgent.analyzeCustomer({
+      session_id: intakeResult.session_id,
+      customer_data: customerData,
+      processed_documents: intakeResult.extracted_data
+    });
+
+    // Step 3: Final decision
+    const decisionResult = await decisionAgent.makeDecision({
+      session_id: intakeResult.session_id,
+      customer_id: customerData.id,
+      intake_data: intakeResult,
+      intelligence_data: intelligenceResult
+    });
+
+    // Step 4: Handle decision outcome
+    switch (decisionResult.decision) {
+      case 'approve':
+        await approveCustomer(decisionResult);
+        break;
+      case 'reject':
+        await rejectCustomer(decisionResult);
+        break;
+      case 'manual_review':
+        await queueForManualReview(decisionResult);
+        break;
+    }
+
+    return decisionResult;
+
+  } catch (error) {
+    console.error('KYC workflow failed:', error);
+    await handleWorkflowError(error);
+  }
+};</code></pre>
+
+  <h3>Kafka Event Integration</h3>
+  <pre><code>// Listen for intelligence results
+const consumer = kafka.consumer({ groupId: 'decision-orchestration-group' });
+
+await consumer.subscribe({ topic: 'intelligence.results', fromBeginning: true });
+
+await consumer.run({
+  eachMessage: async ({ topic, partition, message }) => {
+    const intelligenceResult = JSON.parse(message.value.toString());
+
+    // Make decision based on intelligence results
+    const decision = await decisionAgent.makeDecision({
+      session_id: intelligenceResult.session_id,
+      customer_id: intelligenceResult.customer_id,
+      intake_data: intelligenceResult.intake_data,
+      intelligence_data: intelligenceResult
+    });
+
+    // Publish decision result
+    await producer.send({
+      topic: 'decision.results',
+      messages: [{
+        key: intelligenceResult.session_id,
+        value: JSON.stringify(decision)
+      }]
+    });
+  }
+});</code></pre>
+
+  <h2>16. Regulatory Compliance</h2>
+  <h3>KYC Regulatory Requirements</h3>
+  <ul>
+    <li><strong>Risk-Based Approach:</strong> Appropriate due diligence based on risk profile</li>
+    <li><strong>Enhanced Due Diligence:</strong> Additional scrutiny for high-risk customers</li>
+    <li><strong>Sanctions Screening:</strong> Comprehensive screening against sanctions lists</li>
+    <li><strong>PEP Screening:</strong> Identification of politically exposed persons</li>
+    <li><strong>Record Keeping:</strong> Complete audit trail of decision making process</li>
+  </ul>
+
+  <h3>Data Protection Compliance</h3>
+  <ul>
+    <li><strong>GDPR Compliance:</strong> Lawful processing of personal data</li>
+    <li><strong>Data Minimization:</strong> Collection of only necessary customer information</li>
+    <li><strong>Purpose Limitation:</strong> Use data only for specified KYC purposes</li>
+    <li><strong>Storage Limitation:</strong> Appropriate retention periods for customer data</li>
+    <li><strong>Accuracy:</strong> Ensure accuracy of customer information and decisions</li>
+  </ul>
+
+  <h2>17. Future Enhancements</h2>
+  <ul>
+    <li><strong>Machine Learning Integration:</strong> Advanced ML models for risk prediction</li>
+    <li><strong>Real-time Decision Making:</strong> Streaming decisions for immediate customer onboarding</li>
+    <li><strong>Multi-jurisdiction Support:</strong> Enhanced support for international regulatory requirements</li>
+    <li><strong>Blockchain Integration:</strong> Immutable audit trails using distributed ledger technology</li>
+    <li><strong>Advanced Analytics:</strong> Predictive analytics for decision optimization</li>
+    <li><strong>Explainable AI:</strong> Enhanced reasoning and decision explanations</li>
+    <li><strong>Automated Learning:</strong> Self-improving decision models based on outcomes</li>
+    <li><strong>Integration APIs:</strong> RESTful and GraphQL APIs for external integrations</li>
+    <li><strong>Mobile Optimization:</strong> Mobile-friendly decision workflows</li>
+    <li><strong>Multi-language Support:</strong> Support for international customer onboarding</li>
+  </ul>
+
+</body>
+</html>

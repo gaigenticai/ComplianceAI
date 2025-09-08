@@ -1,3 +1,15 @@
+from fastapi import APIRouter
+
+router = APIRouter()
+
+
+@router.get("/status")
+async def status():
+    return {"status": "ok", "component": "phase6", "version": "1.0"}
+
+
+# Defer heavy imports to runtime inside endpoints to avoid import-time failures
+
 #!/usr/bin/env python3
 """
 Phase 6 API: Documentation & Production Readiness

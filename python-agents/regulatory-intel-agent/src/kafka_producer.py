@@ -319,17 +319,15 @@ class RegulatoryKafkaProducer:
                 'retries': int(os.getenv("KAFKA_PRODUCER_RETRIES", "3")),
                 'retry_backoff_ms': int(os.getenv("KAFKA_RETRY_BACKOFF_MS", "1000")),
                 'max_in_flight_requests_per_connection': 1,  # Ensure ordering
-                'enable_idempotence': True,  # Prevent duplicates
-                
+
                 # Performance settings
                 'batch_size': int(os.getenv("KAFKA_BATCH_SIZE", "16384")),
                 'linger_ms': int(os.getenv("KAFKA_LINGER_MS", "10")),
                 'buffer_memory': int(os.getenv("KAFKA_BUFFER_MEMORY", "33554432")),
                 'compression_type': os.getenv("KAFKA_COMPRESSION_TYPE", "lz4"),
-                
+
                 # Timeout settings
                 'request_timeout_ms': int(os.getenv("KAFKA_REQUEST_TIMEOUT_MS", "30000")),
-                'delivery_timeout_ms': int(os.getenv("KAFKA_DELIVERY_TIMEOUT_MS", "120000")),
                 
                 # Security settings (if enabled)
                 'security_protocol': os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT"),

@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Phase 6 Components Guide - ComplianceAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px;background:#f8fafc}</style>
+</head>
+<body>
+  <!-- Standard header/navigation to match main dashboard -->
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.5rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.5rem;">Production Readiness & Ops</h1>
+        <small>Monitoring, migrations, and configuration management</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="card p-4 mb-4">
+      <h2>Overview</h2>
+      <p>This comprehensive guide covers the Phase 6 system monitoring, migrations, and configuration management components that ensure production-grade reliability and maintainability of the ComplianceAI platform.</p>
+    </div>
+
+  <h2>1. Overview</h2>
+  <p>Phase 6 represents the operational excellence layer of the ComplianceAI platform, providing comprehensive monitoring, automated migrations, and robust configuration management. These components ensure system reliability, data integrity, and operational efficiency in production environments.</p>
+
+  <h2>2. System Monitoring Architecture</h2>
+  <h3>Monitoring Stack</h3>
+  <pre><code>Application Metrics → Prometheus → Grafana Dashboards
+                        ↓
+                Alerting & Notifications
+                        ↓
+            Automated Response & Recovery</code></pre>
+
+  <h3>Key Monitoring Components</h3>
+  <ul>
+    <li><strong>Prometheus:</strong> Metrics collection and time-series database</li>
+    <li><strong>Grafana:</strong> Visualization and dashboard creation</li>
+    <li><strong>Custom Exporters:</strong> Application-specific metrics collection</li>
+    <li><strong>AlertManager:</strong> Alert routing and notification management</li>
+    <li><strong>Health Checks:</strong> Automated service health monitoring</li>
+  </ul>
+
+  <h2>3. Prometheus Monitoring</h2>
+  <h3>Core Configuration</h3>
+  <h4>Global Settings</h4>
+  <pre><code>global:
+  scrape_interval: 15s        # How often to scrape targets
+  evaluation_interval: 15s    # How often to evaluate rules
+  external_labels:
+    cluster: 'kyc-engine'      # Labels added to all metrics
+    environment: 'production'</code></pre>
+
+  <h4>Service Monitoring Targets</h4>
+  <pre><code>scrape_configs:
+  # KYC Orchestrator (Rust Core)
+  - job_name: 'kyc-orchestrator'
+    static_configs:
+      - targets: ['kyc-orchestrator:8000']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
+
+  # AI Agent Services
+  - job_name: 'intake-processing-agent'
+    static_configs:
+      - targets: ['intake-processing-agent:8005']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  - job_name: 'decision-orchestration-agent'
+    static_configs:
+      - targets: ['decision-orchestration-agent:8003']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  - job_name: 'regulatory-intelligence-agent'
+    static_configs:
+      - targets: ['regulatory-intel-agent:8004']
+    scrape_interval: 15s
+    metrics_path: /metrics</code></pre>
+
+  <h3>Key Metrics Collection</h3>
+  <h4>Application Metrics</h4>
+  <ul>
+    <li><strong>Request Rate:</strong> HTTP requests per second by endpoint</li>
+    <li><strong>Response Time:</strong> P95 response latency for critical operations</li>
+    <li><strong>Error Rate:</strong> Percentage of failed requests by service</li>
+    <li><strong>Throughput:</strong> Documents processed per minute</li>
+    <li><strong>Queue Depth:</strong> Pending tasks in processing queues</li>
+  </ul>
+
+  <h4>Business Metrics</h4>
+  <ul>
+    <li><strong>KYC Completion Rate:</strong> Percentage of cases completed successfully</li>
+    <li><strong>Decision Distribution:</strong> Approve/Reject/Manual Review ratios</li>
+    <li><strong>Regulatory Compliance:</strong> Report submission success rates</li>
+    <li><strong>Cost Efficiency:</strong> Processing cost per decision</li>
+  </ul>
+
+  <h4>System Metrics</h4>
+  <ul>
+    <li><strong>CPU Usage:</strong> Core utilization by service</li>
+    <li><strong>Memory Usage:</strong> RAM consumption and trends</li>
+    <li><strong>Disk I/O:</strong> Storage performance and capacity</li>
+    <li><strong>Network I/O:</strong> Bandwidth utilization and latency</li>
+    <li><strong>Container Health:</strong> Docker container status and restarts</li>
+  </ul>
+
+  <h3>Prometheus Query Examples</h3>
+  <h4>Service Health Monitoring</h4>
+  <pre><code># Check if service is responding
+up{job="kyc-orchestrator"}
+
+# Service availability percentage (last 24h)
+avg_over_time(up{job="kyc-orchestrator"}[24h])
+
+# Service restart count
+count_scalar(increase(container_restart_count{container="kyc-orchestrator"}[1h]))</code></pre>
+
+  <h4>Performance Monitoring</h4>
+  <pre><code># 95th percentile response time
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+# Request rate by endpoint
+rate(http_requests_total{job="kyc-web-interface"}[5m])
+
+# Error rate percentage
+rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) * 100</code></pre>
+
+  <h4>Business Metrics</h4>
+  <pre><code># Documents processed per minute
+rate(intake_documents_processed_total[5m])
+
+# Decision distribution
+sum(rate(decision_decisions_made_total{decision_type="approve"}[1h])) /
+sum(rate(decision_decisions_made_total[1h]))
+
+# Cost per decision
+rate(decision_cost_per_decision_dollars[1h])</code></pre>
+
+  <h2>4. Grafana Dashboards</h2>
+  <h3>Dashboard Architecture</h3>
+  <h4>System Overview Dashboard</h4>
+  <ul>
+    <li><strong>Service Status Panel:</strong> All services health and uptime</li>
+    <li><strong>Resource Usage:</strong> CPU, memory, disk utilization trends</li>
+    <li><strong>Request Throughput:</strong> RPS across all services</li>
+    <li><strong>Error Rates:</strong> 4xx/5xx error percentages</li>
+    <li><strong>Queue Depths:</strong> Pending tasks and backlog</li>
+  </ul>
+
+  <h4>KYC Processing Dashboard</h4>
+  <ul>
+    <li><strong>Processing Pipeline:</strong> Document intake to final decision flow</li>
+    <li><strong>Decision Metrics:</strong> Approval rates and processing times</li>
+    <li><strong>Quality Metrics:</strong> OCR accuracy and validation success rates</li>
+    <li><strong>Cost Analytics:</strong> Processing costs by method and volume</li>
+  </ul>
+
+  <h4>Regulatory Reporting Dashboard</h4>
+  <ul>
+    <li><strong>Report Generation:</strong> FINREP, COREP, DORA report status</li>
+    <li><strong>Submission Tracking:</strong> Regulatory filing success rates</li>
+    <li><strong>Compliance Metrics:</strong> Regulatory deadline adherence</li>
+    <li><strong>Validation Results:</strong> Data quality and format compliance</li>
+  </ul>
+
+  <h3>Dashboard Configuration</h3>
+  <h4>Data Source Setup</h4>
+  <pre><code>apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    url: http://prometheus:9090
+    access: proxy
+    isDefault: true
+    editable: true</code></pre>
+
+  <h4>Dashboard JSON Structure</h4>
+  <pre><code>{
+    "dashboard": {
+      "id": null,
+      "title": "KYC System Overview",
+      "tags": ["kyc", "monitoring", "compliance"],
+      "timezone": "browser",
+      "panels": [
+        {
+          "id": 1,
+          "title": "Service Health Status",
+          "type": "stat",
+          "targets": [{
+            "expr": "up{job=~\"kyc-.*\"}",
+            "legendFormat": "{{job}}"
+          }]
+        }
+      ],
+      "time": {
+        "from": "now-1h",
+        "to": "now"
+      },
+      "refresh": "30s"
+    }
+  }</code></pre>
+
+  <h2>5. Data Migration System</h2>
+  <h3>Migration Architecture</h3>
+  <h4>Supported Databases</h4>
+  <ul>
+    <li><strong>PostgreSQL:</strong> Primary relational database for structured data</li>
+    <li><strong>MongoDB:</strong> Document database for unstructured regulatory content</li>
+    <li><strong>Kafka:</strong> Message queue for inter-agent communication</li>
+    <li><strong>Redis:</strong> Caching layer and session storage</li>
+  </ul>
+
+  <h3>PostgreSQL Migration Tool</h3>
+  <h4>Core Features</h4>
+  <ul>
+    <li><strong>Full/Partial Migration:</strong> Migrate all tables or specific subsets</li>
+    <li><strong>Parallel Processing:</strong> Multi-threaded migration with configurable workers</li>
+    <li><strong>Data Validation:</strong> Built-in integrity and consistency checks</li>
+    <li><strong>Progress Monitoring:</strong> Real-time migration status and metrics</li>
+    <li><strong>Error Recovery:</strong> Automatic retry logic and error handling</li>
+  </ul>
+
+  <h4>Migration Workflow</h4>
+  <pre><code>1. Pre-Migration Analysis
+   ├── Schema comparison
+   ├── Data volume assessment
+   └── Dependency mapping
+
+2. Migration Execution
+   ├── Table creation in target
+   ├── Data transfer with batching
+   └── Parallel processing optimization
+
+3. Post-Migration Validation
+   ├── Row count verification
+   ├── Data integrity checks
+   └── Business rule validation</code></pre>
+
+  <h4>Migration Commands</h4>
+  <pre><code># Full database migration
+python postgresql/data_migration_tool.py migrate \
+  --source-db "postgresql://user:pass@source-db/complianceai" \
+  --target-db "postgresql://user:pass@target-db/complianceai" \
+  --workers 8 \
+  --batch-size 5000
+
+# Specific table migration
+python postgresql/data_migration_tool.py migrate \
+  --tables regulatory.jurisdiction_configs,regulatory.regulatory_obligations \
+  --source-db "postgresql://user:pass@source-db/db" \
+  --target-db "postgresql://user:pass@target-db/db"
+
+# Migration with validation
+python postgresql/data_migration_tool.py migrate \
+  --source-db "postgresql://..." \
+  --target-db "postgresql://..." \
+  --validate \
+  --report-file migration_report.json</code></pre>
+
+  <h3>MongoDB Migration Tool</h3>
+  <h4>Document Migration Features</h4>
+  <ul>
+    <li><strong>Collection-Based Migration:</strong> Migrate entire collections or filtered subsets</li>
+    <li><strong>Index Preservation:</strong> Maintain database indexes in target environment</li>
+    <li><strong>Document Validation:</strong> JSON schema validation during migration</li>
+    <li><strong>Change Stream Support:</strong> Real-time synchronization capabilities</li>
+  </ul>
+
+  <h4>MongoDB Migration Commands</h4>
+  <pre><code># Migrate all collections
+python mongodb/mongo_migration_tool.py migrate \
+  --source-uri "mongodb://user:pass@source-mongo/complianceai" \
+  --target-uri "mongodb://user:pass@target-mongo/complianceai" \
+  --database complianceai \
+  --workers 6 \
+  --batch-size 2000
+
+# Specific collection migration
+python mongodb/mongo_migration_tool.py migrate \
+  --collections regulatory_documents,compliance_rules \
+  --source-uri "mongodb://source/db" \
+  --target-uri "mongodb://target/db" \
+  --database complianceai
+
+# Incremental sync
+python mongodb/mongo_migration_tool.py sync \
+  --source-uri "mongodb://source/db" \
+  --target-uri "mongodb://target/db" \
+  --database complianceai \
+  --since "2024-01-01T00:00:00Z"</code></pre>
+
+  <h2>6. Data Validation Framework</h2>
+  <h3>Validation Architecture</h3>
+  <h4>Validation Layers</h4>
+  <ul>
+    <li><strong>Schema Validation:</strong> Database schema and data type compliance</li>
+    <li><strong>Integrity Validation:</strong> Referential integrity and foreign key constraints</li>
+    <li><strong>Consistency Validation:</strong> Cross-table data relationships</li>
+    <li><strong>Business Rule Validation:</strong> Domain-specific business logic</li>
+    <li><strong>Compliance Validation:</strong> Regulatory requirement adherence</li>
+  </ul>
+
+  <h3>Validation Tool Usage</h3>
+  <h4>Comprehensive Validation</h4>
+  <pre><code># Validate all data in PostgreSQL
+python validation/data_validator.py validate \
+  --db-type postgresql \
+  --connection "postgresql://user:pass@host/db" \
+  --output-dir ./reports \
+  --checks integrity,consistency,completeness,accuracy
+
+# Validate specific checks only
+python validation/data_validator.py validate \
+  --checks integrity,business_rules \
+  --db-type postgresql \
+  --connection "postgresql://user:pass@host/db"
+
+# Generate detailed validation report
+python validation/data_validator.py validate \
+  --db-type postgresql \
+  --connection "postgresql://user:pass@host/db" \
+  --output-format json \
+  --report-file validation_report.json</code></pre>
+
+  <h4>Continuous Monitoring</h4>
+  <pre><code># Monitor data quality continuously
+python validation/data_validator.py monitor \
+  --db-type all \
+  --connection "postgresql://user:pass@host/db" \
+  --threshold 0.95 \
+  --interval 3600
+
+# Monitor specific metrics
+python validation/data_validator.py monitor \
+  --checks completeness,accuracy \
+  --threshold 0.98 \
+  --alert-email admin@company.com</code></pre>
+
+  <h3>Validation Report Structure</h3>
+  <pre><code>{
+    "validation_summary": {
+      "timestamp": "2024-01-15T10:30:00Z",
+      "database_type": "postgresql",
+      "database_name": "complianceai",
+      "overall_score": 0.96,
+      "total_checks": 1250,
+      "passed_checks": 1200,
+      "failed_checks": 50
+    },
+    "validation_results": {
+      "integrity": {
+        "status": "PASSED",
+        "score": 1.0,
+        "checks": 150,
+        "failures": 0
+      },
+      "consistency": {
+        "status": "PASSED",
+        "score": 0.98,
+        "checks": 300,
+        "failures": 6
+      },
+      "completeness": {
+        "status": "PASSED",
+        "score": 0.95,
+        "checks": 200,
+        "failures": 10
+      },
+      "business_rules": {
+        "status": "WARNING",
+        "score": 0.92,
+        "checks": 600,
+        "failures": 48
+      }
+    },
+    "detailed_issues": [
+      {
+        "table": "kyc_cases",
+        "column": "customer_id",
+        "issue_type": "foreign_key_violation",
+        "severity": "HIGH",
+        "description": "Orphaned customer reference",
+        "affected_rows": 5,
+        "recommendation": "Update customer references or remove orphaned records"
+      }
+    ],
+    "recommendations": [
+      "Rebuild indexes on kyc_cases.customer_id",
+      "Review and fix customer data inconsistencies",
+      "Implement additional validation rules for new data"
+    ]
+  }</code></pre>
+
+  <h2>7. Deployment and Configuration Management</h2>
+  <h3>Automated Deployment Script</h3>
+  <h4>Deployment Phases</h4>
+  <ol>
+    <li><strong>Prerequisites Check:</strong> Docker, Docker Compose, port availability</li>
+    <li><strong>Environment Setup:</strong> .env file creation and configuration</li>
+    <li><strong>Service Deployment:</strong> Parallel build and orchestrated startup</li>
+    <li><strong>Health Verification:</strong> Automated health checks and service validation</li>
+    <li><strong>Post-Deployment Tests:</strong> Integration tests and system validation</li>
+  </ol>
+
+  <h4>Deployment Commands</h4>
+  <pre><code># Full system deployment
+./scripts/deploy.sh
+
+# Deploy specific components
+docker-compose up -d kyc-web-interface
+docker-compose up -d intake-processing-agent
+
+# Check deployment status
+./scripts/deploy.sh status
+
+# View service logs
+./scripts/deploy.sh logs kyc-web-interface
+
+# Restart services
+./scripts/deploy.sh restart
+
+# Stop all services
+./scripts/deploy.sh stop</code></pre>
+
+  <h3>Configuration Management</h3>
+  <h4>Environment Variables</h4>
+  <pre><code># Application Configuration
+REQUIRE_AUTH=true
+JWT_SECRET=your-256-bit-secret
+OPENAI_API_KEY=sk-your-openai-key
+
+# Database Configuration
+POSTGRES_HOST=kyc-postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=complianceai
+POSTGRES_USER=compliance_user
+POSTGRES_PASSWORD=secure-password
+
+# Redis Configuration
+REDIS_HOST=kyc-redis
+REDIS_PORT=6379
+REDIS_PASSWORD=redis-password
+
+# Kafka Configuration
+KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+KAFKA_SECURITY_PROTOCOL=PLAINTEXT
+
+# Monitoring Configuration
+PROMETHEUS_ENABLED=true
+GRAFANA_ADMIN_PASSWORD=admin
+METRICS_RETENTION_DAYS=30</code></pre>
+
+  <h4>Docker Compose Configuration</h4>
+  <pre><code>version: '3.8'
+services:
+  kyc-web-interface:
+    build:
+      context: ./python-web-interface
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8000"
+    environment:
+      - REQUIRE_AUTH=${REQUIRE_AUTH}
+      - POSTGRES_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    depends_on:
+      - kyc-postgres
+      - kyc-redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  intake-processing-agent:
+    build:
+      context: ./python-agents/intake-processing-agent
+      dockerfile: Dockerfile
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+    depends_on:
+      - kyc-postgres
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3</code></pre>
+
+  <h2>8. Alerting and Notification System</h2>
+  <h3>AlertManager Configuration</h3>
+  <h4>Alert Routing Rules</h4>
+  <pre><code>route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  routes:
+  - match:
+      severity: critical
+    receiver: 'critical-alerts'
+  - match:
+      service: kyc-web-interface
+    receiver: 'web-team'
+  - match:
+      alertname: DatabaseDown
+    receiver: 'database-team'
+
+receivers:
+- name: 'default'
+  email_configs:
+  - to: 'alerts@company.com'
+- name: 'critical-alerts'
+  pagerduty_configs:
+  - routing_key: 'your-pagerduty-key'
+- name: 'web-team'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+    channel: '#web-alerts'</code></pre>
+
+  <h4>Alert Rules</h4>
+  <pre><code>groups:
+- name: kyc_system_alerts
+  rules:
+  - alert: ServiceDown
+    expr: up{job=~".*"} == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Service {{ $labels.job }} is down"
+      description: "Service {{ $labels.job }} has been down for more than 5 minutes"
+
+  - alert: HighErrorRate
+    expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High error rate on {{ $labels.job }}"
+      description: "Error rate is {{ $value | printf "%.2f" }}%"
+
+  - alert: QueueBacklog
+    expr: kafka_consumergroup_lag{group=~".*"} > 1000
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High queue backlog in {{ $labels.group }}"
+      description: "Consumer group {{ $labels.group }} has {{ $value }} messages backlog"</code></pre>
+
+  <h2>9. Backup and Recovery</h2>
+  <h3>Automated Backup Strategy</h3>
+  <h4>Database Backups</h4>
+  <pre><code># PostgreSQL backup script
+#!/bin/bash
+BACKUP_DIR="/backups/postgresql"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+BACKUP_FILE="$BACKUP_DIR/complianceai_$TIMESTAMP.sql.gz"
+
+# Create backup
+pg_dump -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB | gzip > $BACKUP_FILE
+
+# Verify backup integrity
+if gzip -t $BACKUP_FILE; then
+    echo "Backup created successfully: $BACKUP_FILE"
+    # Clean old backups (keep last 30 days)
+    find $BACKUP_DIR -name "*.sql.gz" -mtime +30 -delete
+else
+    echo "Backup verification failed!"
+    exit 1
+fi</code></pre>
+
+  <h4>Application Backups</h4>
+  <pre><code># Configuration and logs backup
+#!/bin/bash
+BACKUP_ROOT="/backups/application"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+
+# Backup configurations
+tar -czf $BACKUP_ROOT/config_$TIMESTAMP.tar.gz \
+  /app/.env \
+  /app/configs/ \
+  /app/docker-compose.yml
+
+# Backup logs
+tar -czf $BACKUP_ROOT/logs_$TIMESTAMP.tar.gz \
+  /app/logs/
+
+# Backup user data
+tar -czf $BACKUP_ROOT/data_$TIMESTAMP.tar.gz \
+  /app/uploads/ \
+  /app/exports/</code></pre>
+
+  <h3>Recovery Procedures</h3>
+  <h4>Database Recovery</h4>
+  <pre><code># PostgreSQL recovery
+#!/bin/bash
+BACKUP_FILE="/backups/postgresql/complianceai_20240115_120000.sql.gz"
+
+# Stop application
+docker-compose stop kyc-web-interface
+
+# Restore database
+gunzip < $BACKUP_FILE | psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB
+
+# Verify restoration
+psql -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB -c "SELECT COUNT(*) FROM kyc_cases;"
+
+# Restart application
+docker-compose start kyc-web-interface</code></pre>
+
+  <h4>Application Recovery</h4>
+  <pre><code># Full system recovery
+#!/bin/bash
+
+# Stop all services
+docker-compose down
+
+# Restore database
+./scripts/recovery/restore_database.sh
+
+# Restore configurations
+./scripts/recovery/restore_config.sh
+
+# Restore application data
+./scripts/recovery/restore_application.sh
+
+# Start services
+docker-compose up -d
+
+# Run health checks
+./scripts/deploy.sh status
+
+# Run validation tests
+python tests/test_runner.py</code></pre>
+
+  <h2>10. Performance Optimization</h2>
+  <h3>Database Optimization</h3>
+  <h4>PostgreSQL Tuning</h4>
+  <pre><code># postgresql.conf optimizations
+shared_buffers = 256MB
+effective_cache_size = 1GB
+maintenance_work_mem = 64MB
+checkpoint_completion_target = 0.9
+wal_buffers = 16MB
+max_connections = 100
+
+# Query optimization
+CREATE INDEX CONCURRENTLY idx_kyc_cases_customer_id ON kyc_cases(customer_id);
+CREATE INDEX CONCURRENTLY idx_kyc_cases_status ON kyc_cases(status);
+CREATE INDEX CONCURRENTLY idx_regulatory_obligations_jurisdiction ON regulatory_obligations(jurisdiction);
+
+# Partitioning for large tables
+CREATE TABLE kyc_cases_y2024 PARTITION OF kyc_cases
+    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');</code></pre>
+
+  <h4>MongoDB Tuning</h4>
+  <pre><code># MongoDB configuration
+storage:
+  wiredTiger:
+    engineConfig:
+      cacheSizeGB: 0.5
+    maxCacheOverflowSizeGB: 0.5
+
+# Indexing strategy
+db.regulatory_documents.createIndex({"content": "text"})
+db.compliance_rules.createIndex({"jurisdiction": 1, "effective_date": 1})
+db.audit_trail.createIndex({"timestamp": -1, "event_type": 1})
+
+# Aggregation pipeline optimization
+db.kyc_cases.aggregate([
+  {$match: {"status": "completed"}},
+  {$group: {_id: "$decision", count: {$sum: 1}}},
+  {$sort: {count: -1}}
+], {allowDiskUse: true})</code></pre>
+
+  <h3>Application Optimization</h3>
+  <h4>Caching Strategy</h4>
+  <pre><code># Redis caching configuration
+CACHE_TTL_SECONDS = 300
+MAX_CACHE_SIZE_MB = 512
+
+# Cache keys
+USER_PROFILE_KEY = "user:profile:{user_id}"
+REGULATORY_RULES_KEY = "regulatory:rules:{jurisdiction}"
+KYC_STATUS_KEY = "kyc:status:{session_id}"
+
+# Cache warming
+@app.on_event("startup")
+async def warm_cache():
+    # Pre-load frequently accessed data
+    await redis_client.set(REGULATORY_RULES_KEY.format(jurisdiction="EU"), 
+                         json.dumps(await load_eu_rules()))
+    await redis_client.expire(REGULATORY_RULES_KEY.format(jurisdiction="EU"), CACHE_TTL_SECONDS)</code></pre>
+
+  <h4>Async Processing</h4>
+  <pre><code># Async task processing
+from celery import Celery
+
+app = Celery('compliance_ai', broker='redis://localhost:6379/0')
+
+@app.task
+def process_kyc_document(document_id, data):
+    # Heavy processing in background
+    result = process_document(data)
+    update_database(document_id, result)
+    return result
+
+# Usage
+result = process_kyc_document.delay(document_id, document_data)
+# Continue with other tasks while processing happens in background</code></pre>
+
+  <h2>11. API Endpoints</h2>
+  <h3>System Monitoring</h3>
+  <pre><code>GET /api/monitoring/health
+Response:
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "services": {
+    "kyc-web-interface": "up",
+    "intake-processing-agent": "up",
+    "decision-orchestration-agent": "up",
+    "regulatory-intelligence-agent": "up",
+    "kyc-postgres": "up",
+    "kyc-redis": "up",
+    "kafka": "up"
+  },
+  "metrics": {
+    "active_connections": 45,
+    "pending_tasks": 12,
+    "error_rate": 0.02
+  }
+}
+
+GET /api/monitoring/metrics/{service}
+Response: Prometheus metrics for specific service
+
+GET /api/monitoring/alerts
+Response:
+[
+  {
+    "alertname": "HighErrorRate",
+    "severity": "warning",
+    "description": "Error rate above 5%",
+    "service": "kyc-web-interface",
+    "timestamp": "2024-01-15T10:25:00Z",
+    "status": "firing"
+  }
+]</code></pre>
+
+  <h3>Migration Management</h3>
+  <pre><code>POST /api/migration/start
+{
+  "migration_type": "postgresql",
+  "source_connection": "postgresql://...",
+  "target_connection": "postgresql://...",
+  "tables": ["kyc_cases", "regulatory_obligations"],
+  "workers": 8,
+  "batch_size": 5000
+}
+
+GET /api/migration/status/{migration_id}
+Response:
+{
+  "migration_id": "mig_20240115_001",
+  "status": "running",
+  "progress": 0.75,
+  "records_processed": 75000,
+  "total_records": 100000,
+  "estimated_completion": "2024-01-15T11:30:00Z",
+  "errors": []
+}
+
+POST /api/migration/validate
+{
+  "migration_id": "mig_20240115_001",
+  "validation_checks": ["integrity", "consistency", "completeness"]
+}</code></pre>
+
+  <h3>Configuration Management</h3>
+  <pre><code>GET /api/config/current
+Response: Current system configuration
+
+POST /api/config/update
+{
+  "section": "database",
+  "key": "connection_pool_size",
+  "value": 20,
+  "restart_required": true
+}
+
+GET /api/config/validation
+Response:
+{
+  "valid": true,
+  "warnings": [
+    "Database connection pool size increased significantly"
+  ],
+  "restart_required": true
+}
+
+POST /api/config/backup
+{
+  "backup_name": "pre_deployment_backup_20240115",
+  "include_secrets": false
+}</code></pre>
+
+  <h2>12. Troubleshooting</h2>
+  <h3>Common Monitoring Issues</h3>
+  <dl>
+    <dt>Missing Metrics</dt>
+    <dd>Check Prometheus scrape configuration, verify service endpoints, ensure metrics are exposed</dd>
+
+    <dt>Dashboard Not Loading</dt>
+    <dd>Verify Grafana data source configuration, check network connectivity, review error logs</dd>
+
+    <dt>Alerts Not Firing</dt>
+    <dd>Check AlertManager configuration, verify alert rules syntax, ensure notification channels are working</dd>
+
+    <dt>High Latency</dt>
+    <dd>Monitor database query performance, check cache hit rates, optimize application code</dd>
+  </dl>
+
+  <h3>Common Migration Issues</h3>
+  <dl>
+    <dt>Connection Failures</dt>
+    <dd>Verify connection strings, check network connectivity, ensure proper authentication</dd>
+
+    <dt>Data Integrity Errors</dt>
+    <dd>Run validation before migration, check for foreign key constraints, verify data types</dd>
+
+    <dt>Performance Problems</dt>
+    <dd>Adjust batch size and worker count, monitor system resources, optimize database settings</dd>
+
+    <dt>Rollback Failures</dt>
+    <dd>Test rollback procedures, maintain multiple backup versions, have manual recovery plan</dd>
+  </dl>
+
+  <h3>Common Deployment Issues</h3>
+  <dl>
+    <dt>Service Startup Failures</dt>
+    <dd>Check Docker logs, verify environment variables, ensure dependencies are available</dd>
+
+    <dt>Port Conflicts</dt>
+    <dd>Run port check script, stop conflicting services, update Docker Compose configuration</dd>
+
+    <dt>Configuration Errors</dt>
+    <dd>Validate .env file, check required variables, ensure proper file permissions</dd>
+
+    <dt>Health Check Failures</dt>
+    <dd>Review health check endpoints, check service logs, verify inter-service communication</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Check system health
+curl http://localhost:8001/api/monitoring/health
+
+# View Prometheus metrics
+curl http://localhost:9090/metrics
+
+# Check Grafana status
+curl http://localhost:3000/api/health
+
+# Monitor migration progress
+curl http://localhost:8001/api/migration/status/mig_20240115_001
+
+# View service logs
+docker-compose logs -f kyc-web-interface
+
+# Check database connections
+psql -h localhost -U postgres -d complianceai -c "SELECT count(*) FROM pg_stat_activity;"
+
+# Validate configuration
+python scripts/validate_config.py --env-file .env
+
+# Test backup restoration
+./scripts/backup/restore_backup.sh --backup-file backup_20240115.sql.gz --dry-run</code></pre>
+
+  <h2>13. Best Practices</h2>
+  <ul>
+    <li><strong>Monitoring Coverage:</strong> Ensure comprehensive metrics collection and alerting</li>
+    <li><strong>Backup Strategy:</strong> Implement regular, tested backup and recovery procedures</li>
+    <li><strong>Migration Planning:</strong> Thorough testing and validation before production migrations</li>
+    <li><strong>Configuration Management:</strong> Version control configurations and automate deployments</li>
+    <li><strong>Performance Monitoring:</strong> Continuous monitoring of system performance and resource usage</li>
+    <li><strong>Incident Response:</strong> Documented procedures for handling system failures and data issues</li>
+    <li><strong>Security Hardening:</strong> Secure configurations, access controls, and audit logging</li>
+    <li><strong>Scalability Planning:</strong> Design systems to handle growth and increased loads</li>
+    <li><strong>Documentation:</strong> Maintain up-to-date documentation for all operational procedures</li>
+    <li><strong>Continuous Improvement:</strong> Regular review and optimization of monitoring and operational processes</li>
+  </ul>
+
+</body>
+</html>

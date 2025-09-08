@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Monitoring & Metrics Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <h1>Monitoring & Metrics Guide</h1>
+  <p>This comprehensive guide covers all monitoring and metrics endpoints across the ComplianceAI platform, providing complete documentation for system observability, performance monitoring, and alerting capabilities.</p>
+
+  <h2>1. Overview</h2>
+  <p>The ComplianceAI monitoring system provides comprehensive observability across all system components, enabling real-time performance monitoring, proactive alerting, and detailed analytics for operational excellence.</p>
+
+  <h2>2. Monitoring Architecture</h2>
+  <h3>Technology Stack</h3>
+  <ul>
+    <li><strong>Prometheus:</strong> Metrics collection and time-series storage</li>
+    <li><strong>Grafana:</strong> Visualization and dashboard creation</li>
+    <li><strong>AlertManager:</strong> Alert routing and notification management</li>
+    <li><strong>Custom Exporters:</strong> Application-specific metrics collection</li>
+    <li><strong>Node Exporter:</strong> System-level metrics (CPU, memory, disk, network)</li>
+    <li><strong>Blackbox Exporter:</strong> External service monitoring</li>
+  </ul>
+
+  <h3>Monitoring Layers</h3>
+  <pre><code>┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  Application    │───▶│   Prometheus     │───▶│    Grafana      │
+│   Metrics       │    │   (Collection)   │    │ (Visualization) │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+         │                        │                        │
+         ▼                        ▼                        ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   AlertManager  │    │   Alert Rules    │    │   Dashboards     │
+│ (Notification)  │    │   (Thresholds)   │    │   & Reports      │
+└─────────────────┘    └──────────────────┘    └─────────────────┘</code></pre>
+
+  <h2>3. Prometheus Metrics Endpoints</h2>
+  <h3>Core Metrics Endpoint</h3>
+  <pre><code>GET /metrics
+
+Content-Type: text/plain; version=0.0.4; charset=utf-8
+
+Response Format: Prometheus exposition format
+# HELP http_requests_total Total number of HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="GET",endpoint="/api/cases",status="200"} 15420
+http_requests_total{method="POST",endpoint="/api/kyc/process",status="201"} 3280
+
+# HELP http_request_duration_seconds HTTP request duration in seconds
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="0.1"} 14200
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="0.5"} 15200
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="1.0"} 15350
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="2.5"} 15380
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="5.0"} 15400
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="10.0"} 15420
+http_request_duration_seconds_bucket{method="GET",endpoint="/api/cases",le="+Inf"} 15420
+http_request_duration_seconds_count{method="GET",endpoint="/api/cases"} 15420
+http_request_duration_seconds_sum{method="GET",endpoint="/api/cases"} 23456.78</code></pre>
+
+  <h3>System Metrics</h3>
+  <h4>CPU Usage</h4>
+  <pre><code># HELP node_cpu_usage_percentage CPU usage percentage
+# TYPE node_cpu_usage_percentage gauge
+node_cpu_usage_percentage{cpu="0"} 45.2
+node_cpu_usage_percentage{cpu="1"} 38.7
+node_cpu_usage_percentage{cpu="2"} 52.1
+node_cpu_usage_percentage{cpu="3"} 41.8
+
+# HELP node_cpu_seconds_total Seconds the CPU spent in each mode
+# TYPE node_cpu_seconds_total counter
+node_cpu_seconds_total{cpu="0",mode="idle"} 123456.78
+node_cpu_seconds_total{cpu="0",mode="user"} 34567.12
+node_cpu_seconds_total{cpu="0",mode="system"} 12345.67</code></pre>
+
+  <h4>Memory Usage</h4>
+  <pre><code># HELP node_memory_used_bytes Memory used in bytes
+# TYPE node_memory_used_bytes gauge
+node_memory_used_bytes 2147483648
+
+# HELP node_memory_available_bytes Memory available in bytes
+# TYPE node_memory_available_bytes gauge
+node_memory_available_bytes 4294967296
+
+# HELP process_resident_memory_bytes Process resident memory in bytes
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes{job="kyc-web-interface"} 524288000</code></pre>
+
+  <h4>Disk Usage</h4>
+  <pre><code># HELP node_disk_used_bytes Disk space used in bytes
+# TYPE node_disk_used_bytes gauge
+node_disk_used_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/"} 107374182400
+
+# HELP node_disk_available_bytes Disk space available in bytes
+# TYPE node_disk_available_bytes gauge
+node_disk_available_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/"} 214748364800
+
+# HELP node_disk_io_time_seconds_total Total seconds spent in disk I/O
+# TYPE node_disk_io_time_seconds_total counter
+node_disk_io_time_seconds_total{device="sda"} 1234.56</code></pre>
+
+  <h4>Network I/O</h4>
+  <pre><code># HELP node_network_receive_bytes_total Network bytes received
+# TYPE node_network_receive_bytes_total counter
+node_network_receive_bytes_total{device="eth0"} 1073741824
+
+# HELP node_network_transmit_bytes_total Network bytes transmitted
+# TYPE node_network_transmit_bytes_total counter
+node_network_transmit_bytes_total{device="eth0"} 536870912
+
+# HELP node_network_receive_packets_total Network packets received
+# TYPE node_network_receive_packets_total counter
+node_network_receive_packets_total{device="eth0"} 1048576</code></pre>
+
+  <h3>Application-Specific Metrics</h3>
+  <h4>KYC Processing Metrics</h4>
+  <pre><code># HELP kyc_cases_processed_total Total KYC cases processed
+# TYPE kyc_cases_processed_total counter
+kyc_cases_processed_total{status="approved"} 12543
+kyc_cases_processed_total{status="rejected"} 2341
+kyc_cases_processed_total{status="manual_review"} 3116
+
+# HELP kyc_processing_duration_seconds KYC case processing duration
+# TYPE kyc_processing_duration_seconds histogram
+kyc_processing_duration_seconds_bucket{le="300"} 15420
+kyc_processing_duration_seconds_bucket{le="600"} 17280
+kyc_processing_duration_seconds_bucket{le="900"} 17850
+kyc_processing_duration_seconds_bucket{le="1800"} 17980
+kyc_processing_duration_seconds_bucket{le="+Inf"} 18000
+kyc_processing_duration_seconds_count 18000
+kyc_processing_duration_seconds_sum 8640000</code></pre>
+
+  <h4>Document Processing Metrics</h4>
+  <pre><code># HELP intake_documents_processed_total Documents processed by intake agent
+# TYPE intake_documents_processed_total counter
+intake_documents_processed_total{method="local_ocr",status="success"} 45670
+intake_documents_processed_total{method="ai_vision",status="success"} 12340
+intake_documents_processed_total{method="local_ocr",status="failed"} 890
+intake_documents_processed_total{method="ai_vision",status="failed"} 234
+
+# HELP intake_processing_duration_seconds Document processing duration
+# TYPE intake_processing_duration_seconds histogram
+intake_processing_duration_seconds_bucket{method="local_ocr",le="5"} 45000
+intake_processing_duration_seconds_bucket{method="ai_vision",le="30"} 12000
+intake_processing_duration_seconds_bucket{method="ai_vision",le="60"} 14500</code></pre>
+
+  <h4>Regulatory Intelligence Metrics</h4>
+  <pre><code># HELP regulatory_feeds_processed_total Regulatory feeds processed
+# TYPE regulatory_feeds_processed_total counter
+regulatory_feeds_processed_total{feed="eur_lex",status="success"} 5670
+regulatory_feeds_processed_total{feed="eba",status="success"} 3456
+regulatory_feeds_processed_total{feed="bafin",status="failed"} 123
+
+# HELP regulatory_obligations_extracted_total Regulatory obligations extracted
+# TYPE regulatory_obligations_extracted_total counter
+regulatory_obligations_extracted_total{regulation="CRR",jurisdiction="EU"} 2340
+regulatory_obligations_extracted_total{regulation="PSD2",jurisdiction="EU"} 1890
+regulatory_obligations_extracted_total{regulation="GDPR",jurisdiction="EU"} 1567</code></pre>
+
+  <h4>Decision Engine Metrics</h4>
+  <pre><code># HELP decision_decisions_made_total Decisions made by decision engine
+# TYPE decision_decisions_made_total counter
+decision_decisions_made_total{decision_type="approve",method="fast_track"} 12345
+decision_decisions_made_total{decision_type="reject",method="fast_track"} 2341
+decision_decisions_made_total{decision_type="manual_review",method="llm_complex"} 3116
+
+# HELP decision_processing_duration_seconds Decision processing duration
+# TYPE decision_processing_duration_seconds histogram
+decision_processing_duration_seconds_bucket{method="fast_track",le="2"} 14500
+decision_processing_duration_seconds_bucket{method="llm_complex",le="10"} 3200
+decision_processing_duration_seconds_bucket{method="llm_complex",le="30"} 3567</code></pre>
+
+  <h4>Report Generation Metrics</h4>
+  <pre><code># HELP report_generation_duration_seconds Report generation duration
+# TYPE report_generation_duration_seconds histogram
+report_generation_duration_seconds_bucket{report_type="FINREP",le="60"} 450
+report_generation_duration_seconds_bucket{report_type="COREP",le="120"} 380
+report_generation_duration_seconds_bucket{report_type="DORA",le="30"} 1200
+
+# HELP report_generation_success_total Report generation success/failure
+# TYPE report_generation_success_total counter
+report_generation_success_total{report_type="FINREP",status="success"} 450
+report_generation_success_total{report_type="COREP",status="success"} 380
+report_generation_success_total{report_type="DORA",status="success"} 1180
+report_generation_success_total{report_type="FINREP",status="failed"} 5</code></pre>
+
+  <h3>Database Metrics</h3>
+  <h4>PostgreSQL Metrics</h4>
+  <pre><code># HELP pg_stat_database_size_bytes Database size in bytes
+# TYPE pg_stat_database_size_bytes gauge
+pg_stat_database_size_bytes{datname="complianceai"} 10737418240
+
+# HELP pg_stat_database_numbackends Number of active connections
+# TYPE pg_stat_database_numbackends gauge
+pg_stat_database_numbackends{datname="complianceai"} 15
+
+# HELP pg_stat_database_xact_commit Committed transactions
+# TYPE pg_stat_database_xact_commit counter
+pg_stat_database_xact_commit{datname="complianceai"} 1234567
+
+# HELP pg_stat_database_xact_rollback Rolled back transactions
+# TYPE pg_stat_database_xact_rollback counter
+pg_stat_database_xact_rollback{datname="complianceai"} 1234</code></pre>
+
+  <h4>Redis Metrics</h4>
+  <pre><code># HELP redis_connected_clients Number of connected Redis clients
+# TYPE redis_connected_clients gauge
+redis_connected_clients 25
+
+# HELP redis_used_memory_bytes Redis used memory in bytes
+# TYPE redis_used_memory_bytes gauge
+redis_used_memory_bytes 134217728
+
+# HELP redis_total_commands_processed Total Redis commands processed
+# TYPE redis_total_commands_processed counter
+redis_total_commands_processed 12345678
+
+# HELP redis_keyspace_hits_total Redis keyspace hits
+# TYPE redis_keyspace_hits_total counter
+redis_keyspace_hits_total 9876543
+
+# HELP redis_keyspace_misses_total Redis keyspace misses
+# TYPE redis_keyspace_misses_total counter
+redis_keyspace_misses_total 123456</code></pre>
+
+  <h4>MongoDB Metrics</h4>
+  <pre><code># HELP mongodb_connections_current Current MongoDB connections
+# TYPE mongodb_connections_current gauge
+mongodb_connections_current 12
+
+# HELP mongodb_memory_resident_mb MongoDB resident memory in MB
+# TYPE mongodb_memory_resident_mb gauge
+mongodb_memory_resident_mb 2048
+
+# HELP mongodb_opcounters_total MongoDB operation counters
+# TYPE mongodb_opcounters_total counter
+mongodb_opcounters_total{type="insert"} 345678
+mongodb_opcounters_total{type="query"} 1234567
+mongodb_opcounters_total{type="update"} 456789
+mongodb_opcounters_total{type="delete"} 12345</code></pre>
+
+  <h3>Kafka Metrics</h3>
+  <h4>Broker Metrics</h4>
+  <pre><code># HELP kafka_brokers_total Number of Kafka brokers
+# TYPE kafka_brokers_total gauge
+kafka_brokers_total 3
+
+# HELP kafka_topics_total Number of Kafka topics
+# TYPE kafka_topics_total gauge
+kafka_topics_total 12
+
+# HELP kafka_partitions_total Number of Kafka partitions
+# TYPE kafka_partitions_total gauge
+kafka_partitions_total 36
+
+# HELP kafka_messages_total Total Kafka messages
+# TYPE kafka_messages_total counter
+kafka_messages_total{topic="regulatory.updates"} 4567890
+kafka_messages_total{topic="intelligence_compliance_input"} 3456789</code></pre>
+
+  <h4>Consumer Metrics</h4>
+  <pre><code># HELP kafka_consumer_lag Consumer lag in messages
+# TYPE kafka_consumer_lag gauge
+kafka_consumer_lag{group="intelligence-compliance-group",topic="intelligence_compliance_input"} 12
+kafka_consumer_lag{group="regulatory-processor-group",topic="regulatory.updates"} 5
+
+# HELP kafka_consumer_messages_consumed_total Messages consumed by consumer group
+# TYPE kafka_consumer_messages_consumed_total counter
+kafka_consumer_messages_consumed_total{group="intelligence-compliance-group"} 3456789
+kafka_consumer_messages_consumed_total{group="regulatory-processor-group"} 4567890</code></pre>
+
+  <h4>Producer Metrics</h4>
+  <pre><code># HELP kafka_producer_messages_sent_total Messages sent by producer
+# TYPE kafka_producer_messages_sent_total counter
+kafka_producer_messages_sent_total{client="intake-processing-agent"} 3456789
+kafka_producer_messages_sent_total{client="regulatory-intelligence-agent"} 4567890
+
+# HELP kafka_producer_request_latency_ms Producer request latency
+# TYPE kafka_producer_request_latency_ms histogram
+kafka_producer_request_latency_ms_bucket{le="10"} 4500000
+kafka_producer_request_latency_ms_bucket{le="50"} 4800000
+kafka_producer_request_latency_ms_bucket{le="100"} 4900000</code></pre>
+
+  <h2>4. Grafana Dashboard Endpoints</h2>
+  <h3>Dashboard API</h3>
+  <pre><code>GET /api/grafana/dashboards
+
+Response:
+{
+  "dashboards": [
+    {
+      "id": 1,
+      "title": "KYC System Overview",
+      "tags": ["kyc", "overview", "system"],
+      "url": "/d/1/kyc-system-overview",
+      "created": "2024-01-01T00:00:00Z",
+      "updated": "2024-01-15T10:30:00Z"
+    },
+    {
+      "id": 2,
+      "title": "Performance Metrics",
+      "tags": ["performance", "metrics", "latency"],
+      "url": "/d/2/performance-metrics",
+      "created": "2024-01-01T00:00:00Z",
+      "updated": "2024-01-15T10:30:00Z"
+    }
+  ]
+}</code></pre>
+
+  <h3>Dashboard Data Queries</h3>
+  <pre><code>POST /api/grafana/query
+Content-Type: application/json
+
+{
+  "queries": [
+    {
+      "expr": "rate(http_requests_total[5m])",
+      "legendFormat": "Request Rate",
+      "refId": "A"
+    },
+    {
+      "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+      "legendFormat": "95th Percentile Latency",
+      "refId": "B"
+    }
+  ],
+  "from": "now-1h",
+  "to": "now",
+  "step": "15s"
+}
+
+Response:
+{
+  "results": {
+    "A": {
+      "frames": [
+        {
+          "schema": {
+            "fields": [
+              {"name": "time", "type": "time"},
+              {"name": "value", "type": "number"}
+            ]
+          },
+          "data": {
+            "values": [
+              [1642154400000, 45.2],
+              [1642154460000, 52.1],
+              [1642154520000, 48.7]
+            ]
+          }
+        }
+      ]
+    }
+  }
+}</code></pre>
+
+  <h3>Alert Status</h3>
+  <pre><code>GET /api/grafana/alerts
+
+Response:
+{
+  "alerts": [
+    {
+      "id": 1,
+      "name": "High Error Rate",
+      "state": "alerting",
+      "severity": "warning",
+      "description": "Error rate above 5%",
+      "value": "7.2%",
+      "labels": {
+        "service": "kyc-web-interface",
+        "endpoint": "/api/kyc/process"
+      },
+      "annotations": {
+        "summary": "High error rate detected",
+        "runbook_url": "https://docs.compliance-ai.com/runbooks/high-error-rate"
+      },
+      "startsAt": "2024-01-15T10:15:00Z",
+      "endsAt": null
+    },
+    {
+      "id": 2,
+      "name": "Service Down",
+      "state": "ok",
+      "severity": "critical",
+      "description": "Service is responding normally",
+      "value": "1",
+      "labels": {
+        "service": "intake-processing-agent"
+      }
+    }
+  ]
+}</code></pre>
+
+  <h2>5. AlertManager Endpoints</h2>
+  <h3>Alert Status</h3>
+  <pre><code>GET /api/alertmanager/alerts
+
+Response:
+{
+  "alerts": [
+    {
+      "labels": {
+        "alertname": "HighErrorRate",
+        "service": "kyc-web-interface",
+        "severity": "warning"
+      },
+      "annotations": {
+        "summary": "Error rate above 5%",
+        "description": "HTTP error rate is 7.2% for /api/kyc/process"
+      },
+      "startsAt": "2024-01-15T10:15:00.000Z",
+      "endsAt": null,
+      "status": {
+        "state": "active",
+        "inhibitedBy": [],
+        "silencedBy": []
+      },
+      "receivers": [
+        {
+          "name": "web-team"
+        }
+      ]
+    }
+  ]
+}</code></pre>
+
+  <h3>Silence Management</h3>
+  <pre><code>POST /api/alertmanager/silences
+Content-Type: application/json
+
+{
+  "matchers": [
+    {
+      "name": "alertname",
+      "value": "HighErrorRate",
+      "isRegex": false
+    },
+    {
+      "name": "service",
+      "value": "kyc-web-interface",
+      "isRegex": false
+    }
+  ],
+  "startsAt": "2024-01-15T10:30:00Z",
+  "endsAt": "2024-01-15T11:30:00Z",
+  "createdBy": "admin",
+  "comment": "Silencing during maintenance"
+}
+
+Response:
+{
+  "silenceID": "123e4567-e89b-12d3-a456-426614174000"
+}</code></pre>
+
+  <h3>Alert Groups</h3>
+  <pre><code>GET /api/alertmanager/groups
+
+Response:
+{
+  "groups": [
+    {
+      "labels": {
+        "alertname": "ServiceDown"
+      },
+      "alerts": [
+        {
+          "labels": {
+            "service": "kyc-web-interface",
+            "alertname": "ServiceDown",
+            "severity": "critical"
+          },
+          "startsAt": "2024-01-15T10:20:00Z"
+        }
+      ],
+      "receiver": {
+        "name": "critical-alerts"
+      }
+    }
+  ]
+}</code></pre>
+
+  <h2>6. Custom Monitoring Endpoints</h2>
+  <h3>System Health Check</h3>
+  <pre><code>GET /api/monitoring/health
+
+Response:
+{
+  "status": "healthy",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "checks": {
+    "database": {
+      "status": "healthy",
+      "response_time_ms": 12,
+      "connections_active": 15,
+      "connections_idle": 5
+    },
+    "redis": {
+      "status": "healthy",
+      "response_time_ms": 3,
+      "memory_usage_percent": 45.2,
+      "connected_clients": 25
+    },
+    "kafka": {
+      "status": "healthy",
+      "brokers_up": 3,
+      "topics_active": 12,
+      "consumer_lag_max": 15
+    },
+    "agents": {
+      "intake_processing": "healthy",
+      "intelligence_compliance": "healthy",
+      "decision_orchestration": "healthy",
+      "regulatory_intelligence": "healthy"
+    }
+  },
+  "system_metrics": {
+    "cpu_usage_percent": 45.2,
+    "memory_usage_percent": 67.8,
+    "disk_usage_percent": 34.1,
+    "network_rx_mbps": 12.5,
+    "network_tx_mbps": 8.3
+  }
+}</code></pre>
+
+  <h3>Performance Metrics</h3>
+  <pre><code>GET /api/monitoring/performance?period=1h&metrics=cpu,memory,network
+
+Query Parameters:
+- period: string (5m/15m/1h/6h/24h/7d/30d)
+- metrics: string (cpu,memory,disk,network,all)
+
+Response:
+{
+  "period": "1h",
+  "metrics": {
+    "cpu": {
+      "current_percent": 45.2,
+      "average_percent": 38.7,
+      "peak_percent": 78.3,
+      "timeseries": [
+        {"timestamp": "2024-01-15T09:30:00Z", "value": 35.2},
+        {"timestamp": "2024-01-15T10:00:00Z", "value": 42.1},
+        {"timestamp": "2024-01-15T10:30:00Z", "value": 45.2}
+      ]
+    },
+    "memory": {
+      "current_percent": 67.8,
+      "average_percent": 62.3,
+      "peak_percent": 89.1,
+      "used_bytes": 2748779069,
+      "available_bytes": 13743895347
+    },
+    "network": {
+      "rx_mbps": 12.5,
+      "tx_mbps": 8.3,
+      "rx_total_bytes": 1073741824,
+      "tx_total_bytes": 536870912,
+      "active_connections": 156
+    }
+  }
+}</code></pre>
+
+  <h3>Business Metrics</h3>
+  <pre><code>GET /api/monitoring/business?period=24h&kpi=all
+
+Query Parameters:
+- period: string (1h/6h/24h/7d/30d)
+- kpi: string (throughput,quality,compliance,all)
+
+Response:
+{
+  "period": "24h",
+  "kpis": {
+    "throughput": {
+      "cases_processed": 2341,
+      "cases_per_hour": 97.5,
+      "trend": "+12.3%",
+      "target": 2000,
+      "achievement_percent": 117.1
+    },
+    "quality": {
+      "accuracy_rate": 94.8,
+      "false_positive_rate": 3.2,
+      "false_negative_rate": 1.9,
+      "manual_review_rate": 8.1,
+      "trend": "+2.1%"
+    },
+    "compliance": {
+      "regulatory_reports_generated": 12,
+      "reports_on_time": 12,
+      "reports_late": 0,
+      "on_time_percentage": 100.0,
+      "audit_findings": 0
+    }
+  },
+  "efficiency_metrics": {
+    "cost_per_case": 0.12,
+    "processing_time_avg_minutes": 18,
+    "agent_utilization_percent": 87.3,
+    "system_availability_percent": 99.9
+  }
+}</code></pre>
+
+  <h3>Service Dependencies</h3>
+  <pre><code>GET /api/monitoring/dependencies
+
+Response:
+{
+  "services": [
+    {
+      "name": "kyc-web-interface",
+      "status": "healthy",
+      "dependencies": [
+        {
+          "name": "kyc-postgres",
+          "status": "healthy",
+          "response_time_ms": 12,
+          "connection_count": 15
+        },
+        {
+          "name": "kyc-redis",
+          "status": "healthy",
+          "response_time_ms": 3,
+          "memory_usage_percent": 45.2
+        }
+      ]
+    },
+    {
+      "name": "intake-processing-agent",
+      "status": "healthy",
+      "dependencies": [
+        {
+          "name": "kyc-postgres",
+          "status": "healthy",
+          "response_time_ms": 8,
+          "connection_count": 3
+        },
+        {
+          "name": "kafka",
+          "status": "healthy",
+          "response_time_ms": 5,
+          "topics_active": 6
+        }
+      ]
+    }
+  ],
+  "dependency_map": {
+    "kyc-web-interface": ["kyc-postgres", "kyc-redis"],
+    "intake-processing-agent": ["kyc-postgres", "kafka"],
+    "decision-orchestration-agent": ["kyc-postgres", "kyc-redis", "kafka"],
+    "regulatory-intelligence-agent": ["kyc-postgres", "mongodb", "kafka"]
+  }
+}</code></pre>
+
+  <h2>7. Alert Configuration</h2>
+  <h3>Alert Rules</h3>
+  <pre><code>groups:
+- name: compliance_ai_alerts
+  rules:
+  # Service Health Alerts
+  - alert: ServiceDown
+    expr: up{job=~".*"} == 0
+    for: 5m
+    labels:
+      severity: critical
+      category: availability
+    annotations:
+      summary: "Service {{ $labels.job }} is down"
+      description: "Service {{ $labels.job }} has been down for more than 5 minutes"
+      runbook_url: "https://docs.compliance-ai.com/runbooks/service-down"
+
+  # Performance Alerts
+  - alert: HighErrorRate
+    expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+    for: 5m
+    labels:
+      severity: warning
+      category: performance
+    annotations:
+      summary: "High error rate on {{ $labels.job }}"
+      description: "HTTP error rate is {{ $value | printf \"%.2f\" }}%"
+
+  - alert: HighLatency
+    expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 5.0
+    for: 10m
+    labels:
+      severity: warning
+      category: performance
+    annotations:
+      summary: "High latency on {{ $labels.job }}"
+      description: "95th percentile latency is {{ $value | printf \"%.2f\" }}s"
+
+  # Resource Alerts
+  - alert: HighMemoryUsage
+    expr: (1 - node_memory_available_bytes / node_memory_total_bytes) * 100 > 90
+    for: 5m
+    labels:
+      severity: warning
+      category: resources
+    annotations:
+      summary: "High memory usage"
+      description: "Memory usage is {{ $value | printf \"%.1f\" }}%"
+
+  - alert: HighCPUUsage
+    expr: 100 - avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100 > 90
+    for: 10m
+    labels:
+      severity: warning
+      category: resources
+    annotations:
+      summary: "High CPU usage"
+      description: "CPU usage is {{ $value | printf \"%.1f\" }}%"
+
+  # Business Logic Alerts
+  - alert: QueueBacklog
+    expr: kafka_consumergroup_lag > 1000
+    for: 10m
+    labels:
+      severity: warning
+      category: business
+    annotations:
+      summary: "High queue backlog in {{ $labels.group }}"
+      description: "Consumer group {{ $labels.group }} has {{ $value }} messages backlog"
+
+  - alert: LowThroughput
+    expr: rate(kyc_cases_processed_total[15m]) < 10
+    for: 15m
+    labels:
+      severity: warning
+      category: business
+    annotations:
+      summary: "Low KYC processing throughput"
+      description: "Only {{ $value | printf \"%.0f\" }} cases processed in last 15 minutes"
+
+  # Database Alerts
+  - alert: DatabaseConnectionHigh
+    expr: pg_stat_database_numbackends > 80
+    for: 5m
+    labels:
+      severity: warning
+      category: database
+    annotations:
+      summary: "High database connections"
+      description: "Database has {{ $value }} active connections"
+
+  - alert: DatabaseDown
+    expr: pg_up == 0
+    for: 1m
+    labels:
+      severity: critical
+      category: database
+    annotations:
+      summary: "PostgreSQL database is down"
+      description: "PostgreSQL database is not responding"</code></pre>
+
+  <h3>Alert Routing</h3>
+  <pre><code>route:
+  group_by: ['alertname', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  routes:
+  # Critical alerts - immediate notification
+  - match:
+      severity: critical
+    receiver: 'critical-alerts'
+    group_wait: 0s
+    repeat_interval: 5m
+
+  # Service-specific routing
+  - match:
+      service: kyc-web-interface
+    receiver: 'web-team'
+  - match:
+      service: ~'intake.*|decision.*'
+    receiver: 'processing-team'
+  - match:
+      service: regulatory-intelligence-agent
+    receiver: 'compliance-team'
+
+  # Database alerts
+  - match:
+      category: database
+    receiver: 'database-team'
+
+receivers:
+- name: 'default'
+  email_configs:
+  - to: 'alerts@compliance-ai.com'
+    subject: '[ComplianceAI] {{ .GroupLabels.alertname }}'
+    body: |
+      {{ range .Alerts }}
+      Alert: {{ .Annotations.summary }}
+      Description: {{ .Annotations.description }}
+      Value: {{ .Value }}
+      {{ end }}
+
+- name: 'critical-alerts'
+  pagerduty_configs:
+  - routing_key: 'your-pagerduty-integration-key'
+    severity: 'critical'
+
+- name: 'web-team'
+  slack_configs:
+  - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+    channel: '#web-alerts'
+    title: '{{ .GroupLabels.alertname }}'
+    text: '{{ .CommonAnnotations.summary }}'
+
+- name: 'processing-team'
+  email_configs:
+  - to: 'processing@compliance-ai.com'
+
+- name: 'compliance-team'
+  email_configs:
+  - to: 'compliance@compliance-ai.com'
+
+- name: 'database-team'
+  email_configs:
+  - to: 'database@compliance-ai.com'</code></pre>
+
+  <h2>8. Performance Testing Endpoints</h2>
+  <h3>Load Test Execution</h3>
+  <pre><code>POST /api/testing/load-test
+Content-Type: application/json
+
+{
+  "test_type": "kyc_processing",
+  "duration_seconds": 300,
+  "concurrent_users": 50,
+  "ramp_up_seconds": 60,
+  "target_endpoint": "/api/kyc/process",
+  "payload_template": {
+    "customer_id": "test_customer_{{user_id}}",
+    "documents": ["test_passport_{{user_id}}.jpg"],
+    "jurisdiction": "EU"
+  }
+}
+
+Response:
+{
+  "test_id": "load_test_20240115_001",
+  "status": "running",
+  "configuration": {
+    "test_type": "kyc_processing",
+    "duration_seconds": 300,
+    "concurrent_users": 50,
+    "target_endpoint": "/api/kyc/process"
+  },
+  "start_time": "2024-01-15T10:30:00Z",
+  "estimated_completion": "2024-01-15T10:35:00Z"
+}</code></pre>
+
+  <h3>Test Results</h3>
+  <pre><code>GET /api/testing/results/load_test_20240115_001
+
+Response:
+{
+  "test_id": "load_test_20240115_001",
+  "status": "completed",
+  "duration_seconds": 300,
+  "summary": {
+    "total_requests": 15000,
+    "successful_requests": 14850,
+    "failed_requests": 150,
+    "success_rate": 99.0,
+    "average_response_time_ms": 245,
+    "p95_response_time_ms": 450,
+    "p99_response_time_ms": 1200,
+    "requests_per_second": 50.0,
+    "peak_concurrent_users": 50
+  },
+  "response_times": {
+    "min_ms": 45,
+    "max_ms": 2500,
+    "mean_ms": 245,
+    "median_ms": 180,
+    "p95_ms": 450,
+    "p99_ms": 1200
+  },
+  "error_distribution": {
+    "429_too_many_requests": 120,
+    "500_internal_server_error": 25,
+    "504_gateway_timeout": 5
+  },
+  "throughput_trend": [
+    {"timestamp": "2024-01-15T10:30:00Z", "rps": 45.2},
+    {"timestamp": "2024-01-15T10:31:00Z", "rps": 48.7},
+    {"timestamp": "2024-01-15T10:32:00Z", "rps": 52.1}
+  ]
+}</code></pre>
+
+  <h3>Performance Benchmarks</h3>
+  <pre><code>GET /api/testing/benchmarks?period=7d&metric=throughput
+
+Response:
+{
+  "benchmarks": {
+    "kyc_processing": {
+      "target_rps": 100,
+      "current_rps": 87.5,
+      "achievement_percent": 87.5,
+      "trend": "+5.2%",
+      "historical_data": [
+        {"date": "2024-01-08", "rps": 78.3},
+        {"date": "2024-01-09", "rps": 81.2},
+        {"date": "2024-01-10", "rps": 84.7},
+        {"date": "2024-01-11", "rps": 86.1},
+        {"date": "2024-01-12", "rps": 85.9},
+        {"date": "2024-01-13", "rps": 87.2},
+        {"date": "2024-01-14", "rps": 86.8},
+        {"date": "2024-01-15", "rps": 87.5}
+      ]
+    },
+    "document_processing": {
+      "target_rps": 50,
+      "current_rps": 43.2,
+      "achievement_percent": 86.4,
+      "trend": "+3.1%"
+    },
+    "decision_engine": {
+      "target_latency_ms": 2000,
+      "current_p95_latency_ms": 1850,
+      "achievement_percent": 107.5,
+      "trend": "-2.3%"
+    }
+  }
+}</code></pre>
+
+  <h2>9. Logging Endpoints</h2>
+  <h3>Application Logs</h3>
+  <pre><code>GET /api/logs/application?level=ERROR&since=1h&limit=100
+
+Query Parameters:
+- level: string (DEBUG/INFO/WARNING/ERROR/CRITICAL)
+- since: string (30m/1h/6h/24h or ISO datetime)
+- limit: integer (default: 50, max: 1000)
+- service: string (filter by service name)
+
+Response:
+{
+  "logs": [
+    {
+      "timestamp": "2024-01-15T10:25:00Z",
+      "level": "ERROR",
+      "service": "kyc-web-interface",
+      "message": "Database connection timeout",
+      "trace_id": "abc123def456",
+      "request_id": "req_789ghi012",
+      "user_id": "user_456",
+      "endpoint": "/api/kyc/process",
+      "error_code": "DB_CONNECTION_TIMEOUT",
+      "stack_trace": "...",
+      "context": {
+        "customer_id": "customer_123",
+        "session_id": "session_789",
+        "processing_time_ms": 45000
+      }
+    }
+  ],
+  "pagination": {
+    "has_more": true,
+    "next_cursor": "2024-01-15T10:25:00Z_abc123def456",
+    "total_available": 156
+  }
+}</code></pre>
+
+  <h3>System Logs</h3>
+  <pre><code>GET /api/logs/system?component=database&since=24h
+
+Query Parameters:
+- component: string (database/redis/kafka/docker/system)
+- since: string (1h/6h/24h/7d)
+- grep: string (search pattern)
+
+Response:
+{
+  "logs": [
+    {
+      "timestamp": "2024-01-15T10:20:00Z",
+      "component": "database",
+      "level": "WARNING",
+      "message": "Connection pool exhausted, waiting for available connection",
+      "host": "kyc-postgres",
+      "process_id": 1234,
+      "thread_id": 5678
+    },
+    {
+      "timestamp": "2024-01-15T10:15:00Z",
+      "component": "redis",
+      "level": "INFO",
+      "message": "Cache hit ratio: 94.7%",
+      "host": "kyc-redis",
+      "metrics": {
+        "hits": 94567,
+        "misses": 5234,
+        "hit_ratio": 0.947
+      }
+    }
+  ]
+}</code></pre>
+
+  <h3>Audit Logs</h3>
+  <pre><code>GET /api/logs/audit?user_id=user_001&action=kyc_process&since=7d
+
+Query Parameters:
+- user_id: string (filter by user)
+- action: string (filter by action type)
+- resource: string (filter by resource)
+- since: string (time filter)
+- ip_address: string (filter by IP)
+
+Response:
+{
+  "audit_logs": [
+    {
+      "timestamp": "2024-01-15T10:30:00Z",
+      "user_id": "user_001",
+      "action": "kyc_process",
+      "resource": "/api/kyc/process",
+      "resource_id": "case_123",
+      "ip_address": "192.168.1.100",
+      "user_agent": "ComplianceAI-Web/1.0.0",
+      "session_id": "session_789",
+      "request_id": "req_abc123",
+      "status": "success",
+      "response_time_ms": 1250,
+      "data_accessed": [
+        "customer.personal_info",
+        "customer.documents",
+        "kyc.decision_history"
+      ],
+      "compliance_flags": [],
+      "changes": {
+        "before": {"status": "pending"},
+        "after": {"status": "processing"}
+      }
+    }
+  ]
+}</code></pre>
+
+  <h2>10. Dashboard Integration</h2>
+  <h3>Real-time Metrics</h3>
+  <pre><code>WebSocket: ws://localhost:8001/ws/metrics
+
+Message Format:
+{
+  "type": "metrics_update",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "metrics": {
+    "kyc_throughput_rps": 45.2,
+    "average_latency_ms": 245,
+    "error_rate_percent": 1.2,
+    "active_connections": 156,
+    "queue_depth": 23,
+    "memory_usage_percent": 67.8,
+    "cpu_usage_percent": 45.2
+  }
+}
+
+Subscription:
+{
+  "type": "subscribe",
+  "metrics": ["kyc_throughput_rps", "average_latency_ms", "error_rate_percent"],
+  "update_interval_seconds": 5
+}</code></pre>
+
+  <h3>Custom Dashboard Widgets</h3>
+  <pre><code>POST /api/dashboard/widgets
+Content-Type: application/json
+
+{
+  "widget_type": "time_series",
+  "title": "KYC Processing Latency",
+  "query": {
+    "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{method=\"POST\",endpoint=\"/api/kyc/process\"}[5m]))",
+    "legendFormat": "95th Percentile"
+  },
+  "time_range": "1h",
+  "refresh_interval": "30s",
+  "thresholds": [
+    {"value": 2.0, "color": "green"},
+    {"value": 5.0, "color": "yellow"},
+    {"value": 10.0, "color": "red"}
+  ]
+}
+
+Response:
+{
+  "widget_id": "widget_20240115_001",
+  "dashboard_url": "/dashboard/custom?widget=widget_20240115_001",
+  "embed_code": "<iframe src=\"/api/dashboard/embed/widget_20240115_001\" width=\"600\" height=\"400\"></iframe>"
+}</code></pre>
+
+  <h2>11. API Testing & Validation</h2>
+  <h3>Endpoint Health Validation</h3>
+  <pre><code>POST /api/testing/validate-endpoints
+Content-Type: application/json
+
+{
+  "endpoints": [
+    "/health",
+    "/api/v1/status",
+    "/api/dashboard/metrics",
+    "/api/agents/health"
+  ],
+  "expected_status_codes": [200],
+  "timeout_seconds": 10,
+  "concurrent_requests": 5
+}
+
+Response:
+{
+  "validation_id": "validation_20240115_001",
+  "status": "completed",
+  "results": [
+    {
+      "endpoint": "/health",
+      "status_code": 200,
+      "response_time_ms": 12,
+      "success": true,
+      "response_size_bytes": 89
+    },
+    {
+      "endpoint": "/api/v1/status",
+      "status_code": 200,
+      "response_time_ms": 45,
+      "success": true,
+      "response_size_bytes": 1234
+    }
+  ],
+  "summary": {
+    "total_endpoints": 4,
+    "successful_endpoints": 4,
+    "failed_endpoints": 0,
+    "average_response_time_ms": 28.5,
+    "success_rate": 100.0
+  }
+}</code></pre>
+
+  <h3>Load Testing</h3>
+  <pre><code>POST /api/testing/stress-test
+Content-Type: application/json
+
+{
+  "target_endpoint": "/api/kyc/process",
+  "method": "POST",
+  "payload": {
+    "customer_id": "stress_test_customer",
+    "documents": ["test_document.jpg"],
+    "jurisdiction": "EU"
+  },
+  "load_profile": {
+    "type": "ramp_up",
+    "start_rps": 10,
+    "end_rps": 100,
+    "duration_seconds": 600,
+    "ramp_up_seconds": 300
+  },
+  "success_criteria": {
+    "max_response_time_ms": 5000,
+    "min_success_rate": 95.0,
+    "max_error_rate": 5.0
+  }
+}
+
+Response:
+{
+  "test_id": "stress_test_20240115_001",
+  "status": "running",
+  "configuration": {...},
+  "start_time": "2024-01-15T10:30:00Z",
+  "estimated_completion": "2024-01-15T10:40:00Z"
+}</code></pre>
+
+  <h2>12. Configuration Endpoints</h2>
+  <h3>Monitoring Configuration</h3>
+  <pre><code>GET /api/config/monitoring
+
+Response:
+{
+  "prometheus": {
+    "scrape_interval": "15s",
+    "evaluation_interval": "15s",
+    "external_labels": {
+      "cluster": "kyc-engine",
+      "environment": "production"
+    }
+  },
+  "grafana": {
+    "admin_user": "admin",
+    "default_theme": "dark",
+    "timezone": "UTC"
+  },
+  "alertmanager": {
+    "smtp_host": "smtp.company.com",
+    "smtp_port": 587,
+    "notification_email": "alerts@company.com"
+  },
+  "retention": {
+    "metrics_days": 30,
+    "logs_days": 90,
+    "traces_days": 7
+  }
+}</code></pre>
+
+  <h3>Update Configuration</h3>
+  <pre><code>POST /api/config/monitoring
+Content-Type: application/json
+
+{
+  "section": "prometheus",
+  "key": "scrape_interval",
+  "value": "30s",
+  "restart_required": true,
+  "validation_rules": {
+    "type": "duration",
+    "min": "5s",
+    "max": "5m"
+  }
+}
+
+Response:
+{
+  "success": true,
+  "message": "Configuration updated successfully",
+  "restart_required": true,
+  "changes": [
+    {
+      "section": "prometheus",
+      "key": "scrape_interval",
+      "old_value": "15s",
+      "new_value": "30s"
+    }
+  ],
+  "validation_status": "passed"
+}</code></pre>
+
+  <h2>13. Troubleshooting Endpoints</h2>
+  <h3>System Diagnostics</h3>
+  <pre><code>GET /api/diagnostics/full-system
+
+Response:
+{
+  "diagnostics": {
+    "timestamp": "2024-01-15T10:30:00Z",
+    "system_info": {
+      "os": "Linux",
+      "kernel": "5.4.0-74-generic",
+      "architecture": "x86_64",
+      "uptime_seconds": 345600
+    },
+    "services": [
+      {
+        "name": "kyc-web-interface",
+        "status": "healthy",
+        "pid": 1234,
+        "memory_mb": 256,
+        "cpu_percent": 12.5,
+        "threads": 8,
+        "connections": 45
+      }
+    ],
+    "resources": {
+      "cpu": {
+        "cores": 8,
+        "usage_percent": 45.2,
+        "load_average": [1.2, 1.5, 1.3]
+      },
+      "memory": {
+        "total_gb": 16,
+        "used_gb": 10.8,
+        "available_gb": 5.2,
+        "usage_percent": 67.5
+      },
+      "disk": {
+        "total_gb": 100,
+        "used_gb": 34.1,
+        "available_gb": 65.9,
+        "usage_percent": 34.1
+      }
+    },
+    "network": {
+      "interfaces": [
+        {
+          "name": "eth0",
+          "ip_address": "192.168.1.100",
+          "rx_bytes": 1073741824,
+          "tx_bytes": 536870912,
+          "rx_errors": 0,
+          "tx_errors": 0
+        }
+      ]
+    },
+    "issues": [
+      {
+        "severity": "warning",
+        "component": "kyc-postgres",
+        "issue": "Connection pool utilization high",
+        "description": "95% of connection pool is in use",
+        "recommendation": "Consider increasing connection pool size"
+      }
+    ],
+    "recommendations": [
+      "Increase PostgreSQL connection pool size from 20 to 30",
+      "Add more CPU cores or optimize CPU-intensive operations",
+      "Consider disk I/O optimization for better performance"
+    ]
+  }
+}</code></pre>
+
+  <h3>Performance Analysis</h3>
+  <pre><code>GET /api/diagnostics/performance-analysis?period=1h&component=all
+
+Response:
+{
+  "analysis": {
+    "period": "1h",
+    "bottlenecks": [
+      {
+        "component": "kyc-web-interface",
+        "bottleneck_type": "cpu",
+        "severity": "medium",
+        "description": "CPU usage consistently above 70%",
+        "impact": "Response times 20% slower than normal",
+        "recommendation": "Optimize database queries or add more CPU cores"
+      },
+      {
+        "component": "kyc-postgres",
+        "bottleneck_type": "memory",
+        "severity": "low",
+        "description": "Memory usage at 85% capacity",
+        "impact": "Minor performance degradation",
+        "recommendation": "Monitor memory usage trends"
+      }
+    ],
+    "optimization_opportunities": [
+      {
+        "type": "caching",
+        "description": "Add Redis caching for frequently accessed data",
+        "estimated_improvement": "25% faster response times",
+        "complexity": "medium"
+      },
+      {
+        "type": "database_indexing",
+        "description": "Add indexes on frequently queried columns",
+        "estimated_improvement": "40% faster database queries",
+        "complexity": "low"
+      }
+    ],
+    "system_limits": {
+      "max_concurrent_requests": 200,
+      "current_utilization": 156,
+      "headroom_percent": 22
+    }
+  }
+}</code></pre>
+
+  <h2>14. Integration Examples</h2>
+  <h3>Prometheus Query Integration</h3>
+  <pre><code>import requests
+import time
+
+def get_system_health():
+    # Query Prometheus for system health metrics
+    response = requests.get('http://localhost:9090/api/v1/query', params={
+        'query': 'up{job=~".*"}',
+        'time': time.time()
+    })
+    
+    data = response.json()
+    return {
+        'total_services': len(data['data']['result']),
+        'healthy_services': sum(1 for result in data['data']['result'] 
+                              if result['value'][1] == '1'),
+        'unhealthy_services': sum(1 for result in data['data']['result'] 
+                                if result['value'][1] == '0')
+    }
+
+# Usage
+health = get_system_health()
+print(f"System Health: {health['healthy_services']}/{health['total_services']} services healthy")</code></pre>
+
+  <h3>Grafana Dashboard Creation</h3>
+  <pre><code>import requests
+import json
+
+def create_performance_dashboard():
+    dashboard = {
+        "dashboard": {
+            "title": "API Performance Dashboard",
+            "tags": ["api", "performance"],
+            "timezone": "UTC",
+            "panels": [
+                {
+                    "title": "Request Rate",
+                    "type": "timeseries",
+                    "targets": [{
+                        "expr": "rate(http_requests_total[5m])",
+                        "legendFormat": "Requests/sec"
+                    }]
+                },
+                {
+                    "title": "Error Rate",
+                    "type": "timeseries",
+                    "targets": [{
+                        "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m]) * 100",
+                        "legendFormat": "Error Rate %"
+                    }]
+                }
+            ]
+        }
+    }
+    
+    response = requests.post(
+        'http://localhost:3000/api/dashboards/db',
+        json=dashboard,
+        auth=('admin', 'admin')
+    )
+    
+    return response.json()
+
+# Usage
+result = create_performance_dashboard()
+print(f"Dashboard created: {result['url']}")</code></pre>
+
+  <h3>AlertManager Integration</h3>
+  <pre><code>import requests
+
+def get_active_alerts():
+    response = requests.get('http://localhost:9093/api/v2/alerts')
+    alerts = response.json()
+    
+    return {
+        'total_alerts': len(alerts),
+        'critical_alerts': len([a for a in alerts if a['labels']['severity'] == 'critical']),
+        'warning_alerts': len([a for a in alerts if a['labels']['severity'] == 'warning']),
+        'active_alerts': [a for a in alerts if a['status']['state'] == 'active']
+    }
+
+def create_silence(alert_name, duration_hours=2):
+    silence = {
+        "matchers": [
+            {
+                "name": "alertname",
+                "value": alert_name,
+                "isRegex": False
+            }
+        ],
+        "startsAt": datetime.now().isoformat() + "Z",
+        "endsAt": (datetime.now() + timedelta(hours=duration_hours)).isoformat() + "Z",
+        "createdBy": "automation",
+        "comment": f"Silencing {alert_name} for maintenance"
+    }
+    
+    response = requests.post('http://localhost:9093/api/v2/silences', json=silence)
+    return response.json()
+
+# Usage
+alerts = get_active_alerts()
+print(f"Active alerts: {alerts['total_alerts']}")
+
+# Silence specific alert during maintenance
+silence_result = create_silence("HighErrorRate")
+print(f"Silence created: {silence_result['silenceID']}")</code></pre>
+
+</body>
+</html>

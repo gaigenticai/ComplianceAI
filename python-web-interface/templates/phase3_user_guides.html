@@ -3,138 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phase 3 User Guides - Intelligence & Compliance Agent</title>
+    <title>Intelligence & Compliance User Guides - ComplianceAI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/design-system.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="/static/css/design-system.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-            --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .guide-header {
-            background: var(--primary-gradient);
+        /* Professional User Guides Styles */
+        .dashboard-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
             color: white;
-            padding: 3rem 0;
+            padding: 4rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dashboard-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .dashboard-header .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .dashboard-title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .dashboard-subtitle {
+            font-size: 1.125rem;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        /* Professional Tabbed Navigation */
+        .main-navigation {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .nav-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 0;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 0.75rem;
+            transition: all 0.15s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: #4f46e5;
+            background: #f0f4ff;
+            border-color: #4f46e5;
+        }
+
+        .nav-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Tabbed Content Styles */
+        .tabbed-content {
+            margin-top: 2rem;
+        }
+
+        .content-tabs {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .tab-navigation {
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0;
+        }
+
+        .tab-nav-list {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            overflow-x: auto;
+        }
+
+        .tab-nav-item {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .tab-nav-link {
+            display: block;
+            padding: 1rem 1.5rem;
             text-align: center;
+            font-weight: 600;
+            color: #64748b;
+            text-decoration: none;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s ease;
+            position: relative;
+            white-space: nowrap;
         }
 
-        .guide-nav {
-            background: #f8f9fa;
-            border-right: 1px solid #dee2e6;
-            min-height: calc(100vh - 200px);
-            padding: 2rem 1rem;
+        .tab-nav-link:hover {
+            color: #4f46e5;
+            background: rgba(79, 70, 229, 0.05);
         }
 
-        .guide-content {
+        .tab-nav-link.active {
+            color: #4f46e5;
+            background: rgba(79, 70, 229, 0.1);
+            border-bottom-color: #4f46e5;
+        }
+
+        .tab-content {
             padding: 2rem;
-            max-height: calc(100vh - 200px);
-            overflow-y: auto;
         }
 
-        .guide-section {
+        .tab-pane {
             display: none;
-            animation: fadeIn 0.3s ease-in;
+            animation: fadeIn 0.3s ease;
         }
 
-        .guide-section.active {
+        .tab-pane.active {
             display: block;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .nav-link {
-            color: #495057;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s ease;
-            border: none;
-            background: none;
-            text-align: left;
-            width: 100%;
-        }
-
-        .nav-link:hover, .nav-link.active {
-            background: var(--primary-gradient);
-            color: white;
-            transform: translateX(5px);
-        }
-
+        /* Content Styles */
         .feature-card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-radius: 1rem;
             padding: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
             margin-bottom: 2rem;
-            border-left: 4px solid #667eea;
+        }
+
+        .feature-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #4f46e5;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            font-size: 1rem;
+            color: #64748b;
         }
 
         .code-block {
-            background: #1e1e1e;
-            color: #f8f8f2;
+            background: #1e293b;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
             padding: 1.5rem;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            overflow-x: auto;
+            border-radius: 0.5rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 0.875rem;
+            border: 1px solid #334155;
             margin: 1rem 0;
         }
 
         .step-number {
-            background: var(--primary-gradient);
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
             color: white;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-weight: 600;
             margin-right: 1rem;
+            font-size: 0.875rem;
         }
 
-        .alert-tip {
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-            border-left: 4px solid #2196f3;
-            color: #0d47a1;
+        .alert {
+            border-radius: 0.5rem;
+            border: none;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            color: #1e40af;
         }
 
         .alert-warning {
-            background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
-            border-left: 4px solid #ff9800;
-            color: #e65100;
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        .search-box {
-            position: sticky;
-            top: 0;
-            background: white;
-            padding: 1rem;
-            border-bottom: 1px solid #dee2e6;
-            z-index: 100;
-        }
-
-        .highlight {
-            background: yellow;
-            padding: 2px 4px;
-            border-radius: 3px;
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
         }
 
         .toc {
-            background: #f8f9fa;
-            border-radius: 8px;
+            background: #f8fafc;
+            border-radius: 0.75rem;
             padding: 1.5rem;
+            border: 1px solid #e2e8f0;
             margin-bottom: 2rem;
+        }
+
+        .toc h5 {
+            color: #374151;
+            margin-bottom: 1rem;
         }
 
         .toc ul {
             list-style: none;
             padding-left: 0;
+            margin: 0;
         }
 
         .toc li {
@@ -142,706 +275,338 @@
         }
 
         .toc a {
-            color: #495057;
+            color: #64748b;
             text-decoration: none;
+            transition: color 0.2s ease;
         }
 
         .toc a:hover {
-            color: #667eea;
+            color: #4f46e5;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 0.125rem 0.25rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+        }
+
+        .search-box {
+            background: white;
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .form-control {
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            padding: 0.75rem 1rem;
+            transition: all 0.15s ease;
+        }
+
+        .form-control:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
     </style>
 </head>
 <body>
-    <div class="guide-header">
+    <!-- Professional Dashboard Header -->
+    <header class="dashboard-header">
         <div class="container">
-            <h1><i class="fas fa-book me-3"></i>Phase 3 User Guides</h1>
-            <p class="lead">Comprehensive documentation for Intelligence & Compliance Agent features</p>
+            <h1 class="dashboard-title">
+                <i class="fas fa-book me-3"></i>
+                Intelligence & Compliance User Guides
+            </h1>
+            <p class="dashboard-subtitle">Comprehensive documentation for Intelligence & Compliance Agent features</p>
         </div>
-    </div>
+    </header>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Navigation Sidebar -->
-            <div class="col-md-3 guide-nav">
-                <div class="search-box">
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search guides...">
+    <!-- Professional Tabbed Navigation -->
+    <nav class="main-navigation">
+        <div class="container">
+            <div class="nav-container">
+                <div class="nav-links">
+                    <a href="/" class="nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="/phase3" class="nav-link">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        Intelligence
+                    </a>
+                    <a href="/phase3-user-guides" class="nav-link active">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        User Guides
+                    </a>
                 </div>
-                
-                <h5 class="mb-3">Navigation</h5>
-                <nav class="nav flex-column">
-                    <button class="nav-link active" data-section="overview">
-                        <i class="fas fa-home me-2"></i>Overview
-                    </button>
-                    <button class="nav-link" data-section="rule-compiler">
-                        <i class="fas fa-code me-2"></i>Rule Compiler
-                    </button>
-                    <button class="nav-link" data-section="kafka-consumer">
-                        <i class="fas fa-stream me-2"></i>Kafka Consumer
-                    </button>
-                    <button class="nav-link" data-section="jurisdiction-handler">
-                        <i class="fas fa-globe me-2"></i>Jurisdiction Handler
-                    </button>
-                    <button class="nav-link" data-section="overlap-resolver">
-                        <i class="fas fa-layer-group me-2"></i>Overlap Resolver
-                    </button>
-                    <button class="nav-link" data-section="audit-logger">
-                        <i class="fas fa-clipboard-list me-2"></i>Audit Logger
-                    </button>
-                    <button class="nav-link" data-section="api-reference">
-                        <i class="fas fa-code-branch me-2"></i>API Reference
-                    </button>
-                    <button class="nav-link" data-section="troubleshooting">
-                        <i class="fas fa-tools me-2"></i>Troubleshooting
-                    </button>
-                </nav>
+                <div class="system-status">
+                    <div class="system-status">
+                        <div class="status-dot"></div>
+                        Documentation Active
+                    </div>
+                </div>
             </div>
+        </div>
+    </nav>
 
-            <!-- Content Area -->
-            <div class="col-md-9 guide-content">
-                <!-- Overview Section -->
-                <div class="guide-section active" id="overview">
-                    <h2><i class="fas fa-home me-3"></i>Phase 3 Overview</h2>
-                    
-                    <div class="toc">
-                        <h5>Table of Contents</h5>
-                        <ul>
-                            <li><a href="#what-is-phase3">What is Phase 3?</a></li>
-                            <li><a href="#key-features">Key Features</a></li>
-                            <li><a href="#architecture">Architecture</a></li>
-                            <li><a href="#getting-started">Getting Started</a></li>
-                        </ul>
-                    </div>
-
-                    <div class="feature-card" id="what-is-phase3">
-                        <h3>What is Phase 3?</h3>
-                        <p>Phase 3 enhances the Intelligence & Compliance Agent with advanced regulatory rule processing capabilities. It introduces five core components that work together to provide comprehensive compliance automation:</p>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <ul class="list-unstyled">
-                                    <li><i class="fas fa-check text-success me-2"></i><strong>Rule Compiler:</strong> Converts regulatory text to JSON-Logic</li>
-                                    <li><i class="fas fa-check text-success me-2"></i><strong>Kafka Consumer:</strong> Real-time regulatory updates</li>
-                                    <li><i class="fas fa-check text-success me-2"></i><strong>Jurisdiction Handler:</strong> Country-specific rule filtering</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6">
-                                <ul class="list-unstyled">
-                                    <li><i class="fas fa-check text-success me-2"></i><strong>Overlap Resolver:</strong> Eliminates conflicting rules</li>
-                                    <li><i class="fas fa-check text-success me-2"></i><strong>Audit Logger:</strong> Comprehensive compliance trail</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="feature-card" id="key-features">
-                        <h3>Key Features</h3>
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="text-center mb-3">
-                                    <i class="fas fa-brain fa-3x text-primary mb-2"></i>
-                                    <h5>AI-Powered Processing</h5>
-                                    <p>Uses GPT-4 and advanced NLP to understand regulatory text</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center mb-3">
-                                    <i class="fas fa-shield-alt fa-3x text-success mb-2"></i>
-                                    <h5>Audit Trail</h5>
-                                    <p>Immutable audit logs with cryptographic integrity</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center mb-3">
-                                    <i class="fas fa-globe fa-3x text-info mb-2"></i>
-                                    <h5>Multi-Jurisdiction</h5>
-                                    <p>Supports EU, DE, IE, GB regulatory frameworks</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="feature-card" id="architecture">
-                        <h3>Architecture</h3>
-                        <p>Phase 3 follows a microservices architecture with clear separation of concerns:</p>
-                        
-                        <div class="code-block">
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Rule Compiler │    │ Kafka Consumer  │    │Jurisdiction     │
-│                 │    │                 │    │Handler          │
-│ • Parse regs    │    │ • Real-time     │    │                 │
-│ • Extract logic │    │   updates       │    │ • Filter rules  │
-│ • Generate JSON │    │ • Auto-refresh  │    │ • Resolve       │
-│                 │    │                 │    │   conflicts     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-         ┌─────────────────┐    ┌─────────────────┐
-         │ Overlap Resolver│    │  Audit Logger   │
-         │                 │    │                 │
-         │ • Detect        │    │ • Immutable     │
-         │   overlaps      │    │   records       │
-         │ • Merge rules   │    │ • HMAC integrity│
-         │ • NLP analysis  │    │ • Export trails │
-         └─────────────────┘    └─────────────────┘
-                        </div>
-                    </div>
-
-                    <div class="feature-card" id="getting-started">
-                        <h3>Getting Started</h3>
-                        <p>Follow these steps to start using Phase 3 features:</p>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">1</span>
-                            <div>
-                                <h6>Access the Dashboard</h6>
-                                <p>Navigate to <code>/phase3</code> to access the Phase 3 dashboard</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">2</span>
-                            <div>
-                                <h6>Test Rule Compilation</h6>
-                                <p>Use the Rule Compiler tab to convert regulatory text into executable rules</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">3</span>
-                            <div>
-                                <h6>Monitor Real-time Updates</h6>
-                                <p>Check the Kafka Consumer tab for live regulatory updates</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start">
-                            <span class="step-number">4</span>
-                            <div>
-                                <h6>Review Audit Trails</h6>
-                                <p>Use the Audit Logger tab to track all system activities</p>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Professional Tabbed Content -->
+    <div class="tabbed-content">
+        <div class="container">
+            <div class="content-tabs">
+                <!-- Tab Navigation -->
+                <div class="tab-navigation">
+                    <ul class="tab-nav-list">
+                        <li class="tab-nav-item">
+                            <a href="#overview" class="tab-nav-link active" onclick="switchTab('overview')">
+                                <i class="fas fa-home me-2"></i>Overview
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#rule-compiler" class="tab-nav-link" onclick="switchTab('rule-compiler')">
+                                <i class="fas fa-code me-2"></i>Rule Compiler
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#kafka-consumer" class="tab-nav-link" onclick="switchTab('kafka-consumer')">
+                                <i class="fas fa-stream me-2"></i>Kafka Consumer
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#jurisdiction" class="tab-nav-link" onclick="switchTab('jurisdiction')">
+                                <i class="fas fa-globe me-2"></i>Jurisdiction
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#overlap-resolver" class="tab-nav-link" onclick="switchTab('overlap-resolver')">
+                                <i class="fas fa-layer-group me-2"></i>Overlap Resolver
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#audit-logger" class="tab-nav-link" onclick="switchTab('audit-logger')">
+                                <i class="fas fa-clipboard-list me-2"></i>Audit Logger
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#api-reference" class="tab-nav-link" onclick="switchTab('api-reference')">
+                                <i class="fas fa-code-branch me-2"></i>API Reference
+                            </a>
+                        </li>
+                        <li class="tab-nav-item">
+                            <a href="#troubleshooting" class="tab-nav-link" onclick="switchTab('troubleshooting')">
+                                <i class="fas fa-tools me-2"></i>Troubleshooting
+                            </a>
+                        </li>
+                    </ul>
                 </div>
 
-                <!-- Rule Compiler Section -->
-                <div class="guide-section" id="rule-compiler">
-                    <h2><i class="fas fa-code me-3"></i>Rule Compiler</h2>
-                    
-                    <div class="feature-card">
-                        <h3>Overview</h3>
-                        <p>The Rule Compiler converts human-readable regulatory obligations into executable JSON-Logic rules. It uses advanced AI and NLP to understand regulatory text and extract actionable requirements.</p>
-                        
-                        <div class="alert alert-tip">
-                            <i class="fas fa-lightbulb me-2"></i>
-                            <strong>Tip:</strong> The Rule Compiler supports all major regulatory frameworks including AML, KYC, GDPR, Basel III, PSD2, and DORA.
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Overview Tab -->
+                    <div id="overview" class="tab-pane active">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h2 class="mb-4">
+                                    <i class="fas fa-home text-primary me-2"></i>
+                                    Phase 3 Documentation Overview
+                                </h2>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="feature-card">
-                        <h3>How to Use</h3>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">1</span>
-                            <div>
-                                <h6>Enter Regulatory Text</h6>
-                                <p>Paste the regulatory obligation text in the text area. For example:</p>
-                                <div class="code-block">
-Customer due diligence must be performed for transactions exceeding EUR 15,000 or when the customer is a politically exposed person.
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">What is Phase 3?</h3>
+                                <p class="feature-description">Phase 3 enhances the Intelligence & Compliance Agent with advanced regulatory rule processing capabilities.</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-2"></i><strong>Rule Compiler:</strong> Converts regulatory text to JSON-Logic</li>
+                                        <li><i class="fas fa-check text-success me-2"></i><strong>Kafka Consumer:</strong> Real-time regulatory updates</li>
+                                        <li><i class="fas fa-check text-success me-2"></i><strong>Jurisdiction Handler:</strong> Country-specific rule filtering</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-check text-success me-2"></i><strong>Overlap Resolver:</strong> Eliminates conflicting rules</li>
+                                        <li><i class="fas fa-check text-success me-2"></i><strong>Audit Logger:</strong> Comprehensive compliance trail</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">2</span>
-                            <div>
-                                <h6>Select Regulation Type</h6>
-                                <p>Choose the appropriate regulation type from the dropdown (AML, KYC, GDPR, etc.)</p>
+
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">Getting Started</h3>
+                                <p class="feature-description">Quick start guide for Phase 3 features</p>
                             </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">3</span>
-                            <div>
-                                <h6>Choose Jurisdiction</h6>
-                                <p>Select the applicable jurisdiction (EU, DE, IE, GB)</p>
+                            <div class="d-flex align-items-start mb-3">
+                                <span class="step-number">1</span>
+                                <div>
+                                    <h6>Access the Dashboard</h6>
+                                    <p>Navigate to <code>/phase3</code> to access the Phase 3 dashboard</p>
+                                </div>
                             </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start">
-                            <span class="step-number">4</span>
-                            <div>
-                                <h6>Compile and Validate</h6>
-                                <p>Click "Compile Rule" to generate JSON-Logic, then use "Validate Rule" and "Test Rule" buttons</p>
+                            <div class="d-flex align-items-start mb-3">
+                                <span class="step-number">2</span>
+                                <div>
+                                    <h6>Test Rule Compilation</h6>
+                                    <p>Use the Rule Compiler tab to convert regulatory text into executable rules</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-start">
+                                <span class="step-number">3</span>
+                                <div>
+                                    <h6>Review Audit Trails</h6>
+                                    <p>Use the Audit Logger tab to track all system activities</p>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="feature-card">
-                        <h3>JSON-Logic Output</h3>
-                        <p>The compiler generates standard JSON-Logic rules that can be executed by any JSON-Logic engine:</p>
-                        
-                        <div class="code-block">
+                    <!-- Rule Compiler Tab -->
+                    <div id="rule-compiler" class="tab-pane">
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">
+                                    <i class="fas fa-code text-primary me-2"></i>
+                                    Rule Compiler - JSON-Logic Generation
+                                </h3>
+                                <p class="feature-description">Transform regulatory text into executable JSON-Logic rules for automated compliance checking</p>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>How to Use</h5>
+                                    <div class="d-flex align-items-start mb-3">
+                                        <span class="step-number">1</span>
+                                        <div>
+                                            <h6>Enter Regulatory Text</h6>
+                                            <p>Paste the regulatory obligation text in the text area</p>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start mb-3">
+                                        <span class="step-number">2</span>
+                                        <div>
+                                            <h6>Select Regulation Type</h6>
+                                            <p>Choose the appropriate regulation type from the dropdown</p>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-start">
+                                        <span class="step-number">3</span>
+                                        <div>
+                                            <h6>Compile and Validate</h6>
+                                            <p>Click "Compile Rule" to generate JSON-Logic</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Sample Output</h5>
+                                    <div class="code-block">
 {
   "and": [
-    {
-      "or": [
-        {">": [{"var": "transaction.amount"}, 15000]},
-        {"==": [{"var": "customer.is_pep"}, true]}
-      ]
-    },
-    {"==": [{"var": "customer.verification_status"}, "verified"]}
+    {">": [{"var": "transaction.amount"}, 15000]},
+    {"==": [{"var": "customer.is_pep"}, true]}
   ]
 }
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kafka Consumer Section -->
-                <div class="guide-section" id="kafka-consumer">
-                    <h2><i class="fas fa-stream me-3"></i>Kafka Consumer</h2>
-                    
-                    <div class="feature-card">
-                        <h3>Overview</h3>
-                        <p>The Kafka Consumer monitors the <code>regulatory.updates</code> topic for real-time regulatory changes and automatically triggers rule recompilation when needed.</p>
-                        
-                        <div class="alert alert-tip">
-                            <i class="fas fa-info-circle me-2"></i>
-                            <strong>Note:</strong> The consumer runs continuously in the background and provides real-time updates via WebSocket connections.
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3>Consumer Status</h3>
-                        <p>Monitor the consumer status through the dashboard:</p>
-                        
-                        <ul>
-                            <li><strong>Active:</strong> Consumer is running and processing messages</li>
-                            <li><strong>Inactive:</strong> Consumer is stopped</li>
-                            <li><strong>Error:</strong> Consumer encountered an error</li>
-                        </ul>
-                        
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Important:</strong> If the consumer shows high lag, it may indicate performance issues or message processing delays.
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3>Event Types</h3>
-                        <p>The consumer handles these event types:</p>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>obligation_created</h6>
-                                <p>New regulatory obligation added</p>
-                                
-                                <h6>obligation_updated</h6>
-                                <p>Existing obligation modified</p>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>obligation_deleted</h6>
-                                <p>Obligation removed or expired</p>
-                                
-                                <h6>system_status</h6>
-                                <p>System-wide status updates</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3>Testing Messages</h3>
-                        <p>Use the test message feature to simulate regulatory updates:</p>
-                        
-                        <div class="code-block">
-{
-  "obligation_id": "test_001",
-  "regulation_type": "AML",
-  "jurisdiction": "EU",
-  "change_type": "updated",
-  "effective_date": "2024-01-01"
-}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Jurisdiction Handler Section -->
-                <div class="guide-section" id="jurisdiction-handler">
-                    <h2><i class="fas fa-globe me-3"></i>Jurisdiction Handler</h2>
-                    
-                    <div class="feature-card">
-                        <h3>Overview</h3>
-                        <p>The Jurisdiction Handler filters and applies rules based on geographic and regulatory scope. It handles multi-jurisdiction scenarios and resolves conflicts between different regulatory frameworks.</p>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3>Supported Jurisdictions</h3>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <i class="fas fa-flag fa-2x text-primary mb-2"></i>
-                                    <h6>EU</h6>
-                                    <p>European Union<br>Supranational Level</p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <i class="fas fa-flag fa-2x text-warning mb-2"></i>
-                                    <h6>DE</h6>
-                                    <p>Germany<br>National Level</p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <i class="fas fa-flag fa-2x text-success mb-2"></i>
-                                    <h6>IE</h6>
-                                    <p>Ireland<br>National Level</p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="text-center">
-                                    <i class="fas fa-flag fa-2x text-info mb-2"></i>
-                                    <h6>GB</h6>
-                                    <p>United Kingdom<br>National Level</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="feature-card">
-                        <h3>Conflict Resolution Strategies</h3>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">1</span>
-                            <div>
-                                <h6>Most Restrictive</h6>
-                                <p>Applies the most restrictive rule when conflicts arise</p>
+                    <!-- Other Tabs -->
+                    <div id="kafka-consumer" class="tab-pane">
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">
+                                    <i class="fas fa-stream text-primary me-2"></i>
+                                    Kafka Consumer - Regulatory Updates
+                                </h3>
+                                <p class="feature-description">Process regulatory updates and compliance events from Kafka message streams</p>
                             </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">2</span>
-                            <div>
-                                <h6>Customer Preference</h6>
-                                <p>Uses the customer's primary jurisdiction rules</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">3</span>
-                            <div>
-                                <h6>Business Preference</h6>
-                                <p>Applies the business's jurisdiction rules</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start">
-                            <span class="step-number">4</span>
-                            <div>
-                                <h6>Hierarchical</h6>
-                                <p>Follows regulatory hierarchy (EU > National > Local)</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Overlap Resolver Section -->
-                <div class="guide-section" id="overlap-resolver">
-                    <h2><i class="fas fa-layer-group me-3"></i>Overlap Resolver</h2>
-                    
-                    <div class="feature-card">
-                        <h3>Overview</h3>
-                        <p>The Overlap Resolver identifies and consolidates overlapping regulatory obligations using advanced NLP techniques. It prevents redundant compliance checks and resolves conflicting requirements.</p>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3>Detection Methods</h3>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6><i class="fas fa-brain me-2"></i>Semantic Analysis</h6>
-                                <p>Uses SpaCy and word embeddings to understand meaning</p>
-                                
-                                <h6><i class="fas fa-chart-line me-2"></i>TF-IDF Similarity</h6>
-                                <p>Calculates text similarity using term frequency analysis</p>
-                            </div>
-                            <div class="col-md-6">
-                                <h6><i class="fas fa-tags me-2"></i>Keyword Matching</h6>
-                                <p>Identifies common regulatory keywords and phrases</p>
-                                
-                                <h6><i class="fas fa-layer-group me-2"></i>Structural Analysis</h6>
-                                <p>Compares rule structure and logical patterns</p>
-                            </div>
+                            <p>The Kafka Consumer monitors the <code>regulatory.updates</code> topic for real-time regulatory changes.</p>
                         </div>
                     </div>
 
-                    <div class="feature-card">
-                        <h3>Similarity Thresholds</h3>
-                        <p>Configure similarity thresholds for different overlap types:</p>
-                        
-                        <div class="code-block">
-# High similarity (90%+): Likely duplicates
-# Medium similarity (70-89%): Potential overlaps  
-# Low similarity (50-69%): Related but distinct
-# No overlap (<50%): Independent rules
-                        </div>
-                        
-                        <div class="alert alert-tip">
-                            <i class="fas fa-sliders-h me-2"></i>
-                            <strong>Tip:</strong> Adjust the similarity threshold based on your organization's risk tolerance and compliance requirements.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Audit Logger Section -->
-                <div class="guide-section" id="audit-logger">
-                    <h2><i class="fas fa-clipboard-list me-3"></i>Audit Logger</h2>
-                    
-                    <div class="feature-card">
-                        <h3>Overview</h3>
-                        <p>The Audit Logger provides comprehensive audit trail capabilities with cryptographic integrity verification. All system activities are logged with immutable records and HMAC-SHA256 tamper detection.</p>
-                        
-                        <div class="alert alert-tip">
-                            <i class="fas fa-shield-alt me-2"></i>
-                            <strong>Security:</strong> All audit entries are cryptographically signed and cannot be modified after creation.
+                    <div id="jurisdiction" class="tab-pane">
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">
+                                    <i class="fas fa-globe text-primary me-2"></i>
+                                    Jurisdiction Handler - Country-Specific Rules
+                                </h3>
+                                <p class="feature-description">Manage jurisdiction-specific compliance rules and conflict resolution strategies</p>
+                            </div>
+                            <p>Supports EU, DE, IE, GB regulatory frameworks with conflict resolution strategies.</p>
                         </div>
                     </div>
 
-                    <div class="feature-card">
-                        <h3>Audit Entry Types</h3>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <ul class="list-unstyled">
-                                    <li><i class="fas fa-code text-primary me-2"></i><strong>rule_compiled:</strong> Rule compilation events</li>
-                                    <li><i class="fas fa-edit text-warning me-2"></i><strong>rule_updated:</strong> Rule modification events</li>
-                                    <li><i class="fas fa-trash text-danger me-2"></i><strong>rule_deleted:</strong> Rule deletion events</li>
-                                </ul>
+                    <div id="overlap-resolver" class="tab-pane">
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">
+                                    <i class="fas fa-layer-group text-primary me-2"></i>
+                                    Overlap Resolver - Rule Consolidation
+                                </h3>
+                                <p class="feature-description">Identify and resolve overlapping regulatory requirements across jurisdictions</p>
                             </div>
-                            <div class="col-md-6">
-                                <ul class="list-unstyled">
-                                    <li><i class="fas fa-globe text-info me-2"></i><strong>jurisdiction_changed:</strong> Jurisdiction updates</li>
-                                    <li><i class="fas fa-layer-group text-success me-2"></i><strong>overlap_resolved:</strong> Overlap resolution</li>
-                                    <li><i class="fas fa-cog text-secondary me-2"></i><strong>system_event:</strong> System-level events</li>
-                                </ul>
-                            </div>
+                            <p>Uses advanced NLP techniques to detect and resolve overlapping regulatory obligations.</p>
                         </div>
                     </div>
 
-                    <div class="feature-card">
-                        <h3>Export Formats</h3>
-                        <p>Export audit trails in multiple formats:</p>
-                        
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="fas fa-file-code fa-2x text-primary mb-2"></i>
-                                    <h6>JSON</h6>
-                                    <p>Machine-readable format for integration</p>
-                                </div>
+                    <div id="audit-logger" class="tab-pane">
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">
+                                    <i class="fas fa-clipboard-list text-primary me-2"></i>
+                                    Audit Logger - Compliance Trail
+                                </h3>
+                                <p class="feature-description">Complete audit trail of all compliance activities and regulatory changes</p>
                             </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="fas fa-file-csv fa-2x text-success mb-2"></i>
-                                    <h6>CSV</h6>
-                                    <p>Spreadsheet-compatible format</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="fas fa-file-alt fa-2x text-warning mb-2"></i>
-                                    <h6>XML</h6>
-                                    <p>Structured format for compliance systems</p>
-                                </div>
-                            </div>
+                            <p>Immutable audit logs with cryptographic integrity verification using HMAC-SHA256.</p>
                         </div>
                     </div>
 
-                    <div class="feature-card">
-                        <h3>Integrity Verification</h3>
-                        <p>Verify audit trail integrity using cryptographic signatures:</p>
-                        
-                        <div class="code-block">
-# Each audit entry includes:
-{
-  "entry_id": "audit_12345",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "action": "rule_compiled",
-  "details": "AML rule compiled for EU jurisdiction",
-  "user_id": "system_user",
-  "hmac_signature": "a1b2c3d4e5f6...",
-  "integrity_verified": true
-}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- API Reference Section -->
-                <div class="guide-section" id="api-reference">
-                    <h2><i class="fas fa-code-branch me-3"></i>API Reference</h2>
-                    
-                    <div class="feature-card">
-                        <h3>Base URL</h3>
-                        <div class="code-block">
+                    <div id="api-reference" class="tab-pane">
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">
+                                    <i class="fas fa-code-branch text-primary me-2"></i>
+                                    API Reference
+                                </h3>
+                                <p class="feature-description">Complete REST API reference for Phase 3 components</p>
+                            </div>
+                            <div class="code-block">
+# Base URL
 https://your-domain.com/api/phase3
-                        </div>
-                    </div>
 
-                    <div class="feature-card">
-                        <h3>Authentication</h3>
-                        <p>API authentication is controlled by the <code>REQUIRE_AUTH</code> environment variable:</p>
-                        
-                        <div class="code-block">
-# When REQUIRE_AUTH=false (default)
-# No authentication required for testing
-
-# When REQUIRE_AUTH=true  
-# JWT token required in Authorization header
+# Authentication
 Authorization: Bearer your-jwt-token
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3>Rule Compiler Endpoints</h3>
-                        
-                        <h6>POST /rule-compiler/compile</h6>
-                        <p>Compile regulatory obligation into JSON-Logic rule</p>
-                        
-                        <div class="code-block">
-{
-  "obligation_text": "Customer due diligence required for amounts > EUR 15,000",
-  "regulation_type": "AML",
-  "jurisdiction": "EU"
-}
-                        </div>
-                        
-                        <h6>POST /rule-compiler/validate</h6>
-                        <p>Validate JSON-Logic rule structure</p>
-                        
-                        <div class="code-block">
-{
-  "json_logic": {
-    ">": [{"var": "transaction.amount"}, 15000]
-  }
-}
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3>Kafka Consumer Endpoints</h3>
-                        
-                        <h6>POST /kafka-consumer/start</h6>
-                        <p>Start the Kafka consumer</p>
-                        
-                        <h6>POST /kafka-consumer/stop</h6>
-                        <p>Stop the Kafka consumer</p>
-                        
-                        <h6>POST /kafka-consumer/test-message</h6>
-                        <p>Send test message to consumer</p>
-                        
-                        <div class="code-block">
-{
-  "event_type": "obligation_created",
-  "payload": {
-    "obligation_id": "test_001",
-    "regulation_type": "AML",
-    "jurisdiction": "EU"
-  }
-}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Troubleshooting Section -->
-                <div class="guide-section" id="troubleshooting">
-                    <h2><i class="fas fa-tools me-3"></i>Troubleshooting</h2>
-                    
-                    <div class="feature-card">
-                        <h3>Common Issues</h3>
-                        
-                        <div class="alert alert-warning">
-                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Rule Compilation Fails</h6>
-                            <p><strong>Symptoms:</strong> Compilation returns error or empty result</p>
-                            <p><strong>Solutions:</strong></p>
-                            <ul>
-                                <li>Check that OpenAI API key is configured</li>
-                                <li>Verify regulatory text is in English</li>
-                                <li>Ensure text contains actionable requirements</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="alert alert-warning">
-                            <h6><i class="fas fa-stream me-2"></i>Kafka Consumer Not Receiving Messages</h6>
-                            <p><strong>Symptoms:</strong> Consumer shows as active but no messages processed</p>
-                            <p><strong>Solutions:</strong></p>
-                            <ul>
-                                <li>Check Kafka broker connectivity</li>
-                                <li>Verify topic exists and has messages</li>
-                                <li>Check consumer group configuration</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="alert alert-warning">
-                            <h6><i class="fas fa-database me-2"></i>Database Connection Issues</h6>
-                            <p><strong>Symptoms:</strong> API endpoints return database errors</p>
-                            <p><strong>Solutions:</strong></p>
-                            <ul>
-                                <li>Verify PostgreSQL is running</li>
-                                <li>Check database credentials in environment variables</li>
-                                <li>Ensure database schema is up to date</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="feature-card">
-                        <h3>Performance Optimization</h3>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">1</span>
-                            <div>
-                                <h6>Rule Compilation Performance</h6>
-                                <p>Target: <100ms per rule. Optimize by adjusting AI model temperature and token limits.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start mb-3">
-                            <span class="step-number">2</span>
-                            <div>
-                                <h6>Kafka Consumer Lag</h6>
-                                <p>Target: <500ms for rule refresh. Monitor consumer lag and increase parallelism if needed.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="d-flex align-items-start">
-                            <span class="step-number">3</span>
-                            <div>
-                                <h6>Database Queries</h6>
-                                <p>Use connection pooling and optimize queries with proper indexes.</p>
                             </div>
                         </div>
                     </div>
 
-                    <div class="feature-card">
-                        <h3>Monitoring and Alerts</h3>
-                        <p>Monitor these key metrics:</p>
-                        
-                        <div class="row">
-                            <div class="col-md-6">
-                                <ul>
-                                    <li>Rule compilation success rate</li>
-                                    <li>Average compilation time</li>
-                                    <li>Kafka consumer lag</li>
-                                    <li>Database connection pool usage</li>
-                                </ul>
+                    <div id="troubleshooting" class="tab-pane">
+                        <div class="feature-card">
+                            <div class="feature-header">
+                                <h3 class="feature-title">
+                                    <i class="fas fa-tools text-primary me-2"></i>
+                                    Troubleshooting
+                                </h3>
+                                <p class="feature-description">Common issues and solutions for Phase 3 components</p>
                             </div>
-                            <div class="col-md-6">
-                                <ul>
-                                    <li>Audit entry creation rate</li>
-                                    <li>Overlap detection accuracy</li>
-                                    <li>API response times</li>
-                                    <li>Error rates by component</li>
-                                </ul>
+                            <div class="alert alert-warning">
+                                <h6><i class="fas fa-exclamation-triangle me-2"></i>Rule Compilation Fails</h6>
+                                <p><strong>Solutions:</strong> Check OpenAI API key, verify text is in English, ensure actionable requirements.</p>
                             </div>
                         </div>
                     </div>
@@ -852,63 +617,26 @@ Authorization: Bearer your-jwt-token
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Navigation functionality
-        document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function() {
-                // Remove active class from all links and sections
-                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-                document.querySelectorAll('.guide-section').forEach(s => s.classList.remove('active'));
-                
-                // Add active class to clicked link
-                this.classList.add('active');
-                
-                // Show corresponding section
-                const sectionId = this.getAttribute('data-section');
-                document.getElementById(sectionId).classList.add('active');
-                
-                // Scroll to top of content
-                document.querySelector('.guide-content').scrollTop = 0;
-            });
-        });
+        // Professional tabbed documentation JavaScript
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const sections = document.querySelectorAll('.guide-section');
-            
-            sections.forEach(section => {
-                const content = section.textContent.toLowerCase();
-                const isVisible = content.includes(searchTerm);
-                
-                // Find corresponding nav link
-                const sectionId = section.id;
-                const navLink = document.querySelector(`[data-section="${sectionId}"]`);
-                
-                if (navLink) {
-                    navLink.style.display = isVisible || searchTerm === '' ? 'block' : 'none';
-                }
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Remove active class from all tabs and panes
+            document.querySelectorAll('.tab-nav-link').forEach(link => {
+                link.classList.remove('active');
             });
-        });
+            document.querySelectorAll('.tab-pane').forEach(pane => {
+                pane.classList.remove('active');
+            });
 
-        // Highlight search terms
-        function highlightSearchTerm(text, term) {
-            if (!term) return text;
-            const regex = new RegExp(`(${term})`, 'gi');
-            return text.replace(regex, '<span class="highlight">$1</span>');
+            // Add active class to selected tab and pane
+            document.querySelector(`[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(tabName).classList.add('active');
         }
 
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }
-            });
+        // Initialize documentation
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Phase 3 documentation loaded');
         });
     </script>
 </body>

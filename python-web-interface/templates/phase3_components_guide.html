@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Phase 3 Components Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <h1>Phase 3 Components Guide</h1>
+  <p>This comprehensive guide covers the core components of Phase 3: Intelligence & Compliance Agent, including the Rule Compiler, Kafka Consumer, Jurisdiction Handler, Overlap Resolver, and Audit Logger.</p>
+
+  <h2>1. Overview</h2>
+  <p>Phase 3 represents the intelligence layer of the ComplianceAI platform, transforming raw regulatory obligations into executable compliance rules. This phase includes five interconnected components that work together to ensure accurate, jurisdiction-aware, and auditable compliance rule generation.</p>
+
+  <h2>2. Component Architecture</h2>
+  <h3>Core Components</h3>
+  <ul>
+    <li><strong>Rule Compiler:</strong> Transforms regulatory text into JSON-Logic rules</li>
+    <li><strong>Kafka Consumer:</strong> Real-time regulatory update processing</li>
+    <li><strong>Jurisdiction Handler:</strong> Country-specific rule filtering and precedence</li>
+    <li><strong>Overlap Resolver:</strong> Level 2/3 obligation consolidation</li>
+    <li><strong>Audit Logger:</strong> Comprehensive audit trail management</li>
+  </ul>
+
+  <h3>Data Flow</h3>
+  <pre><code>Regulatory Obligations → Rule Compiler → Jurisdiction Handler
+                              ↓
+                    Kafka Consumer ← Overlap Resolver
+                              ↓
+                         Audit Logger</code></pre>
+
+  <h2>3. Rule Compiler</h2>
+  <h3>Overview</h3>
+  <p>The Rule Compiler converts regulatory obligations from natural language text into executable JSON-Logic rules that can be automatically evaluated for compliance checking.</p>
+
+  <h3>Key Features</h3>
+  <ul>
+    <li><strong>Multi-Regulation Support:</strong> AML, KYC, GDPR, Basel III, PSD2, DORA, MiFID II, EMIR</li>
+    <li><strong>NLP Processing:</strong> SpaCy + NLTK for text analysis and entity extraction</li>
+    <li><strong>JSON-Logic Generation:</strong> Standardized rule format for cross-system compatibility</li>
+    <li><strong>AI Enhancement:</strong> GPT-4 for complex obligation interpretation</li>
+    <li><strong>Rule Types:</strong> Threshold, pattern, validation, and conditional rules</li>
+    <li><strong>Confidence Scoring:</strong> AI confidence metrics for rule reliability</li>
+  </ul>
+
+  <h3>Supported Regulation Types</h3>
+  <h4>Financial Services</h4>
+  <ul>
+    <li><strong>AML (Anti-Money Laundering):</strong> Transaction monitoring and suspicious activity detection</li>
+    <li><strong>KYC (Know Your Customer):</strong> Customer due diligence and identity verification</li>
+    <li><strong>Basel III:</strong> Capital adequacy and liquidity requirements</li>
+    <li><strong>PSD2:</strong> Open banking and payment service regulations</li>
+    <li><strong>MiFID II:</strong> Investment service conduct and transparency</li>
+  </ul>
+
+  <h4>Data Protection & Technology</h4>
+  <ul>
+    <li><strong>GDPR:</strong> Data protection and privacy compliance</li>
+    <li><strong>DORA:</strong> ICT and digital operational resilience</li>
+    <li><strong>EMIR:</strong> Derivatives trading and reporting requirements</li>
+  </ul>
+
+  <h3>Rule Types Generated</h3>
+  <h4>Threshold Rules</h4>
+  <pre><code>// Transaction amount threshold
+{
+  "and": [
+    {"<=": [{"var": "transaction_amount"}, 10000]},
+    {"==": [{"var": "customer_type"}, "retail"]}
+  ]
+}
+
+// Risk score evaluation
+{
+  "if": [
+    {">": [{"var": "risk_score"}, 75]},
+    "high_risk_review_required",
+    "standard_processing"
+  ]
+}</code></pre>
+
+  <h4>Pattern Rules</h4>
+  <pre><code>// PEP screening
+{
+  "in": [
+    {"var": "customer_type"},
+    ["politically_exposed_person", "close_associate"]
+  ]
+}
+
+// Geographic restrictions
+{
+  "not": {
+    "in": [
+      {"var": "customer_country"},
+      ["sanctioned_country_1", "sanctioned_country_2"]
+    ]
+  }
+}</code></pre>
+
+  <h4>Validation Rules</h4>
+  <pre><code>// Document completeness
+{
+  "and": [
+    {"!!": {"var": "passport_number"}},
+    {"!!": {"var": "address_proof"}},
+    {"!!": {"var": "source_of_funds"}}
+  ]
+}
+
+// Date validation
+{
+  "<=": [
+    {"var": "document_issue_date"},
+    {"var": "current_date"}
+  ]
+}</code></pre>
+
+  <h3>NLP Processing Pipeline</h3>
+  <ol>
+    <li><strong>Text Segmentation:</strong> NLTK sentence and word tokenization</li>
+    <li><strong>Entity Recognition:</strong> SpaCy NER for regulatory entities and terms</li>
+    <li><strong>Semantic Analysis:</strong> Extract actionable requirements from legal text</li>
+    <li><strong>Rule Mapping:</strong> Convert requirements to JSON-Logic operators</li>
+    <li><strong>Validation:</strong> Syntax and logical consistency checking</li>
+    <li><strong>Optimization:</strong> Rule simplification and performance optimization</li>
+  </ol>
+
+  <h3>AI Enhancement Features</h3>
+  <ul>
+    <li><strong>Complex Obligation Parsing:</strong> GPT-4 for nuanced regulatory interpretation</li>
+    <li><strong>Context Understanding:</strong> Legal language comprehension and disambiguation</li>
+    <li><strong>Edge Case Handling:</strong> Intelligent processing of ambiguous requirements</li>
+    <li><strong>Confidence Scoring:</strong> AI reliability assessment for generated rules</li>
+  </ul>
+
+  <h2>4. Kafka Consumer</h2>
+  <h3>Overview</h3>
+  <p>The Kafka Consumer component listens for regulatory updates from the Regulatory Intelligence Agent and automatically refreshes compliance rules in real-time.</p>
+
+  <h3>Key Features</h3>
+  <ul>
+    <li><strong>Real-time Updates:</strong> Sub-second rule refresh on regulatory changes</li>
+    <li><strong>Event-Driven Architecture:</strong> Reactive processing of regulatory events</li>
+    <li><strong>Incremental Updates:</strong> Smart refresh strategies (incremental vs. full)</li>
+    <li><strong>Cache Management:</strong> Redis integration for high-performance rule caching</li>
+    <li><strong>Error Handling:</strong> Circuit breaker patterns and retry logic</li>
+    <li><strong>Performance Monitoring:</strong> Consumer lag and throughput metrics</li>
+  </ul>
+
+  <h3>Supported Event Types</h3>
+  <h4>Regulatory Events</h4>
+  <ul>
+    <li><strong>obligation_created:</strong> New regulatory requirement identified</li>
+    <li><strong>obligation_updated:</strong> Existing requirement modified</li>
+    <li><strong>obligation_deleted:</strong> Requirement no longer applicable</li>
+    <li><strong>feed_health_change:</strong> Regulatory feed status updates</li>
+    <li><strong>system_status:</strong> Platform operational status changes</li>
+  </ul>
+
+  <h3>Refresh Strategies</h3>
+  <h4>Incremental Refresh</h4>
+  <ul>
+    <li>Updates only affected rules for specific obligations</li>
+    <li>Minimal cache invalidation and database impact</li>
+    <li>Sub-500ms refresh time for targeted updates</li>
+    <li>Ideal for single obligation modifications</li>
+  </ul>
+
+  <h4>Full Refresh</h4>
+  <ul>
+    <li>Complete rule recompilation for major regulatory changes</li>
+    <li>Ensures consistency across all compliance rules</li>
+    <li>Used for framework-wide regulatory updates</li>
+    <li>Batch processing for optimal performance</li>
+  </ul>
+
+  <h4>Selective Refresh</h4>
+  <ul>
+    <li>Refreshes rules for specific regulation types</li>
+    <li>Balances between incremental and full refresh</li>
+    <li>Used for regulation-specific updates (e.g., AML-only changes)</li>
+    <li>Maintains partial cache validity</li>
+  </ul>
+
+  <h3>Kafka Integration</h3>
+  <h4>Consumer Configuration</h4>
+  <pre><code>consumer_group = "intelligence-compliance-regulatory-group"
+topics = ["regulatory.updates"]
+auto_offset_reset = "latest"
+enable_auto_commit = True
+max_poll_records = 100
+
+# Resilience settings
+max_retries = 3
+retry_backoff_ms = 1000
+circuit_breaker_threshold = 5</code></pre>
+
+  <h4>Message Processing</h4>
+  <pre><code>// Example regulatory update message
+{
+  "event_id": "regulatory_update_001",
+  "event_type": "obligation_updated",
+  "obligation_id": "EBA_AML_2024_001",
+  "regulation_type": "AML",
+  "jurisdiction": "EU",
+  "timestamp": "2024-01-15T10:30:00Z",
+  "payload": {
+    "old_content": "...",
+    "new_content": "Enhanced customer due diligence required...",
+    "effective_date": "2024-06-01",
+    "impact_level": "high"
+  }
+}</code></pre>
+
+  <h2>5. Jurisdiction Handler</h2>
+  <h3>Overview</h3>
+  <p>The Jurisdiction Handler manages country-specific rule filtering and application, ensuring compliance with local regulatory requirements while respecting jurisdictional hierarchies.</p>
+
+  <h3>Key Features</h3>
+  <ul>
+    <li><strong>Multi-Jurisdiction Support:</strong> EU, DE, IE, GB, FR, IT, ES, NL, AT, BE, LU, PT</li>
+    <li><strong>Hierarchical Processing:</strong> International → Supranational → National → Regional → Local</li>
+    <li><strong>Inheritance Rules:</strong> Automatic rule inheritance (e.g., DE inherits EU rules)</li>
+    <li><strong>Conflict Resolution:</strong> Intelligent resolution of conflicting requirements</li>
+    <li><strong>Customer Jurisdiction Detection:</strong> Dynamic jurisdiction assignment based on customer data</li>
+    <li><strong>Override Mechanisms:</strong> Manual jurisdiction overrides for edge cases</li>
+  </ul>
+
+  <h3>Jurisdictional Hierarchy</h3>
+  <h4>Level Definitions</h4>
+  <ul>
+    <li><strong>International (Level 1):</strong> Global standards (FATF, Basel Committee)</li>
+    <li><strong>Supranational (Level 2):</strong> EU-wide regulations and directives</li>
+    <li><strong>National (Level 3):</strong> Country-specific laws and regulations</li>
+    <li><strong>Regional (Level 4):</strong> State/province level requirements</li>
+    <li><strong>Local (Level 5):</strong> City/municipal level regulations</li>
+  </ul>
+
+  <h3>Supported Jurisdictions</h3>
+  <h4>European Union</h4>
+  <ul>
+    <li><strong>EU (Supranational):</strong> European Banking Authority (EBA) guidelines</li>
+    <li><strong>DE (Germany):</strong> BaFin regulatory requirements</li>
+    <li><strong>IE (Ireland):</strong> Central Bank of Ireland (CBI) supervision</li>
+    <li><strong>GB (United Kingdom):</strong> Financial Conduct Authority (FCA) rules</li>
+  </ul>
+
+  <h4>Additional EU Countries</h4>
+  <ul>
+    <li><strong>FR (France):</strong> Autorité de Contrôle Prudentiel et de Résolution (ACPR)</li>
+    <li><strong>IT (Italy):</strong> Banca d'Italia oversight</li>
+    <li><strong>ES (Spain):</strong> Banco de España supervision</li>
+    <li><strong>NL (Netherlands):</strong> De Nederlandsche Bank (DNB)</li>
+    <li><strong>AT (Austria):</strong> Financial Market Authority (FMA)</li>
+    <li><strong>BE (Belgium):</strong> National Bank of Belgium (NBB)</li>
+    <li><strong>LU (Luxembourg):</strong> Commission de Surveillance du Secteur Financier (CSSF)</li>
+    <li><strong>PT (Portugal):</strong> Banco de Portugal supervision</li>
+  </ul>
+
+  <h4>Nordic Countries</h4>
+  <ul>
+    <li><strong>FI (Finland):</strong> Financial Supervisory Authority (FIN-FSA)</li>
+    <li><strong>SE (Sweden):</strong> Finansinspektionen supervision</li>
+    <li><strong>DK (Denmark):</strong> Finanstilsynet oversight</li>
+  </ul>
+
+  <h3>Conflict Resolution Strategies</h3>
+  <h4>Most Restrictive</h4>
+  <p>Applies the most stringent requirement when jurisdictions conflict. Ensures maximum compliance but may be overly conservative.</p>
+
+  <h4>Highest Precedence</h4>
+  <p>Follows jurisdictional hierarchy - local rules override national, national override supranational. Maintains regulatory intent.</p>
+
+  <h4>Customer Preference</h4>
+  <p>Uses customer's primary jurisdiction when multiple apply. Customer-centric approach balancing compliance and business needs.</p>
+
+  <h4>Manual Review</h4>
+  <p>Escalates conflicting requirements to human review. Ensures accuracy but may impact processing speed.</p>
+
+  <h3>Jurisdiction Detection</h3>
+  <h4>Customer Data Analysis</h4>
+  <pre><code>// Primary jurisdiction detection
+customer_jurisdictions = [
+  {
+    "country_code": "DE",
+    "confidence_score": 0.95,
+    "detection_method": "address_analysis",
+    "data_source": "customer_registration"
+  },
+  {
+    "country_code": "EU",
+    "confidence_score": 1.0,
+    "detection_method": "inheritance",
+    "parent_jurisdiction": "DE"
+  }
+]</code></pre>
+
+  <h2>6. Overlap Resolver</h2>
+  <h3>Overview</h3>
+  <p>The Overlap Resolver detects and resolves overlapping regulatory obligations from different regulatory levels and sources, consolidating them into unified compliance rules.</p>
+
+  <h3>Key Features</h3>
+  <ul>
+    <li><strong>Multi-Level Analysis:</strong> Level 1-4 regulatory framework overlap detection</li>
+    <li><strong>Semantic Similarity:</strong> NLP-based text similarity analysis</li>
+    <li><strong>Cross-Reference Detection:</strong> Identification of related regulatory requirements</li>
+    <li><strong>Automatic Consolidation:</strong> Merge similar obligations into unified rules</li>
+    <li><strong>Precedence Resolution:</strong> Handle conflicting regulatory requirements</li>
+    <li><strong>Impact Analysis:</strong> Assessment of consolidation decisions on compliance</li>
+  </ul>
+
+  <h3>Regulatory Levels</h3>
+  <h4>Level 1: Primary Legislation</h4>
+  <ul>
+    <li>EU Directives and Regulations</li>
+    <li>National laws and statutes</li>
+    <li>Binding legal requirements</li>
+  </ul>
+
+  <h4>Level 2: Technical Standards</h4>
+  <ul>
+    <li>Regulatory Technical Standards (RTS)</li>
+    <li>Implementing Technical Standards (ITS)</li>
+    <li>Detailed implementation guidance</li>
+  </ul>
+
+  <h4>Level 3: Guidelines</h4>
+  <ul>
+    <li>EBA Guidelines and Recommendations</li>
+    <li>Supervisory expectations</li>
+    <li>Best practice guidance</li>
+  </ul>
+
+  <h4>Level 4: National Implementation</h4>
+  <ul>
+    <li>National supervisory interpretations</li>
+    <li>Local regulatory guidance</li>
+    <li>Jurisdiction-specific requirements</li>
+  </ul>
+
+  <h3>Overlap Types</h3>
+  <h4>Identical Overlaps</h4>
+  <p>Exact same regulatory requirement from multiple sources. Can be safely consolidated with single rule implementation.</p>
+
+  <h4>Semantic Overlaps</h4>
+  <p>Same requirement expressed differently. Requires NLP analysis to identify equivalence despite different wording.</p>
+
+  <h4>Partial Overlaps</h4>
+  <p>Requirements that overlap in some aspects but differ in others. May require conditional rule logic or separate implementations.</p>
+
+  <h4>Hierarchical Overlaps</h4>
+  <p>One requirement contains or supersedes another. Higher-level requirements take precedence over detailed implementations.</p>
+
+  <h4>Conflicting Overlaps</h4>
+  <p>Contradictory requirements requiring resolution. Escalated to manual review or subject matter expert decision.</p>
+
+  <h3>Similarity Analysis</h3>
+  <h4>Text Processing Pipeline</h4>
+  <ol>
+    <li><strong>Preprocessing:</strong> Tokenization, stopword removal, lemmatization</li>
+    <li><strong>Feature Extraction:</strong> TF-IDF vectorization of regulatory text</li>
+    <li><strong>Similarity Calculation:</strong> Cosine similarity between obligation vectors</li>
+    <li><strong>Semantic Analysis:</strong> SpaCy dependency parsing for meaning extraction</li>
+    <li><strong>Threshold Application:</strong> Configurable similarity thresholds for overlap detection</li>
+  </ol>
+
+  <h3>Resolution Strategies</h3>
+  <h4>Merge Strategy</h4>
+  <ul>
+    <li>Combines overlapping obligations into unified rule</li>
+    <li>Preserves most restrictive requirements</li>
+    <li>Maintains traceability to source obligations</li>
+    <li>Reduces rule complexity and maintenance overhead</li>
+  </ul>
+
+  <h4>Prioritize Strategy</h4>
+  <ul>
+    <li>Selects highest-priority obligation when conflicts exist</li>
+    <li>Follows regulatory hierarchy (Level 1 > Level 2 > Level 3 > Level 4)</li>
+    <li>Documents rationale for prioritization decision</li>
+    <li>Ensures compliance with most authoritative requirements</li>
+  </ul>
+
+  <h4>Preserve All Strategy</h4>
+  <ul>
+    <li>Maintains all obligations with conflict annotations</li>
+    <li>Allows parallel rule evaluation and monitoring</li>
+    <li>Provides comprehensive compliance coverage</li>
+    <li>Enables detailed impact analysis of regulatory changes</li>
+  </ul>
+
+  <h2>7. Audit Logger</h2>
+  <h3>Overview</h3>
+  <p>The Audit Logger provides comprehensive audit trail logging for all Phase 3 activities, ensuring regulatory compliance and operational transparency.</p>
+
+  <h3>Key Features</h3>
+  <ul>
+    <li><strong>Immutable Records:</strong> Cryptographically signed audit entries</li>
+    <li><strong>Comprehensive Tracking:</strong> All rule operations and system activities</li>
+    <li><strong>Performance Optimized:</strong> Sub-10ms logging with async processing</li>
+    <li><strong>Search & Retrieval:</strong> Advanced querying and filtering capabilities</li>
+    <li><strong>Export Functionality:</strong> Regulatory reporting and compliance exports</li>
+    <li><strong>Integrity Verification:</strong> Cryptographic validation of audit chain</li>
+  </ul>
+
+  <h3>Audit Event Types</h3>
+  <h4>Rule Operations</h4>
+  <ul>
+    <li><strong>rule_created:</strong> New compliance rule generated</li>
+    <li><strong>rule_updated:</strong> Existing rule modified</li>
+    <li><strong>rule_deleted:</strong> Rule removed from system</li>
+    <li><strong>rule_compiled:</strong> Rule compilation completed</li>
+    <li><strong>rule_validated:</strong> Rule validation performed</li>
+    <li><strong>rule_applied:</strong> Rule executed for compliance checking</li>
+  </ul>
+
+  <h4>System Operations</h4>
+  <ul>
+    <li><strong>obligation_processed:</strong> Regulatory obligation processing</li>
+    <li><strong>jurisdiction_resolved:</strong> Jurisdiction determination completed</li>
+    <li><strong>overlap_detected:</strong> Regulatory overlap identified</li>
+    <li><strong>overlap_resolved:</strong> Overlap resolution completed</li>
+    <li><strong>kafka_message_processed:</strong> Kafka message handling</li>
+    <li><strong>system_error:</strong> System error or exception</li>
+  </ul>
+
+  <h4>User & API Operations</h4>
+  <ul>
+    <li><strong>user_action:</strong> User interface interactions</li>
+    <li><strong>api_request:</strong> API endpoint access and usage</li>
+    <li><strong>data_export:</strong> Data export operations</li>
+    <li><strong>configuration_change:</strong> System configuration modifications</li>
+  </ul>
+
+  <h3>Audit Trail Structure</h3>
+  <h4>Core Audit Entry</h4>
+  <pre><code>{
+    "audit_id": "audit_001234567890",
+    "timestamp": "2024-01-15T10:30:00.123456Z",
+    "event_type": "rule_compiled",
+    "severity": "info",
+    "user_id": "system",
+    "session_id": "session_987654321",
+    "correlation_id": "correlation_abcdef123456",
+    "source_component": "rule_compiler",
+    "operation_details": {
+      "obligation_id": "EBA_AML_2024_001",
+      "rule_id": "rule_aml_threshold_001",
+      "compilation_time_ms": 45.2,
+      "confidence_score": 0.94
+    },
+    "before_state": null,
+    "after_state": {
+      "rule_type": "threshold",
+      "json_logic": {"<=": [{"var": "amount"}, 10000]}
+    },
+    "metadata": {
+      "regulation_type": "AML",
+      "jurisdiction": "EU",
+      "processing_node": "worker-01"
+    },
+    "integrity_hash": "sha256:abcdef1234567890...",
+    "chain_hash": "sha256:fedcba0987654321..."
+  }</code></pre>
+
+  <h3>Integrity & Security</h3>
+  <h4>Cryptographic Integrity</h4>
+  <ul>
+    <li><strong>SHA-256 Hashing:</strong> Content integrity verification</li>
+    <li><strong>Chain of Custody:</strong> Immutable audit chain with forward/backward linking</li>
+    <li><strong>Digital Signatures:</strong> Cryptographic signing of audit entries</li>
+    <li><strong>Tamper Detection:</strong> Automatic detection of audit log modifications</li>
+  </ul>
+
+  <h3>Query & Analysis</h3>
+  <h4>Search Capabilities</h4>
+  <ul>
+    <li><strong>Time Range Queries:</strong> Filter by date/time ranges</li>
+    <li><strong>Event Type Filtering:</strong> Filter by specific audit event types</li>
+    <li><strong>User/Activity Filtering:</strong> Filter by user or component</li>
+    <li><strong>Content Search:</strong> Full-text search within audit entries</li>
+    <li><strong>Correlation Tracking:</strong> Trace related events via correlation IDs</li>
+  </ul>
+
+  <h3>Export & Reporting</h3>
+  <h4>Supported Formats</h4>
+  <ul>
+    <li><strong>JSON:</strong> Structured data for programmatic analysis</li>
+    <li><strong>CSV:</strong> Spreadsheet-compatible format for Excel analysis</li>
+    <li><strong>PDF:</strong> Formatted reports for regulatory submissions</li>
+    <li><strong>XML:</strong> Structured format for system integration</li>
+  </ul>
+
+  <h2>8. API Endpoints</h2>
+  <h3>Rule Compiler</h3>
+  <pre><code>POST /api/phase3/rule-compiler/compile
+{
+  "obligation_text": "Transactions above EUR 15,000 require enhanced due diligence",
+  "regulation_type": "AML",
+  "jurisdiction": "EU"
+}
+
+GET /api/phase3/rule-compiler/rules
+Returns compiled rules with metadata</code></pre>
+
+  <h3>Kafka Consumer</h3>
+  <pre><code>GET /api/phase3/kafka-consumer/status
+Returns consumer health and processing statistics
+
+POST /api/phase3/kafka-consumer/test-message
+Send test message for processing validation</code></pre>
+
+  <h3>Jurisdiction Handler</h3>
+  <pre><code>POST /api/phase3/jurisdiction-handler/filter
+{
+  "customer_country": "DE",
+  "business_country": "IE",
+  "regulation_type": "AML"
+}
+
+GET /api/phase3/jurisdiction-handler/config
+Returns jurisdiction configuration and hierarchy</code></pre>
+
+  <h3>Overlap Resolver</h3>
+  <pre><code>POST /api/phase3/overlap-resolver/detect
+{
+  "rule1_text": "Enhanced due diligence for high-risk customers",
+  "rule2_text": "Additional verification for PEP customers",
+  "similarity_threshold": 0.75
+}
+
+GET /api/phase3/overlap-resolver/overlaps
+Returns detected overlaps and resolution status</code></pre>
+
+  <h3>Audit Logger</h3>
+  <pre><code>GET /api/phase3/audit-logger/query?date_from=2024-01-01&event_type=rule_compiled
+Returns filtered audit entries
+
+POST /api/phase3/audit-logger/create
+{
+  "event_type": "user_action",
+  "details": "Rule compilation initiated by compliance officer",
+  "user_id": "officer_001"
+}</code></pre>
+
+  <h2>9. Monitoring & Metrics</h2>
+  <h3>Performance Metrics</h3>
+  <ul>
+    <li><strong>Rule Compilation:</strong> Compilation success rate, time, and error rates</li>
+    <li><strong>Kafka Processing:</strong> Message throughput, lag, and processing time</li>
+    <li><strong>Jurisdiction Resolution:</strong> Resolution time and cache hit rates</li>
+    <li><strong>Overlap Detection:</strong> Detection accuracy and resolution time</li>
+    <li><strong>Audit Logging:</strong> Logging performance and storage metrics</li>
+  </ul>
+
+  <h3>Quality Metrics</h3>
+  <ul>
+    <li><strong>Rule Accuracy:</strong> False positive/negative rates in rule application</li>
+    <li><strong>Jurisdiction Accuracy:</strong> Correct jurisdiction assignment rates</li>
+    <li><strong>Overlap Resolution:</strong> Manual review rates for overlap decisions</li>
+    <li><strong>Audit Completeness:</strong> Percentage of operations with audit coverage</li>
+  </ul>
+
+  <h2>10. Configuration</h2>
+  <h3>Rule Compiler Configuration</h3>
+  <pre><code># NLP Configuration
+SPACY_MODEL = "en_core_web_lg"
+NLTK_STOPWORDS = True
+LEMMATIZATION_ENABLED = True
+
+# AI Configuration
+OPENAI_MODEL = "gpt-4"
+OPENAI_TEMPERATURE = 0.1
+CONFIDENCE_THRESHOLD = 0.8
+
+# Processing Limits
+MAX_RULES_PER_OBLIGATION = 10
+MAX_PROCESSING_TIME_MS = 5000
+BATCH_SIZE = 50</code></pre>
+
+  <h3>Kafka Consumer Configuration</h3>
+  <pre><code># Consumer Settings
+CONSUMER_GROUP = "intelligence-compliance-group"
+AUTO_OFFSET_RESET = "latest"
+MAX_POLL_RECORDS = 100
+
+# Cache Configuration
+REDIS_CACHE_TTL = 3600
+CACHE_REFRESH_INTERVAL = 300
+
+# Resilience
+CIRCUIT_BREAKER_THRESHOLD = 5
+RETRY_BACKOFF_MS = 1000</code></pre>
+
+  <h3>Jurisdiction Configuration</h3>
+  <pre><code># Hierarchy Settings
+DEFAULT_PRECEDENCE = ["LOCAL", "NATIONAL", "SUPRANATIONAL", "INTERNATIONAL"]
+CONFLICT_STRATEGY = "HIGHEST_PRECEDENCE"
+
+# Performance
+CACHE_ENABLED = True
+CACHE_TTL_SECONDS = 1800
+BATCH_PROCESSING_SIZE = 100</code></pre>
+
+  <h2>11. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>Rule Compilation Failures</dt>
+    <dd>Check obligation text clarity and NLP model availability. Verify OpenAI API connectivity and quota limits.</dd>
+
+    <dt>Kafka Consumer Lag</dt>
+    <dd>Monitor consumer group lag and processing bottlenecks. Check Kafka broker connectivity and topic partitions.</dd>
+
+    <dt>Jurisdiction Resolution Errors</dt>
+    <dd>Validate customer data quality and jurisdiction mapping tables. Check for missing or invalid country codes.</dd>
+
+    <dt>Overlap Detection Performance</dt>
+    <dd>Optimize similarity calculation thresholds and enable caching. Consider batch processing for large rule sets.</dd>
+
+    <dt>Audit Log Corruption</dt>
+    <dd>Verify cryptographic integrity and check for storage system issues. Restore from backup if corruption detected.</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Test rule compilation
+curl -X POST http://localhost:8002/api/phase3/rule-compiler/compile \
+  -H "Content-Type: application/json" \
+  -d '{"obligation_text": "Test obligation", "regulation_type": "AML"}'
+
+# Check Kafka consumer status
+curl http://localhost:8002/api/phase3/kafka-consumer/status
+
+# View jurisdiction configuration
+curl http://localhost:8002/api/phase3/jurisdiction-handler/config
+
+# Query recent audit entries
+curl http://localhost:8002/api/phase3/audit-logger/query?limit=10
+
+# Monitor system metrics
+curl http://localhost:8002/metrics</code></pre>
+
+  <h2>12. Best Practices</h2>
+  <ul>
+    <li><strong>Rule Validation:</strong> Always validate generated rules against test cases before deployment</li>
+    <li><strong>Performance Monitoring:</strong> Monitor compilation times and consumer lag continuously</li>
+    <li><strong>Jurisdiction Updates:</strong> Keep jurisdiction mappings current with regulatory changes</li>
+    <li><strong>Overlap Resolution:</strong> Document rationale for overlap resolution decisions</li>
+    <li><strong>Audit Review:</strong> Regularly review audit logs for compliance and operational insights</li>
+    <li><strong>Cache Management:</strong> Monitor cache hit rates and adjust TTL settings appropriately</li>
+    <li><strong>Error Handling:</strong> Implement comprehensive error handling with appropriate fallbacks</li>
+    <li><strong>Security:</strong> Ensure secure handling of sensitive regulatory data and audit information</li>
+  </ul>
+
+</body>
+</html>

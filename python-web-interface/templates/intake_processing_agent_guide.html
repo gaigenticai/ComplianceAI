@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Intake Processing Agent Guide - ComplianceAI</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <style>body{font-family:Inter,Arial,Helvetica,sans-serif;padding:24px}</style>
+</head>
+<body>
+  <header style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#ec4899 100%);color:#fff;padding:1.25rem 0;margin-bottom:1rem;">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div>
+        <h1 style="margin:0;font-weight:700;font-size:1.25rem;">ComplianceAI Documentation</h1>
+        <small>Comprehensive user guides and API documentation</small>
+      </div>
+      <div>
+        <a href="/" class="btn btn-outline-light"><i class="fas fa-home me-2"></i>Home</a>
+      </div>
+    </div>
+  </header>
+
+  
+  <h1>Intake Processing Agent Guide</h1>
+  <p>This comprehensive guide covers the Intake Processing Agent, the cost-optimized document processing system that combines OCR, AI vision processing, and quality assessment for efficient KYC document intake.</p>
+
+  <h2>1. Overview</h2>
+  <p>The Intake Processing Agent is a sophisticated document processing system designed to minimize costs while maximizing accuracy. It serves as the entry point for all customer documents in the KYC process, combining local OCR processing with intelligent AI fallback to achieve optimal cost-efficiency.</p>
+
+  <h2>2. Core Architecture</h2>
+  <h3>Processing Pipeline</h3>
+  <pre><code>Document Upload → OCR Processing → Quality Assessment → Anomaly Detection → Result Storage
+                    ↓
+          AI Vision Fallback (if needed)
+                    ↓
+            Kafka → Intelligence Agent</code></pre>
+
+  <h3>Key Components</h3>
+  <ul>
+    <li><strong>Local OCR Engine:</strong> Tesseract-based processing for 80% of documents</li>
+    <li><strong>AI Vision Processor:</strong> GPT-4V fallback for complex documents</li>
+    <li><strong>Quality Scorer:</strong> Rule-based assessment of extracted data</li>
+    <li><strong>Anomaly Detector:</strong> ML-based detection of unusual patterns</li>
+    <li><strong>Schema Detector:</strong> Automatic document structure recognition</li>
+    <li><strong>Cost Optimizer:</strong> Intelligent routing between local and AI processing</li>
+  </ul>
+
+  <h2>3. Cost Optimization Strategy</h2>
+  <h3>Processing Costs</h3>
+  <table>
+    <tr>
+      <th>Method</th>
+      <th>Cost per Document</th>
+      <th>Use Case</th>
+      <th>Success Rate</th>
+    </tr>
+    <tr>
+      <td>Local OCR (Tesseract)</td>
+      <td>$0.05</td>
+      <td>Standard documents</td>
+      <td>80-85%</td>
+    </tr>
+    <tr>
+      <td>AI Vision (GPT-4V)</td>
+      <td>$0.35</td>
+      <td>Complex/damaged documents</td>
+      <td>95-98%</td>
+    </tr>
+    <tr>
+      <td>Target Cost</td>
+      <td>$0.10-0.15</td>
+      <td>All documents (weighted average)</td>
+      <td>90%+</td>
+    </tr>
+  </table>
+
+  <h3>Intelligent Routing</h3>
+  <ul>
+    <li><strong>Document Classification:</strong> Automatic detection of document complexity</li>
+    <li><strong>Quality Thresholds:</strong> Confidence scores determine processing method</li>
+    <li><strong>Fallback Logic:</strong> Automatic escalation from local to AI processing</li>
+    <li><strong>Cost Tracking:</strong> Real-time monitoring of processing expenses</li>
+  </ul>
+
+  <h2>4. Local OCR Engine</h2>
+  <h3>Technology Stack</h3>
+  <ul>
+    <li><strong>Tesseract OCR:</strong> Open-source OCR engine with high accuracy</li>
+    <li><strong>OpenCV:</strong> Image preprocessing and enhancement</li>
+    <li><strong>Pillow:</strong> Image format handling and manipulation</li>
+    <li><strong>PyMuPDF:</strong> PDF document processing</li>
+  </ul>
+
+  <h3>Image Preprocessing Pipeline</h3>
+  <ol>
+    <li><strong>Grayscale Conversion:</strong> Remove color information for better OCR</li>
+    <li><strong>Noise Reduction:</strong> Apply bilateral filtering to clean images</li>
+    <li><strong>Adaptive Thresholding:</strong> Convert to binary image for text extraction</li>
+    <li><strong>Deskewing:</strong> Correct document orientation and alignment</li>
+    <li><strong>Text Enhancement:</strong> Improve text clarity for OCR processing</li>
+  </ol>
+
+  <h3>Tesseract Configuration</h3>
+  <pre><code>tesseract_config = r'''--oem 3 --psm 6
+  -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz.,:-/
+  -c tessedit_pageseg_mode=6
+  -c tessedit_ocr_engine_mode=3'''
+
+# OCR Engine Mode (OEM):
+# 0 = Legacy engine only
+# 1 = Neural nets LSTM engine only
+# 2 = Legacy + LSTM engines
+# 3 = Default, based on what is available
+
+# Page Segmentation Mode (PSM):
+# 6 = Assume a single uniform block of text</code></pre>
+
+  <h3>Document Classification</h3>
+  <h4>Supported Document Types</h4>
+  <ul>
+    <li><strong>Passport:</strong> International travel documents</li>
+    <li><strong>National ID:</strong> Government-issued identity cards</li>
+    <li><strong>Driver's License:</strong> Vehicle operator permits</li>
+    <li><strong>Utility Bills:</strong> Address verification documents</li>
+    <li><strong>Bank Statements:</strong> Financial transaction records</li>
+  </ul>
+
+  <h4>Classification Algorithm</h4>
+  <pre><code>// Pattern matching for document type detection
+document_patterns = {
+  'passport': ['passport', 'nationality', 'date of birth', 'place of birth'],
+  'drivers_license': ['driver', 'license', 'class', 'restrictions'],
+  'national_id': ['national', 'identity', 'citizen', 'id number'],
+  'utility_bill': ['utility', 'bill', 'account', 'due date', 'amount'],
+  'bank_statement': ['statement', 'balance', 'transaction', 'account number']
+}
+
+// Classification score calculation
+score = (matching_patterns / total_patterns) * 100
+if score >= 60: return classified_type
+else: return 'unknown'</code></pre>
+
+  <h2>5. AI Vision Processing</h2>
+  <h3>GPT-4V Integration</h3>
+  <ul>
+    <li><strong>High-Resolution Analysis:</strong> "detail": "high" for maximum accuracy</li>
+    <li><strong>Structured Prompts:</strong> JSON-formatted extraction templates</li>
+    <li><strong>Confidence Scoring:</strong> AI reliability assessment</li>
+    <li><strong>Cost Monitoring:</strong> Token usage tracking and cost calculation</li>
+  </ul>
+
+  <h3>Processing Triggers</h3>
+  <ul>
+    <li><strong>Low OCR Confidence:</strong> < 70% confidence score</li>
+    <li><strong>Complex Documents:</strong> Multi-column layouts, tables, forms</li>
+    <li><strong>Damaged Images:</strong> Poor quality, skewed, or partially obscured</li>
+    <li><strong>Manual Override:</strong> force_ai_processing flag in request</li>
+  </ul>
+
+  <h3>Analysis Prompt Structure</h3>
+  <pre><code>{
+    "role": "user",
+    "content": [
+      {
+        "type": "text",
+        "text": "Analyze this KYC document and extract information in JSON format..."
+      },
+      {
+        "type": "image_url",
+        "image_url": {
+          "url": "data:image/jpeg;base64,{base64_image}",
+          "detail": "high"
+        }
+      }
+    ]
+  }</code></pre>
+
+  <h3>Expected Output Format</h3>
+  <pre><code>{
+    "document_type": "passport",
+    "personal_info": {
+      "full_name": "John Doe",
+      "date_of_birth": "1985-03-15",
+      "nationality": "United States",
+      "address": "123 Main St, Anytown, USA"
+    },
+    "document_details": {
+      "document_number": "P123456789",
+      "issue_date": "2020-03-15",
+      "expiry_date": "2030-03-14",
+      "issuing_authority": "Department of State"
+    },
+    "verification_elements": {
+      "has_photo": true,
+      "has_signature": true,
+      "security_features": ["hologram", "microprint", "UV_ink"]
+    },
+    "confidence": 0.95,
+    "quality_assessment": "high"
+  }</code></pre>
+
+  <h2>6. Quality Scoring Engine</h2>
+  <h3>Quality Metrics</h3>
+  <h4>Completeness (25% weight)</h4>
+  <ul>
+    <li><strong>Required Fields:</strong> document_type, personal_info, document_details</li>
+    <li><strong>Presence Check:</strong> Non-null and non-empty values</li>
+    <li><strong>Score Calculation:</strong> present_fields / total_required_fields</li>
+  </ul>
+
+  <h4>Accuracy (35% weight)</h4>
+  <ul>
+    <li><strong>OCR Confidence:</strong> Tesseract confidence scores</li>
+    <li><strong>AI Confidence:</strong> GPT-4V reliability assessment</li>
+    <li><strong>Data Validation:</strong> Format and pattern matching</li>
+    <li><strong>Cross-Reference:</strong> Internal consistency checks</li>
+  </ul>
+
+  <h4>Consistency (20% weight)</h4>
+  <ul>
+    <li><strong>Internal Consistency:</strong> Data relationships and dependencies</li>
+    <li><strong>Pattern Matching:</strong> Expected format compliance</li>
+    <li><strong>Logical Validation:</strong> Business rule compliance</li>
+  </ul>
+
+  <h4>Validity (20% weight)</h4>
+  <ul>
+    <li><strong>Date Validation:</strong> Future expiry dates, reasonable age ranges</li>
+    <li><strong>Format Compliance:</strong> Standard formats (ISO dates, postal codes)</li>
+    <li><strong>Business Rules:</strong> Regulatory compliance validation</li>
+  </ul>
+
+  <h3>Overall Quality Score</h3>
+  <pre><code>overall_score = (
+    completeness * 0.25 +
+    accuracy * 0.35 +
+    consistency * 0.20 +
+    validity * 0.20
+  )
+
+// Quality thresholds
+high_quality: overall_score >= 0.85
+medium_quality: 0.70 <= overall_score < 0.85
+low_quality: overall_score < 0.70</code></pre>
+
+  <h3>Quality Issue Detection</h3>
+  <pre><code>quality_issues = []
+
+if completeness < 0.8:
+    quality_issues.append("Incomplete data extraction")
+
+if accuracy < 0.85:
+    quality_issues.append("Low accuracy in data extraction")
+
+if consistency < 0.9:
+    quality_issues.append("Data consistency issues detected")
+
+if validity < 0.8:
+    quality_issues.append("Data validity concerns")
+
+return quality_issues</code></pre>
+
+  <h2>7. Anomaly Detection</h2>
+  <h3>Detection Methods</h3>
+  <h4>Statistical Anomalies</h4>
+  <ul>
+    <li><strong>Isolation Forest:</strong> Unsupervised ML for outlier detection</li>
+    <li><strong>Z-Score Analysis:</strong> Statistical deviation from mean</li>
+    <li><strong>Confidence Thresholds:</strong> Processing confidence below acceptable levels</li>
+  </ul>
+
+  <h4>Pattern-Based Anomalies</h4>
+  <ul>
+    <li><strong>Document Integrity:</strong> Missing security features, tampering signs</li>
+    <li><strong>Data Consistency:</strong> Contradictory information within document</li>
+    <li><strong>Format Anomalies:</strong> Unusual document layouts or formats</li>
+  </ul>
+
+  <h4>Business Rule Anomalies</h4>
+  <ul>
+    <li><strong>Age Validation:</strong> Unusually young or old individuals</li>
+    <li><strong>Date Logic:</strong> Issue dates after expiry dates</li>
+    <li><strong>Geographic Consistency:</strong> Address/country mismatches</li>
+  </ul>
+
+  <h3>Anomaly Types</h3>
+  <table>
+    <tr>
+      <th>Anomaly Type</th>
+      <th>Description</th>
+      <th>Risk Level</th>
+    </tr>
+    <tr>
+      <td>Document Tampering</td>
+      <td>Signs of document alteration</td>
+      <td>High</td>
+    </tr>
+    <tr>
+      <td>Data Inconsistency</td>
+      <td>Contradictory information</td>
+      <td>Medium</td>
+    </tr>
+    <tr>
+      <td>Quality Issues</td>
+      <td>Poor image quality or OCR failures</td>
+      <td>Low</td>
+    </tr>
+    <tr>
+      <td>Unusual Patterns</td>
+      <td>Statistical outliers from normal data</td>
+      <td>Medium</td>
+    </tr>
+  </table>
+
+  <h3>Anomaly Response</h3>
+  <ul>
+    <li><strong>High Risk:</strong> Automatic rejection and manual review queue</li>
+    <li><strong>Medium Risk:</strong> Flagged for additional verification</li>
+    <li><strong>Low Risk:</strong> Logged for monitoring, processing continues</li>
+  </ul>
+
+  <h2>8. Schema Detection</h2>
+  <h3>Document Structure Recognition</h3>
+  <ul>
+    <li><strong>Template Matching:</strong> Known document layouts and formats</li>
+    <li><strong>OCR Zone Detection:</strong> Text regions and field identification</li>
+    <li><strong>Pattern Recognition:</strong> Regular expressions for data extraction</li>
+    <li><strong>ML Classification:</strong> Document type and field prediction</li>
+  </ul>
+
+  <h3>Dynamic Schema Generation</h3>
+  <pre><code>// Schema detection for unknown documents
+detected_schema = {
+  "document_type": "auto_detected",
+  "fields": [
+    {
+      "name": "full_name",
+      "type": "string",
+      "location": {"x": 100, "y": 50, "width": 200, "height": 30},
+      "confidence": 0.92
+    },
+    {
+      "name": "document_number",
+      "type": "string",
+      "pattern": r"^[A-Z0-9]{8,12}$",
+      "location": {"x": 150, "y": 100, "width": 150, "height": 25},
+      "confidence": 0.88
+    }
+  ],
+  "validation_rules": [
+    "full_name_required",
+    "document_number_format_valid",
+    "expiry_date_future"
+  ]
+}</code></pre>
+
+  <h3>Schema Learning</h3>
+  <ul>
+    <li><strong>Template Library:</strong> Growing collection of known document schemas</li>
+    <li><strong>Pattern Recognition:</strong> Learning from successful extractions</li>
+    <li><strong>Feedback Loop:</strong> Human corrections improve future accuracy</li>
+    <li><strong>Version Control:</strong> Schema evolution tracking</li>
+  </ul>
+
+  <h2>9. API Endpoints</h2>
+  <h3>Document Processing</h3>
+  <pre><code>POST /process
+Content-Type: multipart/form-data
+
+Parameters:
+- session_id: string (KYC session identifier)
+- customer_id: string (Customer identifier)
+- document_type: string (optional, expected document type)
+- priority: string (normal/high/urgent)
+- force_ai_processing: boolean (force GPT-4V processing)
+- files: List[UploadFile] (document images/PDFs)
+
+Response:
+[
+  {
+    "session_id": "session_123",
+    "document_id": "doc_456",
+    "extracted_data": {...},
+    "confidence": 0.94,
+    "processing_method": "local_ocr",
+    "quality_score": 0.87,
+    "anomalies_detected": [],
+    "processing_time_seconds": 2.3,
+    "estimated_cost_dollars": 0.05,
+    "status": "completed"
+  }
+]</code></pre>
+
+  <h3>Health & Monitoring</h3>
+  <pre><code>GET /health
+Response:
+{
+  "status": "healthy",
+  "agent": "intake_processing",
+  "version": "1.0.0",
+  "uptime_seconds": 3600,
+  "active_processing": 3,
+  "queue_size": 12
+}
+
+GET /metrics
+Response: Prometheus metrics format
+# HELP intake_documents_processed_total Total documents processed
+# TYPE intake_documents_processed_total counter
+intake_documents_processed_total{method="local_ocr",status="success"} 1250
+intake_documents_processed_total{method="ai_vision",status="success"} 320
+
+# HELP intake_processing_duration_seconds Time spent processing documents
+# TYPE intake_processing_duration_seconds histogram
+intake_processing_duration_seconds_bucket{method="local_ocr",le="1.0"} 450
+intake_processing_duration_seconds_bucket{method="ai_vision",le="5.0"} 280</code></pre>
+
+  <h3>Quality Assessment</h3>
+  <pre><code>POST /api/quality/assess
+{
+  "extracted_data": {...},
+  "confidence": 0.85,
+  "processing_method": "local_ocr"
+}
+
+Response:
+{
+  "completeness": 0.9,
+  "accuracy": 0.85,
+  "consistency": 0.95,
+  "validity": 0.88,
+  "overall_score": 0.895,
+  "issues": ["Minor formatting inconsistencies"]
+}</code></pre>
+
+  <h3>Anomaly Detection</h3>
+  <pre><code>POST /api/anomalies/detect
+{
+  "extracted_data": {...},
+  "document_type": "passport",
+  "processing_method": "local_ocr"
+}
+
+Response:
+{
+  "anomalies": [
+    "Document appears to be under 18 years old",
+    "Address format unusual for country"
+  ],
+  "risk_level": "medium",
+  "recommendations": [
+    "Manual review recommended",
+    "Additional verification required"
+  ]
+}</code></pre>
+
+  <h2>10. Configuration</h2>
+  <h3>Processing Configuration</h3>
+  <pre><code># Cost optimization settings
+LOCAL_OCR_COST_PER_DOC = 0.05  # $0.05 per document
+AI_VISION_COST_PER_DOC = 0.35  # $0.35 per document
+TARGET_COST_PER_DOC = 0.15     # Target blended cost
+
+# Quality thresholds
+OCR_CONFIDENCE_THRESHOLD = 0.7   # Below this, use AI vision
+QUALITY_ACCEPTANCE_THRESHOLD = 0.8  # Below this, manual review
+ANOMALY_RISK_THRESHOLD = 0.3    # Above this, automatic rejection
+
+# Processing limits
+MAX_DOCUMENTS_PER_REQUEST = 10
+MAX_FILE_SIZE_MB = 50
+MAX_PROCESSING_TIME_SECONDS = 300  # 5 minutes timeout
+
+# OCR settings
+TESSERACT_CONFIG = r'--oem 3 --psm 6 -c tessedit_char_whitelist=0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+PREPROCESSING_ENABLED = True
+DENOISING_STRENGTH = 10
+
+# AI Vision settings
+OPENAI_MODEL = "gpt-4-vision-preview"
+VISION_DETAIL_LEVEL = "high"
+MAX_TOKENS = 1000
+TEMPERATURE = 0.1</code></pre>
+
+  <h3>Quality Assessment Configuration</h3>
+  <pre><code># Quality scoring weights
+QUALITY_WEIGHTS = {
+    'completeness': 0.25,
+    'accuracy': 0.35,
+    'consistency': 0.20,
+    'validity': 0.20
+}
+
+# Quality thresholds
+QUALITY_THRESHOLDS = {
+    'completeness': 0.8,
+    'accuracy': 0.85,
+    'consistency': 0.9,
+    'validity': 0.8
+}
+
+# Validation rules
+VALIDATION_RULES = {
+    'age_range': {'min': 18, 'max': 120},
+    'document_validity_months': 6,  # Documents must be valid for at least 6 months
+    'name_length': {'min': 2, 'max': 100},
+    'address_required_fields': ['street', 'city', 'country']
+}</code></pre>
+
+  <h3>Anomaly Detection Configuration</h3>
+  <pre><code># ML model settings
+ISOLATION_FOREST_CONTAMINATION = 0.1
+ZSCORE_THRESHOLD = 3.0
+CLUSTER_MIN_SAMPLES = 5
+
+# Anomaly scoring
+ANOMALY_WEIGHTS = {
+    'statistical': 0.4,
+    'pattern': 0.4,
+    'business_rule': 0.2
+}
+
+# Risk level thresholds
+RISK_THRESHOLDS = {
+    'low': 0.2,
+    'medium': 0.5,
+    'high': 0.8
+}
+
+# Business rules
+BUSINESS_RULES = [
+    'age_must_be_reasonable',
+    'expiry_date_must_be_future',
+    'document_must_have_security_features',
+    'address_must_match_country'
+]</code></pre>
+
+  <h2>11. Monitoring & Metrics</h2>
+  <h3>Performance Metrics</h3>
+  <ul>
+    <li><strong>Processing Time:</strong> Average time per document by method</li>
+    <li><strong>Cost Tracking:</strong> Real-time cost per document monitoring</li>
+    <li><strong>Success Rates:</strong> Processing success rates by document type</li>
+    <li><strong>Quality Scores:</strong> Distribution of quality assessment scores</li>
+    <li><strong>Anomaly Detection:</strong> False positive/negative rates</li>
+  </ul>
+
+  <h3>Business Metrics</h3>
+  <ul>
+    <li><strong>Cost Efficiency:</strong> Actual vs target cost per document</li>
+    <li><strong>Throughput:</strong> Documents processed per hour/day</li>
+    <li><strong>Accuracy:</strong> Data extraction accuracy by field type</li>
+    <li><strong>Manual Review Rate:</strong> Percentage requiring human intervention</li>
+  </ul>
+
+  <h3>Prometheus Metrics</h3>
+  <pre><code># Document processing metrics
+intake_documents_processed_total{method="local_ocr",status="success"} 15420
+intake_documents_processed_total{method="ai_vision",status="success"} 3280
+intake_processing_duration_seconds_bucket{method="local_ocr",le="5.0"} 18700
+
+# Cost metrics
+intake_cost_per_document_dollars{method="local_ocr"} 0.05
+intake_cost_per_document_dollars{method="ai_vision"} 0.35
+
+# Quality metrics
+intake_confidence_score_bucket{method="local_ocr",le="0.8"} 3200
+intake_quality_score_bucket{le="0.9"} 16500
+
+# System metrics
+intake_active_processing 5
+intake_queue_size 23</code></pre>
+
+  <h2>12. Troubleshooting</h2>
+  <h3>Common Issues</h3>
+  <dl>
+    <dt>Low OCR Accuracy</dt>
+    <dd>Check image quality, enable preprocessing, verify Tesseract installation</dd>
+
+    <dt>High Processing Costs</dt>
+    <dd>Review OCR confidence thresholds, optimize AI vision usage, monitor cost metrics</dd>
+
+    <dt>Quality Score Issues</dt>
+    <dd>Adjust quality thresholds, review validation rules, check data consistency</dd>
+
+    <dt>Anomaly Detection False Positives</dt>
+    <dd>Tune ML model parameters, review business rules, adjust risk thresholds</dd>
+
+    <dt>Processing Timeouts</dt>
+    <dd>Increase timeout limits, optimize image preprocessing, check system resources</dd>
+  </dl>
+
+  <h3>Debug Commands</h3>
+  <pre><code># Test OCR processing
+curl -X POST http://localhost:8005/process \
+  -F "session_id=test_session" \
+  -F "customer_id=test_customer" \
+  -F "files=@test_document.jpg"
+
+# Check processing metrics
+curl http://localhost:8005/metrics
+
+# Test quality assessment
+curl -X POST http://localhost:8005/api/quality/assess \
+  -H "Content-Type: application/json" \
+  -d '{"extracted_data": {"name": "John Doe"}, "confidence": 0.8}'
+
+# Monitor active processing
+curl http://localhost:8005/health
+
+# View anomaly patterns
+curl -X POST http://localhost:8005/api/anomalies/detect \
+  -H "Content-Type: application/json" \
+  -d '{"extracted_data": {"age": 150}}'</code></pre>
+
+  <h2>13. Integration Examples</h2>
+  <h3>Web Interface Integration</h3>
+  <pre><code>// Frontend document upload
+const formData = new FormData();
+formData.append('session_id', kycSession.id);
+formData.append('customer_id', customer.id);
+formData.append('files', documentFile);
+
+const response = await fetch('/api/intake/process', {
+  method: 'POST',
+  body: formData
+});
+
+const results = await response.json();
+
+// Handle processing results
+results.forEach(result => {
+  if (result.quality_score > 0.8) {
+    // High quality - proceed automatically
+    updateKycProgress(result);
+  } else {
+    // Low quality - flag for review
+    flagForManualReview(result);
+  }
+});</code></pre>
+
+  <h3>Kafka Integration</h3>
+  <pre><code>// Send processed results to next agent
+const kafkaMessage = {
+  agent: 'intake_processing',
+  session_id: result.session_id,
+  document_id: result.document_id,
+  data: result,
+  timestamp: new Date().toISOString()
+};
+
+await producer.send({
+  topic: 'intelligence_compliance_input',
+  messages: [{
+    key: result.session_id,
+    value: JSON.stringify(kafkaMessage)
+  }]
+});</code></pre>
+
+  <h3>Database Integration</h3>
+  <pre><code>// Store processing results
+const query = `
+  INSERT INTO intake_processing_results (
+    session_id, document_id, extracted_data, confidence,
+    processing_method, quality_score, status, created_at
+  ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+`;
+
+await pool.query(query, [
+  result.session_id,
+  result.document_id,
+  JSON.stringify(result.extracted_data),
+  result.confidence,
+  result.processing_method,
+  result.quality_score,
+  result.status,
+  new Date()
+]);</code></pre>
+
+  <h2>14. Best Practices</h2>
+  <ul>
+    <li><strong>Image Quality:</strong> Ensure high-resolution, well-lit document images</li>
+    <li><strong>Preprocessing:</strong> Always enable image preprocessing for better OCR results</li>
+    <li><strong>Cost Monitoring:</strong> Regularly review processing costs and adjust thresholds</li>
+    <li><strong>Quality Gates:</strong> Set appropriate quality thresholds for your risk tolerance</li>
+    <li><strong>Error Handling:</strong> Implement comprehensive error handling and fallback mechanisms</li>
+    <li><strong>Performance Monitoring:</strong> Monitor processing times and resource usage</li>
+    <li><strong>Model Updates:</strong> Regularly update Tesseract language models and AI prompts</li>
+    <li><strong>Data Validation:</strong> Implement strong validation rules for extracted data</li>
+    <li><strong>Audit Trails:</strong> Maintain complete audit trails for regulatory compliance</li>
+    <li><strong>Scalability:</strong> Design for horizontal scaling and load balancing</li>
+  </ul>
+
+  <h2>15. Regulatory Compliance</h2>
+  <h3>Data Protection</h3>
+  <ul>
+    <li><strong>GDPR Compliance:</strong> Secure handling of personal data during processing</li>
+    <li><strong>Data Minimization:</strong> Extract only necessary KYC information</li>
+    <li><strong>Retention Policies:</strong> Appropriate data retention periods</li>
+    <li><strong>Access Controls:</strong> Role-based access to processed documents</li>
+  </ul>
+
+  <h3>Processing Standards</h3>
+  <ul>
+    <li><strong>Accuracy Requirements:</strong> Meet regulatory accuracy standards</li>
+    <li><strong>Quality Assurance:</strong> Multi-level quality checks and validations</li>
+    <li><strong>Audit Trails:</strong> Complete processing history for regulatory review</li>
+    <li><strong>Error Reporting:</strong> Transparent error handling and reporting</li>
+  </ul>
+
+  <h2>16. Future Enhancements</h2>
+  <ul>
+    <li><strong>Advanced ML Models:</strong> Custom-trained OCR models for specific document types</li>
+    <li><strong>Real-time Processing:</strong> Streaming document processing for live verification</li>
+    <li><strong>Multi-language Support:</strong> Enhanced support for international documents</li>
+    <li><strong>Blockchain Integration:</strong> Immutable audit trails on distributed ledgers</li>
+    <li><strong>Edge Computing:</strong> On-device processing for enhanced privacy</li>
+    <li><strong>AI Model Optimization:</strong> Smaller, faster AI models for cost reduction</li>
+    <li><strong>Automated Learning:</strong> Self-improving systems through feedback loops</li>
+  </ul>
+
+</body>
+</html>

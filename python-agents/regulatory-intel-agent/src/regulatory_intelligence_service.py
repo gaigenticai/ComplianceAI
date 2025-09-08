@@ -46,10 +46,22 @@ from pydantic import BaseModel, Field, validator
 import uvicorn
 
 # AI/ML Libraries for document processing
-from langchain.document_loaders import PyPDFLoader, WebBaseLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
-from langchain_openai import ChatOpenAI
+try:
+    from langchain.document_loaders import PyPDFLoader, WebBaseLoader
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+    from langchain.schema import Document
+    from langchain.chat_models import ChatOpenAI
+except ImportError:
+    try:
+        from langchain_community.document_loaders import PyPDFLoader, WebBaseLoader
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        from langchain.schema import Document
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        from langchain.document_loaders import PyPDFLoader, WebBaseLoader
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+        from langchain.schema import Document
+        from langchain_openai import ChatOpenAI
 import spacy
 
 # Document processing libraries
@@ -471,10 +483,10 @@ class RegulatoryIntelligenceAgent:
     def _setup_ai_models(self):
         """
         Setup AI/ML models for document processing and obligation extraction
-        
+
         Initializes LangChain components for document processing,
         SpaCy for NLP, and OpenAI for advanced reasoning.
-        
+
         Rule Compliance:
         - Rule 1: Real AI models, not placeholder implementations
         - Rule 13: Production-grade model initialization with error handling
@@ -483,12 +495,36 @@ class RegulatoryIntelligenceAgent:
         try:
             # Initialize OpenAI client for advanced document reasoning
             # Used for complex obligation extraction and confidence scoring
-            self.openai_client = ChatOpenAI(
-                model="gpt-4",
-                temperature=0.1,  # Low temperature for consistent extraction
-                max_tokens=4000,
-                openai_api_key=os.getenv("OPENAI_API_KEY")
-            )
+
+            # Set environment variables to disable proxy (modern approach)
+            os.environ['OPENAI_PROXY'] = ''
+            os.environ['HTTPS_PROXY'] = ''
+            os.environ['HTTP_PROXY'] = ''
+            os.environ['NO_PROXY'] = '*'
+
+            # Initialize ChatOpenAI with proper parameters for current langchain version
+            try:
+                self.openai_client = ChatOpenAI(
+                    model="gpt-4",
+                    temperature=0.1,  # Low temperature for consistent extraction
+                    max_tokens=4000,
+                    openai_api_key=os.getenv("OPENAI_API_KEY"),
+                    request_timeout=30
+                )
+                self.logger.info("OpenAI client initialized successfully")
+            except Exception as e:
+                self.logger.error(f"Failed to initialize OpenAI client: {str(e)}")
+                # Fallback to simpler initialization
+                try:
+                    self.openai_client = ChatOpenAI(
+                        model="gpt-4",
+                        temperature=0.1,
+                        openai_api_key=os.getenv("OPENAI_API_KEY")
+                    )
+                    self.logger.info("OpenAI client initialized with fallback configuration")
+                except Exception as e2:
+                    self.logger.error(f"Fallback initialization also failed: {str(e2)}")
+                    raise Exception(f"Could not initialize OpenAI client. Please check API key and network connectivity. Error: {str(e)}")
             
             # Initialize SpaCy NLP model for entity extraction
             # Used for identifying regulatory entities, dates, and references
@@ -574,7 +610,19 @@ class RegulatoryIntelligenceAgent:
             # Load feed URLs and configurations from environment
             # Supports JSON configuration for multiple feeds
             feeds_config = os.getenv("REG_INTEL_FEEDS", "{}")
-            feeds = json.loads(feeds_config)
+            self.logger.info(f"REG_INTEL_FEEDS environment variable: '{feeds_config}'")
+
+            # Handle empty or None values
+            if not feeds_config or feeds_config.strip() == "":
+                self.logger.info("REG_INTEL_FEEDS is empty, using default configuration")
+                feeds_config = "{}"
+
+            try:
+                feeds = json.loads(feeds_config)
+                self.logger.info(f"Successfully parsed feeds configuration: {feeds}")
+            except json.JSONDecodeError as e:
+                self.logger.warning(f"Invalid JSON in REG_INTEL_FEEDS: '{feeds_config}'. Error: {e}. Using default configuration.")
+                feeds = {}
             
             # Default feed configuration if none provided
             if not feeds:
